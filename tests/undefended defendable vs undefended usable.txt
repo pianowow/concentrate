@@ -1,0 +1,818 @@
+*** Python 3.2.1 (default, Jul 10 2011, 21:51:15) [MSC v.1500 32 bit (Intel)] on win32. ***
+>>> #easy.txt 8 letter limit
+>>> #player0 values undefended tiles based on defendability
+>>> #player1 values undefended tiles baesd on usability
+>>> tournament(20)
+
+***********************   GAME 0001   ***********************
+  score: player0: 0 player1: 0
+
+player0 plays blue
+player1 plays red
+RGHMIRRCSISTSONRHEDLAYDVI ----- ----- ----- ----- -----
+blue plays YACHTERS                  ----- --b-- bb--- BBb-- Bb---  1 blue: 08(03) red: 00(00)
+ red plays REGISTRY                  Rr--r r-b-- rr--- bbr-- br---  2 blue: 04(00) red: 08(01)
+blue plays DESTROYS                  rr--r b-b-- BbBb- BBb-- BBb--  3 blue: 12(06) red: 03(00)
+ red plays INCOMERS                  Rr-rR r-rRR bbbrr Bbr-- BBb--  4 blue: 08(03) red: 11(04)
+blue plays ROMANCED                  rr-br b-brr BbBbb BBBb- BBb--  5 blue: 15(07) red: 05(00)
+ red plays CHROMED                   RrRRR r-rRr bbbrb BBbb- Bbr--  6 blue: 10(03) red: 11(05)
+blue plays LIVIDER                   RrRRr rbrrb bBbrb BBBbB BBBBB  7 blue: 16(10) red: 09(03)
+Blue wins!
+player1 plays blue
+player0 plays red
+RGHMIRRCSISTSONRHEDLAYDVI ----- ----- ----- ----- -----
+blue plays HYSTERIA                  ----b ----- bb--- BBb-- Bb---  1 blue: 08(03) red: 00(00)
+ red plays REGISTRY                  Rr--r r---- rr--- bbr-- br---  2 blue: 03(00) red: 08(01)
+blue plays DESTROYS                  rr--r b--b- Bb-b- BBb-- BBb--  3 blue: 11(05) red: 03(00)
+ red plays INCOMERS                  Rr-rR r-rRR bb-rr Bbr-- BBb--  4 blue: 07(03) red: 11(04)
+blue plays CONSIDER                  rr-rR b-brr BbBbb BBBb- BBb-b  5 blue: 15(07) red: 06(01)
+ red plays CHORTLED                  RrRRR r-rRr brbrb Bbbbr Bbr-b  6 blue: 10(02) red: 13(05)
+blue plays DIVORCER                  rrrRr bbbrb brbbb BbBbr BBBBb  7 blue: 17(06) red: 08(01)
+Blue wins!
+players tied 1-1
+they both played the same amount of moves to win
+
+***********************   GAME 0002   ***********************
+  score: player0: 1 player1: 1
+
+player0 plays blue
+player1 plays red
+SSTMANNNACCSWSEUGGUYSKTML ----- ----- ----- ----- -----
+blue plays MANACLES                  ---bB --bBB ---bb ----- ----b  1 blue: 08(03) red: 00(00)
+ red plays SMUGNESS                  Rr-rb r-bbb ---rr rr--- ----b  2 blue: 05(00) red: 08(01)
+blue plays SYSTEMS                   rbBBB r-bBB ---bB rr--b b---b  3 blue: 12(06) red: 04(00)
+ red plays UNSTACKS                  RrbBB r-rbB r--bB Rr-rb RRr-b  4 blue: 09(04) red: 11(04)
+blue plays MUSTANGS                  rbBBB r-bBB rb-bB rb-bB RrbBB  5 blue: 16(09) red: 06(01)
+ red plays SUGGESTS                  RrbBB r-bbB Rr-rb RRrrb RRrbB  6 blue: 10(04) red: 13(06)
+blue plays WALNUTS                   rbBBB rbBbB Rrbrb RRrbB RrbBB  7 blue: 15(08) red: 10(04)
+Blue wins!
+player1 plays blue
+player0 plays red
+SSTMANNNACCSWSEUGGUYSKTML ----- ----- ----- ----- -----
+blue plays MANACLES                  ---bB --bBB ---bb ----- ----b  1 blue: 08(03) red: 00(00)
+ red plays SMUGNESS                  Rr-rb r-bbb ---rr rr--- ----b  2 blue: 05(00) red: 08(01)
+blue plays SYSTEMS                   rbBBB r-bBB -b-bB rr--b ----b  3 blue: 12(06) red: 04(00)
+ red plays UNSTACKS                  RrbBB r-rbB rb-bB Rr-rb RRr-b  4 blue: 10(04) red: 11(04)
+blue plays NUTMEGS                   rbBBB r-bBB rb-bB rb-bB RrbBB  5 blue: 16(09) red: 06(01)
+ red plays SUGGESTS                  RrbBB r-bbB Rr-rb RRrrb RRrbB  6 blue: 10(04) red: 13(06)
+blue plays WALNUTS                   rbBBB rbBbB Rrbrb RRrbB RrbBB  7 blue: 15(08) red: 10(04)
+Blue wins!
+players tied 1-1
+they both played the same amount of moves to win
+
+***********************   GAME 0003   ***********************
+  score: player0: 2 player1: 2
+
+player0 plays blue
+player1 plays red
+GCSRZPSKDLETWTNCEIEIALENN ----- ----- ----- ----- -----
+blue plays RELIANCE                  ---b- ----- ----- bbb-- BBBb-  1 blue: 08(03) red: 00(00)
+ red plays REINCITE                  ---r- ----- ---r- rrrRr bbbr-  2 blue: 03(00) red: 08(01)
+blue plays PATIENCE                  ---r- b---- Bb-r- BBbrr BBBb-  3 blue: 10(06) red: 04(00)
+ red plays PLANNING                  r--r- r---r bb-rR BbrRR BBbrR  4 blue: 07(03) red: 11(04)
+blue plays SPECKING                  Bb-r- BBb-r Bb-rR BBbrR BBBbr  5 blue: 14(09) red: 07(02)
+ red plays WIZARDS                   BbrRR BBbrR BbrRR BbrrR BBbbr  6 blue: 13(07) red: 12(06)
+Blue wins!
+player1 plays blue
+player0 plays red
+GCSRZPSKDLETWTNCEIEIALENN ----- ----- ----- ----- -----
+blue plays NINETEEN                  ----- ----- bb--b ---bB --bBB  1 blue: 08(03) red: 00(00)
+ red plays DELICATE                  ----- ---r- br--b rRrrb RrbbB  2 blue: 06(01) red: 08(02)
+blue plays STILLERS                  --bb- -b-rb br-bB rrbBB rbBBB  3 blue: 14(06) red: 05(00)
+ red plays PIGLETS                   r-bb- Rr-rb Rr-rb RRrbB RrbBB  4 blue: 09(03) red: 12(05)
+blue plays STILTED                   r-bb- rb-bb rb-bB RrbBB rbBBB  5 blue: 15(06) red: 06(01)
+ red plays CELLISTS                  RRrb- Rr-br Rr-bb RRrbB RrbBB  6 blue: 09(03) red: 13(07)
+blue plays STILLS                    Rrbb- rb-bb rb-bB RrbBB rbBBB  7 blue: 15(06) red: 07(02)
+ red plays STILTERS                  RRrr- Rr-bb Rr-rb RRrbB RrbBB  8 blue: 08(03) red: 14(07)
+blue plays STILTS                    Rrbr- rb-bb rb-bB RrbBB rbBBB  9 blue: 14(06) red: 08(02)
+ red plays DISTILLS                  RRrr- Rr-rr Rr-bb RRrbB RrbBB  10 blue: 07(03) red: 15(07)
+blue plays INSTILLS                  Rrbr- rb-rb rb-bB RrbBB rbBBB  11 blue: 13(06) red: 09(02)
+ red plays SKILLETS                  RRRr- RRrrr Rr-bb RRrbB RrbBB  12 blue: 07(03) red: 16(09)
+blue plays WALTZED                   RRRrb RrrbB rbbBB RrrbB RrbBB  13 blue: 12(06) red: 13(06)
+Red wins!
+player0 won both games
+
+***********************   GAME 0004   ***********************
+  score: player0: 4 player1: 2
+
+player0 plays blue
+player1 plays red
+IAVTUSSGRTHDANNTISRSPANNH ----- ----- ----- ----- -----
+blue plays SHADINGS                  Bb--- BBb-- bb--- ----- --b--  1 blue: 08(03) red: 00(00)
+ red plays PATHING                   Bb--- bbr-- rb--- Rr--- RRr--  2 blue: 05(01) red: 07(03)
+blue plays HARSHING                  Bb--- BBb-- bBb-- rbBb- Rrb-b  3 blue: 13(05) red: 03(01)
+ red plays TRASHING                  br-r- bbr-- rbb-- Rrbrr RRr-b  4 blue: 07(00) red: 11(03)
+blue plays SHARPING                  Bb-r- BBb-- bBb-- rbBbb Rrb-b  5 blue: 14(05) red: 04(01)
+ red plays HAUNTING                  br-rR bbr-r rbbr- Rrbbb RRr-b  6 blue: 09(00) red: 12(04)
+blue plays STASHING                  Bb-rr BBb-b bBbr- rbBbb Rrb-b  7 blue: 15(05) red: 06(01)
+ red plays STRAIGHT                  br-rR bbrRr rbbr- Rrbbr Rrb-b  8 blue: 09(00) red: 13(04)
+blue plays HATING                    Bb-rr BBbrb bBBb- rbBbr Rrb-b  9 blue: 15(06) red: 07(01)
+ red plays HANDING                   br-rr bbrrb rbbr- Rrbbr RRr-b  10 blue: 09(00) red: 13(03)
+blue plays ANGUISH                   Bb-rb BBbrb bBbr- rbBbb Rrb-b  11 blue: 16(05) red: 06(01)
+ red plays HURTING                   Bb-rR bbrRr rbbr- Rrbrb RRr-b  12 blue: 09(01) red: 13(05)
+blue plays UNRIGHTS                  Bb-rr BBbrb bBbr- rbBbb Rrb-b  13 blue: 15(05) red: 07(01)
+ red plays PIRANHAS                  br-rr bbbrb rbrr- Rrbrr RRr-b  14 blue: 08(00) red: 14(03)
+blue plays RADIANTS                  Bb-br bBbBb rbBb- rbbrb Rrr-b  15 blue: 15(04) red: 07(01)
+ red plays SADISTS                   br-rr rbbbb Rrbb- RRrrr RRr-b  16 blue: 08(00) red: 14(05)
+blue plays DUSTPANS                  Bb-bB bBbBb rbBb- Rrbrr Rrb-b  17 blue: 15(05) red: 07(02)
+ red plays STRANDS                   br-rb rbbbb Rrbb- RRrrr RRr-b  18 blue: 09(00) red: 13(05)
+blue plays STANDS                    Bb-bB bBbBb rbBb- Rrbrr Rrb-b  19 blue: 15(05) red: 07(02)
+ red plays DUSTINGS                  bb-rb rbrbb Rrbb- RRrrr RRr-b  20 blue: 09(00) red: 13(05)
+blue plays DISGUSTS                  Bb-bB bBbBb rbBb- Rrbrb RRr-b  21 blue: 15(05) red: 07(03)
+ red plays DISSIGHT                  bb-rb rbrbb Rrbb- RRrrb RRr-r  22 blue: 09(00) red: 13(05)
+blue plays DIGITS                    Bb-bB bBbBb rbbb- Rrrrb RRr-r  23 blue: 13(04) red: 09(03)
+ red plays SANDINGS                  bb-bB rbrbb RrRr- RRRRr RRRRR  24 blue: 07(01) red: 16(11)
+blue plays DRIVINGS                  BBBBB bBbBb rbrb- RrRrr RRRRR  25 blue: 12(07) red: 12(07)
+ red plays STANDING                  bBbBb rbrbr RrRrR RRRRR RRRRR  26 blue: 07(02) red: 18(13)
+Red wins!
+player1 plays blue
+player0 plays red
+IAVTUSSGRTHDANNTISRSPANNH ----- ----- ----- ----- -----
+blue plays PANTINGS                  ----- --b-- ----- bbb-- BBBb-  1 blue: 08(03) red: 00(00)
+ red plays STANDING                  ----- --r-- -rRr- rrr-- bbbr-  2 blue: 03(00) red: 08(01)
+blue plays DISSIGHT                  b---- b-b-- Bbrr- BBb-- BBbr-  3 blue: 11(05) red: 03(00)
+ red plays SHADINGS                  Rr--- r-r-- brRr- Bbr-- Bbrrr  4 blue: 05(02) red: 11(02)
+blue plays SANDINGS                  rb--- b-b-- Bbrr- BBb-- BBBbr  5 blue: 12(06) red: 04(00)
+ red plays STRANDS                   Rr--- r-b-r brrrR BbbrR BBBbr  6 blue: 09(04) red: 11(03)
+blue plays RADIANTS                  rb--- b-b-b BbBbr BBBbr BBBbr  7 blue: 16(08) red: 04(00)
+ red plays DARNINGS                  Rr--- r-r-b brbrr BbbrR BBbrR  8 blue: 09(03) red: 11(03)
+blue plays INNARDS                   rb--- b-r-b Bbbbr BBBbr BBBbr  9 blue: 15(07) red: 05(00)
+ red plays PANDARS                   Rr--- r-r-b brrbr BbbrR BBbrR  10 blue: 09(03) red: 11(03)
+blue plays GRANDPAS                  rb--- b-b-b BbBbr BBBbr BBBbr  11 blue: 16(08) red: 04(00)
+ red plays RANTINGS                  Rr--- r-r-r bbbrR BBbrR BBbrR  12 blue: 09(04) red: 11(04)
+blue plays STARINGS                  rb--- bBb-b BBbrr BBBbr BBBbr  13 blue: 16(09) red: 05(00)
+ red plays ARRAIGNS                  Rr--- rbrrb bbrRr BBbrR BBbrR  14 blue: 10(04) red: 12(04)
+blue plays HANGARS                   rb--- bBbrb BBbrr BBBbr BBBbr  15 blue: 16(09) red: 06(00)
+ red plays SPARTANS                  Rr--- rbbrr bbrRR BBbrR BBbrR  16 blue: 10(04) red: 12(05)
+blue plays PARTISAN                  rb--- bBbrb BBbrr BBBbr BBBbr  17 blue: 16(09) red: 06(00)
+ red plays ARTISANS                  Rr--- rbbrr bbrRR BBbrR BBbrR  18 blue: 10(04) red: 12(05)
+blue plays PIRANHAS                  rb--- bBbrr BBbrR BBBbr BBBbr  19 blue: 15(09) red: 07(01)
+ red plays SPRANGS                   rb--- rbrrr bbrRR BBbrR BBbrR  20 blue: 10(04) red: 12(04)
+blue plays STARVING                  BBb-- BBbrb BBbrr BBBbr BBBbr  21 blue: 18(12) red: 05(00)
+ red plays TRUSTING                  BBbrR BbrRR BBbrR BBbrR BBbrR  22 blue: 14(09) red: 11(06)
+Blue wins!
+player1 won both games
+
+***********************   GAME 0005   ***********************
+  score: player0: 4 player1: 4
+
+player0 plays blue
+player1 plays red
+GSLGNSMSYNDRTAOLLUISHNOGO ----- ----- ----- ----- -----
+blue plays ONGOINGS                  ---bB ----b ----b ---bB ---bB  1 blue: 08(03) red: 00(00)
+ red plays GOSLINGS                  -rRrb --r-r ----r ---rb ---rb  2 blue: 03(00) red: 08(01)
+blue plays GYRATION                  -rrbB --rbB -bbBB ---bB ---rb  3 blue: 11(05) red: 04(00)
+ red plays OUTLYING                  -rRrb --rrb -brbB -rRrb -rRrb  4 blue: 07(01) red: 12(03)
+blue plays STUDYING                  -rrbB --bBB bbbBB -rrbB -brrb  5 blue: 14(06) red: 06(00)
+ red plays TOURINGS                  -rRrb --rbB brrbB -rRrb -rRRr  6 blue: 07(02) red: 13(04)
+blue plays SORTINGS                  -brbB --bBB bbbBB -rrbB -brrb  7 blue: 15(06) red: 05(00)
+ red plays SOURINGS                  -rRrb --rbB brbbB -rrrb -rRRr  8 blue: 08(02) red: 12(03)
+blue plays GLORIOUS                  -rrbB --bBB bbBBB -bbbB -rrrb  9 blue: 15(07) red: 05(00)
+ red plays ROUTINGS                  -rRrb --rbB brbbB -brrb -rRRr  10 blue: 09(02) red: 11(03)
+blue plays HURLINGS                  -rrbB --bBB bbBBB BBbbb Bbrrr  11 blue: 17(09) red: 05(00)
+ red plays SUDSING                   -rRrb --rbB rbbbb bbrrr brRRR  12 blue: 10(01) red: 12(04)
+blue plays MUSSING                   Bbrrb bbrbB rbbBb bBbbr BbrrR  13 blue: 17(05) red: 08(01)
+Blue wins!
+player1 plays blue
+player0 plays red
+GSLGNSMSYNDRTAOLLUISHNOGO ----- ----- ----- ----- -----
+blue plays ONGOINGS                  ---bB ----b ----b ---bB ---bB  1 blue: 08(03) red: 00(00)
+ red plays GOSLINGS                  -rRrb --r-r ----r ---rb ---rb  2 blue: 03(00) red: 08(01)
+blue plays SINGSONG                  -brbB --b-b ----b ---bB -b-bB  3 blue: 11(03) red: 01(00)
+ red plays MUGGINGS                  rRrrb -rb-r ----b --rrb -b-rb  4 blue: 06(00) red: 09(01)
+blue plays TALLYING                  rrbBB -rbBB --bBB b-rbB -b-rb  5 blue: 14(07) red: 05(00)
+ red plays TOOLINGS                  rRrbB -rrbB --rbB b-rrb -rRRr  6 blue: 08(03) red: 12(03)
+blue plays TURMOILS                  rrbBB -bBBB -bBBB b-bbB -rrrb  7 blue: 16(09) red: 05(00)
+ red plays MODULARS                  RRrbB RrbBB rrbBB b-rbb -rRrr  8 blue: 11(05) red: 12(04)
+blue plays ROUGHLY                   RRrbB RrbBB rbBBB bbbBB brrbB  9 blue: 17(09) red: 08(03)
+Blue wins!
+players tied 1-1
+however player1 won faster
+
+***********************   GAME 0006   ***********************
+  score: player0: 5 player1: 5.5
+
+player0 plays blue
+player1 plays red
+TSCOEEMSARMEGTNCTGNVTTDAD ----- ----- ----- ----- -----
+blue plays ANCESTOR                  --bBB --bBB ---bb ----- -----  1 blue: 08(04) red: 00(00)
+ red plays DESCENTS                  RrrbB r-rbb -r-br ----- --r--  2 blue: 05(01) red: 08(01)
+blue plays CANVASED                  rrbBB b-bBB -r-bB ----b --rbB  3 blue: 12(06) red: 04(00)
+ red plays CREMATES                  RRrbB rRrbB -r-rb ----b --rrb  4 blue: 07(02) red: 10(03)
+blue plays SCANTED                   rrbBB brbBB -r-bB ---bB --bBB  5 blue: 14(08) red: 04(00)
+ red plays COMMENTS                  RRrbB RRrbB rr-rb ---rb --bbB  6 blue: 09(03) red: 10(04)
+blue plays CEMENTS                   RrbBB rrbBB bb-bB ---bB --bBB  7 blue: 15(08) red: 04(01)
+ red plays SCENTED                   RRrbB rRrbB br-rb ---rb --rbB  8 blue: 09(03) red: 10(03)
+blue plays CONTENDS                  rrbBB brbBB br-bB ---bB --bBB  9 blue: 15(08) red: 04(00)
+ red plays CONTESTS                  RRrbB rRrbB br-rb -r-rb --bbB  10 blue: 10(03) red: 10(03)
+blue plays CRESCENT                  rrbBB brbBB Bb-bB br-bB --bBB  11 blue: 17(09) red: 04(00)
+ red plays SENTENCE                  RRrbB rRrbB br-rb br-rb --bbB  12 blue: 11(03) red: 10(03)
+blue plays REENACTS                  rrbBB brbBB Bb-bB br-bB --bBB  13 blue: 17(09) red: 04(00)
+ red plays REASCENT                  RRrbB rRrbB br-rb br-rb --bbB  14 blue: 11(03) red: 10(03)
+blue plays CENTERS                   rrbBB brbBB Bb-bB br-bB --bBB  15 blue: 17(09) red: 04(00)
+ red plays CANTEENS                  RRrbB rRrbB br-rb br-rb --bbB  16 blue: 11(03) red: 10(03)
+blue plays CONTENTS                  rrbBB brbBB br-bB bb-bB --bBB  17 blue: 17(08) red: 04(00)
+ red plays CONNECTS                  RRrbB rRrbB br-rb rb-rb --bbB  18 blue: 11(03) red: 10(03)
+blue plays GANGSTER                  rRrbB brbBB brbBB rbBBB --bBB  19 blue: 17(10) red: 06(01)
+ red plays TOTTERS                   RRRrb rRrbB brbBB rrbBB RrbBB  20 blue: 13(07) red: 12(05)
+Blue wins!
+player1 plays blue
+player0 plays red
+TSCOEEMSARMEGTNCTGNVTTDAD ----- ----- ----- ----- -----
+blue plays COASTERS                  -bBBB --bBb ---b- ----- -----  1 blue: 08(04) red: 00(00)
+ red plays STAMMERS                  RrbBb Rrrbr r--b- ----- ---r-  2 blue: 05(01) red: 08(02)
+blue plays SERVANTS                  rbBBB RrbBB rb-bB -b--b ---b-  3 blue: 13(06) red: 04(01)
+ red plays COTTAGES                  RrbBB RrbbB RRrrb rr--b ---r-  4 blue: 08(03) red: 11(04)
+blue plays TANDEMS                   rbBBB rbbBB RrrbB rr-bB ---bB  5 blue: 14(08) red: 07(01)
+ red plays MATTRESS                  RrbBB RRrbB RRrrb Rr-bB r--rb  6 blue: 09(04) red: 13(06)
+blue plays GADGETS                   rbbBB RrrbB Rrbrb RrbbB rbBBB  7 blue: 15(07) red: 10(03)
+Blue wins!
+players tied 1-1
+however player1 won faster
+
+***********************   GAME 0007   ***********************
+  score: player0: 6 player1: 7.0
+
+player0 plays blue
+player1 plays red
+EELOSNQCRMSVSHULOFNQINUTR ----- ----- ----- ----- -----
+blue plays SOLEMNER                  BbbBB b--bb ----- ----- -----  1 blue: 08(03) red: 00(00)
+ red plays LINOLEUM                  brrbb b--br ----- rr--- RRr--  2 blue: 05(00) red: 08(02)
+blue plays MOLECULE                  BbBBB b-bbB ----b bb--- rrr--  3 blue: 12(05) red: 03(00)
+ red plays FLOUTERS                  brbbB b-brb r---r Rrr-- RRRr-  4 blue: 07(01) red: 11(04)
+blue plays REQUOTES                  BBBBB BbbbB b---b rbr-- Rrrb-  5 blue: 14(07) red: 05(01)
+ red plays SNORTERS                  BBBbB bbbrb r-r-b RrRr- RRRRr  6 blue: 10(04) red: 12(06)
+blue plays UNHORSES                  BBBBB BbBBB b-bBb rbrb- RrRrr  7 blue: 16(10) red: 07(02)
+ red plays UNVISORS                  BBBBB bbbBb rrrbr RRRr- RRRRr  8 blue: 11(06) red: 13(07)
+blue plays SQUINTS                   BBBBB BbBBB brbBB rRrbb RRRrr  9 blue: 16(11) red: 09(04)
+Blue wins!
+player1 plays blue
+player0 plays red
+EELOSNQCRMSVSHULOFNQINUTR ----- ----- ----- ----- -----
+blue plays ENCLOSER                  BbBBb b-bb- ----- ----- -----  1 blue: 08(03) red: 00(00)
+ red plays INCLOSES                  brbbr b-rb- r---- Rr--- Rr---  2 blue: 05(00) red: 08(02)
+blue plays CONSUMES                  BbBBB b-bbB b---b rb--- rb---  3 blue: 13(05) red: 02(00)
+ red plays FORTUNES                  brbbB b-brb r---b Rrr-- RRRr-  4 blue: 08(01) red: 10(04)
+blue plays SHORTENS                  BbBBB b-bBB b-bBb rbrb- Rrrb-  5 blue: 16(07) red: 05(01)
+ red plays CONVENTS                  brbBB r-rbB Rrbbb RRrr- RRRr-  6 blue: 09(03) red: 13(06)
+blue plays CONFINER                  BbBBB b-bBB rrbBb Rrbb- RRrrb  7 blue: 15(07) red: 08(03)
+ red plays UNFENCES                  brbBB r-rbb Rrrbr RRRr- RRRrb  8 blue: 08(02) red: 15(07)
+blue plays UNSECRET                  BbBBB b-bBB rrbbb RRrr- RRrbb  9 blue: 14(06) red: 09(04)
+ red plays TRENCHES                  brbBB r-rbB RrRrb RRRr- RRRRr  10 blue: 07(03) red: 16(09)
+blue plays INTRENCH                  BbBBB b-bBB rrrbb RRrb- RRRrb  11 blue: 13(06) red: 10(05)
+ red plays UNCHOSEN                  brbBB r-rbb RrRrr RRRr- RRRrb  12 blue: 07(02) red: 16(08)
+blue plays CONTINUE                  BbBBB b-bbB rrrrb RRrb- RRrbb  13 blue: 13(05) red: 10(04)
+ red plays TROUNCER                  brbbB b-rrb rrRRr RRRr- RRRRr  14 blue: 06(01) red: 17(09)
+blue plays UNCOVERS                  BbBBB b-bbB bbrrb rrrb- RRRrr  15 blue: 13(05) red: 10(03)
+ red plays UNNERVES                  brbbB r-brb RrrRr RRRr- RRRRr  16 blue: 06(01) red: 17(09)
+blue plays OVERRUNS                  BbBBB b-bbB rbbrb Rrrr- RRRrb  17 blue: 13(05) red: 10(04)
+ red plays INCURVES                  brbbB r-rrb RrRRr RRRr- RRRrb  18 blue: 06(01) red: 17(09)
+blue plays INCENTER                  BbBBB b-bbb rrrrr RRrb- RRrbb  19 blue: 12(04) red: 11(04)
+ red plays INTERCOM                  brbbb r-rrr RrRrr RRrb- RRRrb  20 blue: 06(00) red: 17(07)
+blue plays MUNCHERS                  BbBBB b-bBB rrrbb RRrb- RRRrb  21 blue: 13(06) red: 10(05)
+ red plays LUNCHEON                  brbBB r-rbb RrRrr RRRr- RRRrb  22 blue: 07(02) red: 16(08)
+blue plays UNCLOTHE                  BbBBB b-bBB rrrbb RRRr- RRrbb  23 blue: 13(06) red: 10(05)
+ red plays TRENCHER                  brbBB r-rbB RrRrb RRRr- RRRRr  24 blue: 07(03) red: 16(09)
+blue plays CONVENER                  BbBBB b-bbB rbrrb Rrrb- RRRrb  25 blue: 13(05) red: 10(04)
+ red plays CONNIVER                  brbbB r-rrb RrRrb RRRr- RRRrb  26 blue: 07(01) red: 16(08)
+blue plays REINVENT                  BbbBB b-rbB rbrrb Rrrb- RRrbb  27 blue: 13(04) red: 10(03)
+ red plays VENTURER                  brbbB b-rrb rrRRr RRRr- RRRRr  28 blue: 06(01) red: 17(09)
+blue plays REINCURS                  BbBBB b-bbB brrrb rRrb- RRRrb  29 blue: 13(05) red: 10(04)
+ red plays UNICORNS                  bbbbB r-rrb RrRRr RRRr- RRRrb  30 blue: 07(01) red: 16(09)
+blue plays CONFRONT                  BbBBB b-bbb rrrrr RRrb- RRrbb  31 blue: 12(04) red: 11(04)
+ red plays NORTHERN                  brbbB r-brb RrrRr RRRr- RRRRr  32 blue: 06(01) red: 17(09)
+blue plays RUNNERS                   BbBBB b-bbB rrbrb RRrb- RRRrb  33 blue: 13(05) red: 10(05)
+ red plays CURRENTS                  brbbB b-rrb rrRRr RRRr- RRRRr  34 blue: 06(01) red: 17(09)
+blue plays CHURNERS                  BbBBB b-bbB brrrb rRrb- RRRrb  35 blue: 13(05) red: 10(04)
+ red plays CENSURER                  brbbB b-rrb rrRRr RRRr- RRRRr  36 blue: 06(01) red: 17(09)
+blue plays RECURVES                  BbBBB b-bbB bbrrb rrRr- RRRrb  37 blue: 13(05) red: 10(04)
+ red plays CONVERTS                  brbbB r-rrb RrRrb RRRr- RRRrb  38 blue: 07(01) red: 16(08)
+blue plays INVENTOR                  BbbBB b-rbB rbrrb Rrrb- RRrbb  39 blue: 13(04) red: 10(03)
+ red plays TURNOVER                  brbbB b-rrb rrRRr RRRr- RRRRr  40 blue: 06(01) red: 17(09)
+blue plays UNCURSES                  BbBBB b-bbB brrrb rRrb- RRRrr  41 blue: 12(05) red: 11(04)
+ red plays CONQUERS                  brbbB b-rrb rrRRr RRRRR RRRRR  42 blue: 06(01) red: 18(12)
+blue plays CROQUETS                  BBBBB BbbbB brrrb rRRRr RRRRR  43 blue: 12(07) red: 13(08)
+Red wins!
+player0 won both games
+
+***********************   GAME 0008   ***********************
+  score: player0: 8 player1: 7.0
+
+player0 plays blue
+player1 plays red
+YOSEYRDIODYCMSVRSSSTNSANG ----- ----- ----- ----- -----
+blue plays STARVING                  ----- --b-- ----b b--bB --bBB  1 blue: 08(03) red: 00(00)
+ red plays SARDINES                  ---r- -rr-- ----b r--rb RrrbB  2 blue: 04(01) red: 08(01)
+blue plays MORASSES                  ---b- -rrb- --bBb b-bBB rrbBB  3 blue: 12(05) red: 04(00)
+ red plays SCARVES                   ---r- -rrb- -rbbr rRrbb RRrbB  4 blue: 07(01) red: 11(03)
+blue plays DISSAVED                  --bb- -bBBb -rbBB rrbBB RrbBB  5 blue: 15(08) red: 05(01)
+ red plays DISMAYED                  --br- -rbbr rRrbb RRrbB RRrbB  6 blue: 09(02) red: 12(05)
+blue plays DOOMSDAY                  -bbr- -bBbb brbBB rrbBB RrbBB  7 blue: 16(07) red: 06(01)
+ red plays ADVISORY                  -bbr- rbbrr Rrbbb RRrbB RRrbB  8 blue: 11(02) red: 12(05)
+blue plays ODYSSEYS                  bBBBB rbBBB RrbBB RrbBB RRrbB  9 blue: 17(12) red: 08(04)
+Blue wins!
+player1 plays blue
+player0 plays red
+YOSEYRDIODYCMSVRSSSTNSANG ----- ----- ----- ----- -----
+blue plays VINTAGES                  ---b- --b-- ----b ---bB --bBB  1 blue: 08(03) red: 00(00)
+ red plays MASSIVES                  ---r- --r-- --r-r -rRrb --rbB  2 blue: 03(01) red: 08(01)
+blue plays DISSAVES                  ---b- --b-b --rbB -brbB --bBB  3 blue: 11(04) red: 02(00)
+ red plays DISCASES                  ---r- --r-r -rRrb -rRrb --rbB  4 blue: 04(01) red: 10(02)
+blue plays ODYSSEYS                  b-bBB --rbB -rrbB -rrbB --rbB  5 blue: 12(06) red: 06(00)
+ red plays SODDENS                   b-bbB -rrrb -rRrb -rRrb --rrb  6 blue: 08(01) red: 11(02)
+blue plays EROSIONS                  BbBBB brbBB -rrbB -rrbB --rbB  7 blue: 15(09) red: 06(00)
+ red plays SINNERS                   BbbBB brrbB -rrbB rRRrb RRRrb  8 blue: 12(05) red: 12(05)
+blue plays DYNAMICS                  BBBBB BBBBB bbbBB rrrbB RRrbB  9 blue: 19(14) red: 06(02)
+Blue wins!
+players tied 1-1
+they both played the same amount of moves to win
+
+***********************   GAME 0009   ***********************
+  score: player0: 9 player1: 8.0
+
+player0 plays blue
+player1 plays red
+CSSNMREARGOOPHLMCISUPMRFU ----- ----- ----- ----- -----
+blue plays COARSENS                  BBBb- Bbb-- b---- ----- -----  1 blue: 08(04) red: 00(00)
+ red plays MONGRELS                  BbbrR brbrR r---r ---r- -----  2 blue: 05(01) red: 08(02)
+blue plays HORMONES                  BBBbr BBbbr Bb-br b--b- -----  3 blue: 13(06) red: 03(00)
+ red plays ORPHANS                   BBbrR BbrRR brrRr b--r- -----  4 blue: 07(03) red: 10(04)
+blue plays CHAMPION                  BBBbr BBbrR BBbrr bBbr- -b---  5 blue: 14(08) red: 06(01)
+ red plays RAMPINGS                  BBbrR BbrRR bbrRr rbrr- -br--  6 blue: 09(03) red: 12(04)
+blue plays INFORMAL                  BBBbr BBbrr Bbrrb bBbr- -bBb-  7 blue: 16(08) red: 06(00)
+ red plays UNPLUMES                  BBbrR BBbrR bbrRR rbbrR rbBbr  8 blue: 13(05) red: 12(05)
+Blue wins!
+player1 plays blue
+player0 plays red
+CSSNMREARGOOPHLMCISUPMRFU ----- ----- ----- ----- -----
+blue plays COARSENS                  BBBb- Bbb-- b---- ----- -----  1 blue: 08(04) red: 00(00)
+ red plays MALIGNER                  BbbrR brrrR b---r --r-- -----  2 blue: 05(01) red: 08(02)
+blue plays PERSONAL                  BBBbr BBBbr bbb-b --rb- -----  3 blue: 13(06) red: 03(00)
+ red plays FORLORNS                  BBbrR bbbrR rrb-r --rr- --rr-  4 blue: 07(02) red: 11(02)
+blue plays CONFORMS                  BBBbr BBBbr BBb-r bbrb- --rb-  5 blue: 15(08) red: 05(00)
+ red plays CONFIRMS                  BBbrR BBbrR Bbb-r brrr- -rRr-  6 blue: 10(05) red: 11(03)
+blue plays CRAMPING                  BBBbr BBBbr BBb-r BBbr- Bbrr-  7 blue: 16(11) red: 06(00)
+ red plays UNROUGH                   BBbrR BBbrR BBbrR BBbrR BbrRR  8 blue: 14(09) red: 11(06)
+Blue wins!
+players tied 1-1
+they both played the same amount of moves to win
+
+***********************   GAME 0010   ***********************
+  score: player0: 10 player1: 9.0
+
+player0 plays blue
+player1 plays red
+EGAONUTILRNSPNIGMRNCRSECL ----- ----- ----- ----- -----
+blue plays ORIGINAL                  -bBBB --bbB ----b ----- -----  1 blue: 08(04) red: 00(00)
+ red plays MINGLERS                  -bbbB --rrb r---b Rr--- RRr--  2 blue: 06(01) red: 08(03)
+blue plays UNSILENT                  BBBBB BBbBB bb-bb rr--- RRr--  3 blue: 14(09) red: 05(02)
+ red plays RUININGS                  BBbBB bbrbb rr-rr RRr-- RRr--  4 blue: 09(04) red: 11(04)
+blue plays INCLINES                  BBBBB BBbBB bb-bB rrr-b Rrb-b  5 blue: 17(10) red: 05(01)
+ red plays PENSIONS                  BBbBB bbrbB rrRrb RRr-b RRr-b  6 blue: 12(05) red: 11(05)
+blue plays INCENSOR                  BBBBB BBbbB bbrrb rrbbB RrbBB  7 blue: 19(11) red: 06(01)
+Blue wins!
+player1 plays blue
+player0 plays red
+EGAONUTILRNSPNIGMRNCRSECL ----- ----- ----- ----- -----
+blue plays SAUTEING                  BBb-- BBb-- bb--- ----- -----  1 blue: 08(04) red: 00(00)
+ red plays SMEARING                  Bbr-- bbr-- rb--- Rr--- RRr--  2 blue: 05(01) red: 08(03)
+blue plays COMPLAIN                  BBBb- BBBb- bBb-- rb--b Rrr--  3 blue: 13(07) red: 04(01)
+ red plays CORNMEAL                  BBbr- bBbr- rbb-- Rrr-b RRRr-  4 blue: 09(03) red: 10(04)
+blue plays UNMORAL                   BBBb- BBBb- bBb-- rbb-b Rrrr-  5 blue: 14(07) red: 05(01)
+ red plays TROMPING                  BBbr- bBbb- rbr-r Rrr-b RRRr-  6 blue: 09(03) red: 11(04)
+blue plays ROMPING                   BBBb- BBBb- bBb-b rbb-b Rrrr-  7 blue: 15(07) red: 05(01)
+ red plays IMPRISON                  BBbr- bBbb- rbr-r Rrr-b RRRr-  8 blue: 09(03) red: 11(04)
+blue plays UPCOMING                  BBBb- BBBb- bBb-b rbr-b Rrrb-  9 blue: 15(07) red: 05(01)
+ red plays COLUMNS                   BBbr- bBbr- rbb-b Rrr-b RRRr-  10 blue: 10(03) red: 10(04)
+blue plays SOLEMNER                  BBBb- BBBb- bBb-b rbb-b Rrrr-  11 blue: 15(07) red: 05(01)
+ red plays NORMALS                   BBbr- bBbr- rbb-b Rrr-b RRRr-  12 blue: 10(03) red: 10(04)
+blue plays MONGRELS                  BBBb- BBBb- bBb-b rbb-b Rrrr-  13 blue: 15(07) red: 05(01)
+ red plays CRIMPING                  BBBb- bBbb- rbr-r Rrr-r RRRr-  14 blue: 09(04) red: 11(04)
+blue plays TRUMPING                  BBBb- BBBb- bBb-b rbb-r Rrrr-  15 blue: 14(07) red: 06(01)
+ red plays TRAMPING                  BBBb- bBbb- rbr-r Rrr-r RRRr-  16 blue: 09(04) red: 11(04)
+blue plays RUMPING                   BBBb- BBBb- bBb-b rbb-r Rrrr-  17 blue: 14(07) red: 06(01)
+ red plays RAMPINGS                  BBBb- bBbb- rbr-r Rrr-r RRRr-  18 blue: 09(04) red: 11(04)
+blue plays PRIMINGS                  BBBb- BBBb- bBb-b rbb-r Rrrr-  19 blue: 14(07) red: 06(01)
+ red plays PERMING                   BBBb- bBbb- rbr-r Rrr-r RRRr-  20 blue: 09(04) red: 11(04)
+blue plays MISPRINT                  BBBb- BBBb- bBb-b rbb-r Rrrr-  21 blue: 14(07) red: 06(01)
+ red plays IMPRINTS                  BBBb- bBbb- rbr-r Rrr-r RRRr-  22 blue: 09(04) red: 11(04)
+blue plays IMPINGER                  BBBb- BBBb- bBb-b rbb-r Rrrr-  23 blue: 14(07) red: 06(01)
+ red plays CRAMPING                  BBBb- bBbb- rbr-r Rrr-r RRRr-  24 blue: 09(04) red: 11(04)
+blue plays CLUMPING                  BBBb- BBBb- bBb-b rbr-r Rrrbb  25 blue: 15(07) red: 06(01)
+ red plays CLAMPING                  BBBb- BBbb- bbr-r rrRrR RRRRR  26 blue: 10(05) red: 12(07)
+blue plays SPURNING                  BBBBB BBBBB Bbbbb brrrr rRRRR  27 blue: 16(11) red: 09(04)
+Blue wins!
+players tied 1-1
+however player0 won faster
+
+***********************   GAME 0011   ***********************
+  score: player0: 11.5 player1: 10.0
+
+player0 plays blue
+player1 plays red
+ARSNTAMSRMLPDCCUPOLIUSTUP ----- ----- ----- ----- -----
+blue plays MARTIALS                  BBb-- Bb--- b---- ----b --b--  1 blue: 08(03) red: 00(00)
+ red plays CULPRITS                  Bbr-- Bb-r- b---r ---rR --rRR  2 blue: 05(02) red: 08(03)
+blue plays UNCLASPS                  BBBb- BBbr- Bb--b b--br --rrR  3 blue: 12(06) red: 05(01)
+ red plays LUSCIOUS                  BBbb- Bbrr- bb--r r-rrR RrRRR  4 blue: 08(03) red: 12(05)
+blue plays SCULPTOR                  BBBBb BBbb- Bb--b bbbbr rrrrR  5 blue: 16(07) red: 06(01)
+ red plays POPULARS                  BBbbb Bbrr- br--b rRrrr RRRRR  6 blue: 09(03) red: 13(06)
+blue plays MODICUMS                  BBBbB Bbbrb brbbB brbrb rRrRr  7 blue: 16(06) red: 09(02)
+Blue wins!
+player1 plays blue
+player0 plays red
+ARSNTAMSRMLPDCCUPOLIUSTUP ----- ----- ----- ----- -----
+blue plays MARTIALS                  BBb-b Bb--- b---- ----b -----  1 blue: 08(03) red: 00(00)
+ red plays PULLOUTS                  BBb-b bb--- r---- Rrrrb RRr--  2 blue: 07(02) red: 08(03)
+blue plays SUPPLANT                  BBBbb BBb-- bb--- rrrrb RrbbB  3 blue: 14(06) red: 06(01)
+ red plays UNSPLIT                   BBbrb bbr-- rr--- RRrrr RRRrb  4 blue: 07(02) red: 13(05)
+blue plays NUPTIALS                  BBBbb BBb-- bb--- rrrrb RRrbB  5 blue: 13(06) red: 07(02)
+ red plays PLATINUM                  BBbrR bbb-r rr--- RRrrr RRRrb  6 blue: 07(02) red: 14(06)
+blue plays CARDIACS                  BBbrR bbBbr rrbbb RRrrb RRRrb  7 blue: 12(03) red: 13(06)
+Red wins!
+player0 won both games
+
+***********************   GAME 0012   ***********************
+  score: player0: 13.5 player1: 10.0
+
+player0 plays blue
+player1 plays red
+EELRMRSSPRIDNLNSTNMTOHLIG ----- ----- ----- ----- -----
+blue plays SPIELERS                  BBb-- Bb-b- b---- b---- -----  1 blue: 08(03) red: 00(00)
+ red plays HOSTILES                  Bbb-- br-b- r---- Rr--- RRr--  2 blue: 05(01) red: 07(03)
+blue plays DENTISTS                  BBb-- BBBb- bBb-- rb--b Rrr--  3 blue: 12(06) red: 04(01)
+ red plays TILTINGS                  Bbr-- bBbb- rbb-- Rrr-r RRRrR  4 blue: 08(02) red: 11(05)
+blue plays TRILLION                  BBBb- BBBb- bBBb- rbb-r Rrrbr  5 blue: 15(08) red: 06(01)
+ red plays MISPRINT                  BBbr- bBbr- rbbb- Rrrrr RRRRR  6 blue: 09(03) red: 13(06)
+blue plays TROMPING                  BBbrb BBBbB bBbbb rbrrr RrRRR  7 blue: 15(07) red: 10(04)
+Blue wins!
+player1 plays blue
+player0 plays red
+EELRMRSSPRIDNLNSTNMTOHLIG ----- ----- ----- ----- -----
+blue plays RESIDERS                  Bb-b- BBb-- bb--- ----- -----  1 blue: 08(03) red: 00(00)
+ red plays HEDONIST                  br-b- bbb-- rr--- RRr-- Rr---  2 blue: 05(00) red: 08(03)
+blue plays IMPLORED                  BBBBB BBbbb bb--- rrr-- Rr---  3 blue: 12(07) red: 05(01)
+ red plays SPRINGED                  BBbbb bbrrr rrr-- RRr-- Rr--r  4 blue: 07(02) red: 12(03)
+blue plays INSPIRED                  BBBBB BBBbb bbb-- rrr-- Rr-br  5 blue: 14(08) red: 06(01)
+ red plays RIPENED                   BBBbb bbbrr rrr-- RRr-- Rr-br  6 blue: 09(03) red: 11(03)
+blue plays PRINTING                  BBBBB BbBbb brb-- rrb-b Rr-bB  7 blue: 16(08) red: 05(01)
+ red plays LIMPINGS                  BbBbB brbrb rrb-- RRrrb RRRrb  8 blue: 11(03) red: 12(05)
+blue plays SPOILING                  BBBBB BbBBB brbbB rRrrb RRrbB  9 blue: 17(11) red: 08(03)
+Blue wins!
+players tied 1-1
+however player0 won faster
+
+***********************   GAME 0013   ***********************
+  score: player0: 15.0 player1: 11.0
+
+player0 plays blue
+player1 plays red
+RNOFKGDCLHETCTTSSRARNAUWH ----- ----- ----- ----- -----
+blue plays STRANGES                  ----- b---- Bb--- BBb-- Bb---  1 blue: 08(04) red: 00(00)
+ red plays ARROGANT                  Rrr-- r---- br--- Bbrr- br---  2 blue: 04(01) red: 08(01)
+blue plays GRADUATE                  rrr-- bb--- Bb--- BBbb- BBb--  3 blue: 11(05) red: 03(00)
+ red plays DAUGHTER                  RRr-- rr--r br--- Bbrr- Bbr--  4 blue: 05(02) red: 10(02)
+blue plays WROUGHT                   rrb-- br--b Bb--- BBbr- BBBb-  5 blue: 12(06) red: 04(00)
+ red plays REGROWTH                  RRr-- rr--b bb-r- BbrRr BBbrR  6 blue: 08(03) red: 11(04)
+blue plays GROWLERS                  rrb-- br-bb Bb-r- BBbrb BBBbr  7 blue: 14(06) red: 06(00)
+ red plays THWARTER                  rrb-- br-br br-rR BbrRR BBbrR  8 blue: 09(03) red: 12(04)
+blue plays THWARTED                  rrb-- bb-bb Bb-br BBbrR BBBbr  9 blue: 15(06) red: 06(01)
+ red plays GROWTHS                   Rrr-- rb-br bb-rR BbrRR BBbrR  10 blue: 09(03) red: 12(05)
+blue plays TWANGERS                  rbr-- bb-br Bb-br BBbrR BBBbr  11 blue: 14(06) red: 07(01)
+ red plays STALWART                  rbr-- bb-rr br-rR BbrRR BBbrR  12 blue: 09(03) red: 12(04)
+blue plays THROWERS                  BBb-- Bb-rb Bb-rr BBbrR BBBbr  13 blue: 15(09) red: 06(01)
+ red plays WORTHED                   Bbr-- br-rr br-rR BbrRR BBbrR  14 blue: 09(04) red: 12(04)
+blue plays CROTCHED                  BBb-- BBbrb BBbrr BBbrR BBbrR  15 blue: 16(10) red: 07(02)
+ red plays UNFORKED                  BbrRr BBbrb BBbrr BbrRR BbrRR  16 blue: 13(07) red: 12(05)
+Blue wins!
+player1 plays blue
+player0 plays red
+RNOFKGDCLHETCTTSSRARNAUWH ----- ----- ----- ----- -----
+blue plays SAUNTERS                  ----- ----- bb--- BBb-- BBb--  1 blue: 08(04) red: 00(00)
+ red plays REGROUND                  RRr-- Rr--- rb--- bbr-- Bbr--  2 blue: 05(01) red: 08(03)
+blue plays EDUCATOR                  Rrb-- rb--- bBbb- BBBb- BBb--  3 blue: 13(06) red: 03(01)
+ red plays AUTHORED                  RRr-- Rr--- rbbbr bBbrR Bbr-r  4 blue: 08(02) red: 11(04)
+blue plays OUTLAWED                  Rrb-- rb-b- bBbBb BBBbr BBBbr  5 blue: 16(08) red: 05(01)
+ red plays WANTONED                  RRr-- Rr-b- rbbbr bBbrR BBbrR  6 blue: 10(03) red: 11(05)
+blue plays WATCHED                   Rrr-- rbbbb bBBBb BBBbr BBBbr  7 blue: 17(09) red: 06(01)
+ red plays THANKFUL                  RrrRR rbbrR bBBbr BBbrR BBBbr  8 blue: 13(07) red: 12(05)
+Blue wins!
+players tied 1-1
+however player1 won faster
+
+***********************   GAME 0014   ***********************
+  score: player0: 16.0 player1: 12.5
+
+player0 plays blue
+player1 plays red
+OLPTVEWNLOISYSLBRKTEMVOPS ----- ----- ----- ----- -----
+blue plays PISTOLES                  ----- ----b b--bB ---bB ---bB  1 blue: 08(03) red: 00(00)
+ red plays POLLSTER                  Rr--- r--rb b--rb -r-rb ---rb  2 blue: 05(00) red: 08(01)
+blue plays PRIESTLY                  rr--- b--bb b-bBB -b-bB ---bB  3 blue: 12(04) red: 02(00)
+ red plays REPOINTS                  Rr--- r-rbr rrbbb -r-rb ---rb  4 blue: 06(00) red: 10(01)
+blue plays STOPOVER                  rr--b b-rbB rbbBB -b-bB --bBB  5 blue: 14(06) red: 04(00)
+ red plays WESTERLY                  Rr--b RRrrb rRrbB -r-rb --bbB  6 blue: 08(02) red: 11(04)
+blue plays PRETTILY                  RrbBB rRrbB brbBB -b-bB --bBB  7 blue: 15(08) red: 06(02)
+ red plays TRIPLY                    RRrbB RRRrb rRrbB -r-rb --bbB  8 blue: 09(03) red: 12(06)
+blue plays POLITELY                  RrbBB rRrbB brbBB -r-bB --bBB  9 blue: 14(08) red: 07(02)
+ red plays POSSIBLY                  RRrbB RRRrb RRrbB rr-bB --rbB  10 blue: 09(04) red: 13(07)
+blue plays POTBELLY                  RrbBB RRrbB rrbBB br-bB --bBB  11 blue: 14(08) red: 08(03)
+ red plays POTENTLY                  RRrbB RRRrb rRrbB br-rb --rbB  12 blue: 09(03) red: 13(06)
+blue plays INEPTLY                   RrbBB rRrbB brbBB br-bB --rbB  13 blue: 14(07) red: 08(02)
+ red plays SLOPPILY                  RRrbB RRRrb rRrbB br-bB --rrb  14 blue: 09(03) red: 13(06)
+blue plays SLIPPERY                  RrbBB rRrbB brbBB bb-bB --rbB  15 blue: 15(07) red: 07(02)
+ red plays LIBERTY                   RrbbB RRrrb RRrbB rr-rb --rbB  16 blue: 09(03) red: 13(05)
+blue plays MOLTENLY                  rbBBB RrbBB RrbBB rr-bB b-bBB  17 blue: 16(10) red: 07(02)
+ red plays OVERLOOK                  RrbBB RrbBB RrbBB rRrbB brrbB  18 blue: 14(08) red: 11(04)
+Blue wins!
+player1 plays blue
+player0 plays red
+OLPTVEWNLOISYSLBRKTEMVOPS ----- ----- ----- ----- -----
+blue plays SPOTLESS                  ----- ----b -b-bB ---bB ---bB  1 blue: 08(03) red: 00(00)
+ red plays PISTOLES                  Rr--- r---b rr-rb ---rb ---rb  2 blue: 04(00) red: 08(01)
+blue plays PROTESTS                  rr-b- b---b rb-bB -b-bB --bBB  3 blue: 12(04) red: 03(00)
+ red plays BESTOWS                   Rr-b- Rr--r Rr-rb rb-rb --bbB  4 blue: 07(01) red: 10(03)
+blue plays SOLVENTS                  Rr-bB RrbBB rb-bB rb-bB --bBB  5 blue: 14(07) red: 06(02)
+ red plays PORTENTS                  RRRrb RRrbB Rr-bB rr-rb --rbB  6 blue: 08(03) red: 13(06)
+blue plays SNOTTY                    RRrbB RrbBB rbbBB rr-bB --bBB  7 blue: 14(08) red: 08(03)
+ red plays STINTY                    RRRrb RRrbB RRrbB rr-rb --bbB  8 blue: 09(03) red: 13(07)
+blue plays ROTTENLY                  RRrbB RrbBB RrbBB rb-bB --bBB  9 blue: 14(08) red: 08(04)
+ red plays ETERNITY                  RRRrb RRrbB RRrbB rr-rb --bbB  10 blue: 09(03) red: 13(07)
+blue plays ENTIRETY                  RRrbB RrbBB RrbBB rb-bB --bBB  11 blue: 14(08) red: 08(04)
+ red plays POTENTLY                  RRRrb RRrbB RrrbB rb-rb --rbB  12 blue: 09(03) red: 13(06)
+blue plays ROTTENS                   RRrbB RrbBB rbrbB rb-bB --bBB  13 blue: 14(07) red: 08(03)
+ red plays STINTERS                  RRRrb RRrbB RRrrb rr-rb --bbB  14 blue: 08(02) red: 14(07)
+blue plays TINTERS                   RRrbB RrbBB RrrbB rb-bB --bBB  15 blue: 13(07) red: 09(04)
+ red plays INTORTS                   RRRrb RRrbB RRrrb rr-rb --rbB  16 blue: 07(02) red: 15(07)
+blue plays BOTTLERS                  RRrbB RRrbB rrrbB bb-bB --bBB  17 blue: 13(06) red: 09(04)
+ red plays BLOTTERS                  RRRrb RRRrb RRrrb rr-rb --rbB  18 blue: 06(01) red: 16(08)
+blue plays BOTTLES                   RRrbB RRrbB rRrbB br-bB --bBB  19 blue: 12(06) red: 10(05)
+ red plays BRITTLES                  RRRrb RRRrb RRrrb rr-rb --bbB  20 blue: 07(01) red: 15(08)
+blue plays STILTY                    RRrbB RRrbB RrbBB rr-bB --bBB  21 blue: 12(07) red: 10(05)
+ red plays LOTTERY                   RRRrb RRRrb RRrbB rr-rb --rbB  22 blue: 07(02) red: 15(08)
+blue plays REBOTTLE                  RRrbB RRrbB rrrbB bb-bB --bBB  23 blue: 13(06) red: 09(04)
+ red plays BITTERLY                  RRRrb RRRrb RRrbB rr-rb --bbB  24 blue: 08(02) red: 14(08)
+blue plays TRITELY                   RRrbB RRrbB RrbBB rb-bB --bBB  25 blue: 13(07) red: 09(05)
+ red plays PRETTILY                  RRRrb RRRrb RRrbB rr-rb --bbB  26 blue: 08(02) red: 14(08)
+blue plays LITTERY                   RRrbB RRrbB RrbBB rb-bB --bBB  27 blue: 13(07) red: 09(05)
+ red plays TROLLY                    RRRrb RRRrb RRrbB rr-bB --rbB  28 blue: 08(03) red: 14(08)
+blue plays POTBELLY                  RRrbB RRrbB rrbBB br-bB --bBB  29 blue: 13(07) red: 09(04)
+ red plays LIBERTY                   RRrbB RRRrb RRrbB rr-rb --bbB  30 blue: 09(03) red: 13(07)
+blue plays TRIPLY                    RrbBB RRrbB RrbBB rb-bB --bBB  31 blue: 14(08) red: 08(04)
+ red plays PORTLY                    RRrbB RRRrb RRrbB rr-rb --rbB  32 blue: 08(03) red: 14(07)
+blue plays POLITELY                  RrbBB RRrbB RrbBB rr-bB --bBB  33 blue: 13(08) red: 09(04)
+ red plays STEEPLY                   RRrbB RRRrb RRrbB rr-rb --bbB  34 blue: 09(03) red: 13(07)
+blue plays PRIESTLY                  RrbBB RRrbB RrbBB rb-bB --bBB  35 blue: 14(08) red: 08(04)
+ red plays PERTLY                    RRrbB RRRrb RRrbB rr-rb --bbB  36 blue: 09(03) red: 13(07)
+blue plays PLENTY                    RrbBB RRrbB RrbBB rr-bB --bBB  37 blue: 13(08) red: 09(04)
+ red plays INEPTLY                   RRrbB RRRrb RRrbB rr-rb --bbB  38 blue: 09(03) red: 13(07)
+blue plays BLISTERY                  RRrbB RRrbB rrbBB bb-bB --bBB  39 blue: 14(07) red: 08(04)
+ red plays TROLLEYS                  RRRrb RRRrb rRrbB br-bB --rbB  40 blue: 09(03) red: 13(07)
+blue plays MOISTLY                   RRrbB rRrbB brbBB br-bB b-bBB  41 blue: 15(07) red: 08(03)
+ red plays REINVOKE                  RRrbB RRrbB rrbBB brrbB brrbB  42 blue: 13(06) red: 12(04)
+Blue wins!
+players tied 1-1
+however player0 won faster
+
+***********************   GAME 0015   ***********************
+  score: player0: 17.5 player1: 13.5
+
+player0 plays blue
+player1 plays red
+TRINSREEGDSSTBIPOLXFRWTEA ----- ----- ----- ----- -----
+blue plays RESISTER                  BBb-- BBb-- bb--- ----- -----  1 blue: 08(04) red: 00(00)
+ red plays SEEDINGS                  BbrRR bbrrr rb--- ----- ---r-  2 blue: 05(01) red: 08(02)
+blue plays PISTOLED                  BBbrr BBbrb BBb-- bbb-- ---r-  3 blue: 13(06) red: 04(00)
+ red plays SPIRITED                  BbrRR BbrrR bbr-r rbb-- r--r-  4 blue: 08(02) red: 11(03)
+blue plays PRESTIGE                  BBbrR BBBbr BBb-r Bbb-- b--b-  5 blue: 15(08) red: 04(01)
+ red plays FRIGATES                  BbrRR BBbrR Bbr-r bbb-r r--rR  6 blue: 10(04) red: 11(04)
+blue plays WRESTING                  BBbrR BBBbr BBb-r BBb-r Bb-br  7 blue: 16(10) red: 06(01)
+ red plays WELTINGS                  BbrRR BBbrR Bbr-r Bbr-r br-rR  8 blue: 10(05) red: 12(04)
+blue plays TOWELING                  BBbrR BBBbr BBb-r BBb-r Bb-br  9 blue: 16(10) red: 06(01)
+ red plays WESTINGS                  BbrRR BBbrR Bbr-r Bbb-r br-rR  10 blue: 11(05) red: 11(04)
+blue plays TWEETING                  BBbrR BBBbr BBb-r BBb-r BBBbr  11 blue: 17(12) red: 06(01)
+ red plays BOXINGS                   BbrRR BBbrR BBbrR BBbrR BBBbr  12 blue: 15(10) red: 10(05)
+Blue wins!
+player1 plays blue
+player0 plays red
+TRINSREEGDSSTBIPOLXFRWTEA ----- ----- ----- ----- -----
+blue plays RESISTER                  BBb-- BBb-- bb--- ----- -----  1 blue: 08(04) red: 00(00)
+ red plays ASSIGNED                  BbrRR bbrrr rb--- ----- ----r  2 blue: 05(01) red: 08(02)
+blue plays PISTOLED                  BBbrr BBbrb BBb-- bbb-- ----r  3 blue: 13(06) red: 04(00)
+ red plays SPIRITED                  BbrRR BbrrR bbr-r rbb-- r---r  4 blue: 08(02) red: 11(03)
+blue plays PRESTIGE                  BBbrR BBBbr BBb-r Bbb-- b--br  5 blue: 15(08) red: 05(01)
+ red plays DETOXING                  BbrRR BBbrR Bbb-r brbr- b-rRr  6 blue: 11(04) red: 11(04)
+blue plays WORSTING                  BBbrR BBBbr BBb-r BBbr- BBbrr  7 blue: 16(11) red: 07(01)
+ red plays LIFEBOAT                  BbrrR BBbbr BbrrR BbrRR BBbrR  8 blue: 13(07) red: 12(05)
+Blue wins!
+players tied 1-1
+however player1 won faster
+
+***********************   GAME 0016   ***********************
+  score: player0: 18.5 player1: 15.0
+
+player0 plays blue
+player1 plays red
+RLDEGFDTVTGCIASHCRPSETIIR ----- ----- ----- ----- -----
+blue plays AIRSTRIP                  ----- ----- ---b- --bBb -bBBB  1 blue: 08(04) red: 00(00)
+ red plays RESTAGES                  ---rR ----r ---rR --rbr rbbBb  2 blue: 05(01) red: 08(02)
+blue plays CATCHERS                  ---rr ----b -b-br bBbBb BBBBB  3 blue: 13(07) red: 03(00)
+ red plays HARVESTS                  ---rR ---rR -b-rR rbrbr bBbBb  4 blue: 08(02) red: 09(03)
+blue plays GARISHED                  ---br -b-rR bBbbr BBBBb BBBBB  5 blue: 16(10) red: 04(01)
+ red plays DISRATED                  r-rRR -rRRR bbrrR BBbbr BBBBb  6 blue: 11(06) red: 12(06)
+blue plays FIDDLERS                  BBbrR BbrRR BBbrr BBBbb BBBBB  7 blue: 18(13) red: 07(03)
+Blue wins!
+player1 plays blue
+player0 plays red
+RLDEGFDTVTGCIASHCRPSETIIR ----- ----- ----- ----- -----
+blue plays AIRSTRIP                  ----- ----- ---b- --bBb -bBBB  1 blue: 08(04) red: 00(00)
+ red plays SHATTERS                  ----- ----r ---rR r-rbr RrbBb  2 blue: 04(01) red: 08(02)
+blue plays ERRATICS                  b--b- ----r --bbr rbBBb rbBBB  3 blue: 12(05) red: 04(00)
+ red plays DISGAVEL                  brrRR ---rR --rrR rbbbr rbBBb  4 blue: 08(02) red: 12(04)
+blue plays LAVISHED                  bbbrR ---br --bbr bbBBb BBBBB  5 blue: 16(07) red: 04(01)
+ red plays ADHESIVE                  bbrRR ---rR --rrR rbbbr bBBBb  6 blue: 10(03) red: 10(04)
+blue plays DISPATCH                  bbbrR --brR -bBbr bBBBb BBBBB  7 blue: 17(09) red: 05(02)
+ red plays FRIDGED                   rbrRR RrbrR rbBbr bBBBb BBBBB  8 blue: 15(09) red: 10(04)
+Blue wins!
+players tied 1-1
+however player0 won faster
+
+***********************   GAME 0017   ***********************
+  score: player0: 20.0 player1: 16.0
+
+player0 plays blue
+player1 plays red
+IESSASTNRGRSPHNZBSETKTEDB ----- ----- ----- ----- -----
+blue plays INSTRESS                  BBBb- Bbb-- b---- ----- -----  1 blue: 08(04) red: 00(00)
+ red plays STRANGER                  BbbrR brbrR r---r ---r- -----  2 blue: 05(01) red: 08(02)
+blue plays STRIPERS                  BBBbr BBBbr bbb-r ---b- -----  3 blue: 12(06) red: 03(00)
+ red plays TRASHERS                  BBbrR bbbrR rrbrR ---rr -----  4 blue: 07(02) red: 10(03)
+blue plays RESTRESS                  BBBbr BBBbr bbbrr --bbb --b--  5 blue: 15(06) red: 04(00)
+ red plays PRESSERS                  BBbrR bbbrR rrrRr --rrb --r--  6 blue: 07(02) red: 12(03)
+blue plays INBREEDS                  BBBbr Bbbrr brrrb --rbB --bBB  7 blue: 14(07) red: 07(00)
+ red plays INTERNES                  BbbrR brrRR rrRRr --rrb --rbB  8 blue: 07(02) red: 14(05)
+blue plays INTENSER                  BBBbr Bbbrr brrrb --rbB --bBB  9 blue: 14(07) red: 07(00)
+ red plays ABSENTER                  BbbrR brrRr rRRrb -rRrb --rbB  10 blue: 08(02) red: 14(05)
+blue plays STRENGTH                  BBBbr Bbbrb brrbB -rrbB -brbB  11 blue: 16(07) red: 07(00)
+ red plays STRINGED                  BbbrR brrrr rRrbb -rRrb -brrb  12 blue: 09(01) red: 14(03)
+blue plays PRETENDS                  BBBbr bbBbr rrbBb -rrbB -bbBB  13 blue: 17(08) red: 06(00)
+ red plays SERPENTS                  bbbrR rrbrR rRrbr -rRrb -brbB  14 blue: 09(01) red: 14(04)
+blue plays PRESENTS                  BBBbr bbBbr rrbBb -rrbB -bbBB  15 blue: 17(08) red: 06(00)
+ red plays STEEPERS                  bbbrR rrbrr rRrbb -rRrb -brbB  16 blue: 10(01) red: 13(03)
+blue plays PRESTIGE                  bBBbr rbBBb rrbBB -rrbB -bbBB  17 blue: 17(09) red: 06(00)
+ red plays STEEPING                  rbbrR Rrbbr rRrbb -rRrb -brbB  18 blue: 10(01) red: 13(04)
+blue plays STEERING                  bBBbr rbbBb brrbB -rrbB -bbBB  19 blue: 17(07) red: 06(00)
+ red plays INTEGERS                  rbbrR Rrrbr rRrbb -rRrb -brbB  20 blue: 09(01) red: 14(04)
+blue plays SHEETING                  bBBbr rbbBb rrrbB -rrbB -bbBB  21 blue: 16(07) red: 07(00)
+ red plays SEETHING                  rbbrR Rrrbr rRRrb -rRrb -brbB  22 blue: 08(01) red: 15(05)
+blue plays TIGHTENS                  bBBbr rbbBb rrrbB -rrbB -brbB  23 blue: 15(06) red: 08(00)
+ red plays STINGED                   rbbrR Rrrbr rRrbb -rRrb -brrb  24 blue: 08(00) red: 15(04)
+blue plays INGESTED                  bBBbr rbbBb rrrbB -rrbB -bbBB  25 blue: 16(07) red: 07(00)
+ red plays TEETHING                  rbbbr Rrrbr rRRrb -rRrb -rrbB  26 blue: 08(01) red: 15(04)
+blue plays INGATHER                  bBBBB rbbBB brrbB -rrbB -rrbB  27 blue: 16(09) red: 07(00)
+ red plays ADHERENT                  bbbBB rrrbB rRRrb -rRrb -rRrb  28 blue: 10(03) red: 13(04)
+blue plays HASTENED                  BBBBB bbbBB rrrbB -rrbB -rrbB  29 blue: 16(10) red: 07(00)
+ red plays NIGHTED                   BbbBB brrbB rRRrb -rRrb -rRrb  30 blue: 11(04) red: 12(04)
+blue plays THREATEN                  BBBBB BbbBB brrbB -rrbB -brrb  31 blue: 17(10) red: 06(00)
+ red plays THIRTEEN                  BbbBB brrbB rRRrb -rRrb -rRrb  32 blue: 11(04) red: 12(04)
+blue plays THANKED                   BBBBB bbbBB rrrbB -rrbB brrbB  33 blue: 17(10) red: 07(00)
+ red plays ZESTED                    bbBBB rrbBB RRrbB rRRrb brRrb  34 blue: 13(06) red: 12(05)
+Blue wins!
+player1 plays blue
+player0 plays red
+IESSASTNRGRSPHNZBSETKTEDB ----- ----- ----- ----- -----
+blue plays INSTRESS                  BBBb- Bbb-- b---- ----- -----  1 blue: 08(04) red: 00(00)
+ red plays TRASHING                  BbbrR brrRr b--r- ----- -----  2 blue: 05(01) red: 07(02)
+blue plays TENNISES                  BBBbr BBbrr bb-rb ---b- --b--  3 blue: 12(05) red: 04(00)
+ red plays INTERNES                  BBbrR bbrRR rb-rR ---rr --r--  4 blue: 06(02) red: 11(04)
+blue plays ABSENTED                  BBBbr bBbrR rb-rr ---bb --bBB  5 blue: 13(06) red: 06(01)
+ red plays SERPENTS                  bBbrR rbrRR rbrRR ---rr --rbb  6 blue: 07(01) red: 13(05)
+blue plays PRESENTS                  BBBbr BBbrR bbbrr ---bb --bBB  7 blue: 15(07) red: 05(01)
+ red plays REPENTS                   BBbrR bbrRR rbrRR ---rr --rbb  8 blue: 08(02) red: 12(05)
+blue plays RESENTS                   BBBbr BBbrR bbrrr --bbb --bBB  9 blue: 15(07) red: 06(01)
+ red plays RENESTS                   BBbrR bbrRR rbrRR --rrr --rbb  10 blue: 08(02) red: 13(05)
+blue plays NESTERS                   BBBbr BBbrR bbrrr --bbb --bBB  11 blue: 15(07) red: 06(01)
+ red plays EARNESTS                  BBbrR bbrRR rbrRR --rrr --rbb  12 blue: 08(02) red: 13(05)
+blue plays ASSENTER                  BBBbr BBbrR bbrrr --bbb --bBB  13 blue: 15(07) red: 06(01)
+ red plays STINTERS                  BBbrR bbrRR rbrRR --rrr -rbbb  14 blue: 09(02) red: 13(05)
+blue plays SPINSTER                  BBBbr BBbrR bbbrr --bbb -rbBB  15 blue: 16(07) red: 06(01)
+ red plays PRETENSE                  BBbrR bbrRR rbrRR --brr -rrbb  16 blue: 09(02) red: 13(05)
+blue plays TENTERS                   BBBbr BBbrR bbrrr --bbb -bBBB  17 blue: 16(08) red: 06(01)
+ red plays STRANGES                  BBbrR bbrRR rbrRR --rrr -bbbb  18 blue: 10(02) red: 12(05)
+blue plays STINKERS                  BBBbr BBbrR bbrrr --bbb bbBBB  19 blue: 17(08) red: 06(01)
+ red plays BRAZENS                   BBbrR bbrRR rbrRr rrbrb bbBbB  20 blue: 13(04) red: 12(04)
+Blue wins!
+players tied 1-1
+however player1 won faster
+
+***********************   GAME 0018   ***********************
+  score: player0: 21.0 player1: 17.5
+
+player0 plays blue
+player1 plays red
+NNZROSEPIETLSNEFSYRRFRMSA ----- ----- ----- ----- -----
+blue plays YEARNERS                  ----- ----b ---bB --bBB ---bB  1 blue: 08(04) red: 00(00)
+ red plays PIONEERS                  ---rR -rrRr ---rb --bbB ---rb  2 blue: 05(01) red: 08(02)
+blue plays FIRMNESS                  ---rr -rrrb ---bB -bbBB bBBBB  3 blue: 12(07) red: 05(00)
+ red plays SNEEZES                   --rRR -rRRr --rrb -rbbB bbBBB  4 blue: 09(04) red: 10(04)
+blue plays SNIFFLES                  --rRr -rrrb -bbbB bBBBB BBBBB  5 blue: 15(10) red: 06(01)
+ red plays NONSENSE                  RRRRR rrRRr -brrb bBbbB BBBBB  6 blue: 12(07) red: 12(07)
+blue plays TENSES                    rrRRr bbrrb BBbbB BBBBB BBBBB  7 blue: 18(13) red: 07(02)
+Blue wins!
+player1 plays blue
+player0 plays red
+NNZROSEPIETLSNEFSYRRFRMSA ----- ----- ----- ----- -----
+blue plays YEARNERS                  ----- ----b ---bB --bBB ---bB  1 blue: 08(04) red: 00(00)
+ red plays REPOINTS                  ---rR --rRr r--rb --bbB ---rb  2 blue: 05(01) red: 08(02)
+blue plays FIRMNESS                  ---rr --rrb r--bB -bbBB bBBBB  3 blue: 12(07) red: 05(00)
+ red plays FROZENLY                  --rRR --rRr rr-rb -brbB rbbBB  4 blue: 08(03) red: 11(03)
+blue plays TENSELY                   --rRr -brrb bBbbB -bBBB rbBBB  5 blue: 15(08) red: 06(01)
+ red plays NONSENSE                  RRRRR rrRRr bbrrb -bbbB rbBBB  6 blue: 11(04) red: 13(07)
+blue plays OFFENSES                  rrRRr bbrrb BBbbB BBBBB BBBBB  7 blue: 18(13) red: 07(02)
+Blue wins!
+players tied 1-1
+they both played the same amount of moves to win
+
+***********************   GAME 0019   ***********************
+  score: player0: 22.0 player1: 18.5
+
+player0 plays blue
+player1 plays red
+CLMGLCYOGLBBSWSNSBIVRLION ----- ----- ----- ----- -----
+blue plays OBLIVION                  ----- --b-- ----- --bbb -bBBB  1 blue: 08(03) red: 00(00)
+ red plays ROVINGLY                  ---r- -rr-- ----- r-brr Rrbbb  2 blue: 04(00) red: 08(01)
+blue plays MOVINGLY                  --bb- -bb-- ----- b-bbb rbBBB  3 blue: 12(03) red: 01(00)
+ red plays BOWLINGS                  --br- -br-- r--r- Rrbrb RrbbB  4 blue: 07(01) red: 09(02)
+blue plays SLOWINGS                  --br- -bBb- r-bb- rbBBb rbBBB  5 blue: 14(06) red: 04(00)
+ red plays VIGILS                    --br- -bbr- r-bb- Rrbbr RrbBb  6 blue: 10(01) red: 08(02)
+blue plays LOVINGS                   --br- -bBb- r-bb- rbBBb rbBBB  7 blue: 14(06) red: 04(00)
+ red plays LIVINGS                   --br- -bbr- r-bb- Rrbbr RrbBb  8 blue: 10(01) red: 08(02)
+blue plays VISIBLY                   --br- -bbr- rbBb- rbBBb rbBBB  9 blue: 14(06) red: 05(00)
+ red plays BILLOWS                   --br- -brRr rrbr- Rrbbb RrbBB  10 blue: 09(02) red: 11(03)
+blue plays BLOWINGS                  --bb- -bbrr rbBb- rbBBb rbBBB  11 blue: 15(06) red: 05(00)
+ red plays LOWINGS                   --br- -brRr rbbr- Rrbbb RrbBB  12 blue: 10(02) red: 10(03)
+blue plays BOWLS                     --br- -bbrr bBBb- rbBBb rbBBB  13 blue: 15(07) red: 05(00)
+ red plays BLOWS                     --br- -brRr rbbr- Rrbbb RrbBB  14 blue: 10(02) red: 10(03)
+blue plays SCOWLS                    b-br- -bbrr rbBbb rbBBB rbBBB  15 blue: 16(07) red: 06(00)
+ red plays SCROLLS                   r-brR -brrR rbbbr RrbBb RrbBB  16 blue: 11(03) red: 12(04)
+blue plays ILLOGICS                  rbBbr bBbrr rbBbb RrbBB rbBBB  17 blue: 17(08) red: 08(01)
+Blue wins!
+player1 plays blue
+player0 plays red
+CLMGLCYOGLBBSWSNSBIVRLION ----- ----- ----- ----- -----
+blue plays OBLIVION                  ----- --b-- ----- --bbb -bBBB  1 blue: 08(03) red: 00(00)
+ red plays ROVINGLY                  ----- -rrr- ----- r-brr Rrbbb  2 blue: 04(00) red: 08(01)
+blue plays LOVINGS                   ----- -rbb- ----b b-bbB rbBBB  3 blue: 11(04) red: 02(00)
+ red plays BOWLINGS                  ----- -rrr- r--rb Rrbrb RrbbB  4 blue: 06(01) red: 10(02)
+blue plays SLOWINGS                  ----- -rbb- r-bBb rbBBB rbBBB  5 blue: 13(07) red: 04(00)
+ red plays BLOSSOMS                  --r-- -rrb- rRrbr RrbBb RrbBB  6 blue: 08(03) red: 11(03)
+blue plays SYMBOLS                   --b-- -bBb- brbBb rrbBB rbBBB  7 blue: 15(07) red: 04(00)
+ red plays LOBBYING                  --b-- -rbr- rrbbb RRrbB RrbBB  8 blue: 10(03) red: 09(03)
+blue plays OBLONGLY                  --b-- -bBbb rrbBB RrbBB rbBBB  9 blue: 15(08) red: 05(01)
+ red plays GLIBLY                    --b-- -rbrr rrbbb RRrbB RrbBB  10 blue: 10(03) red: 10(03)
+blue plays BILLINGS                  --b-- -rbbb rrbBB RrbBB rbBBB  11 blue: 14(07) red: 06(01)
+ red plays BILLOWS                   --b-- -rrbr rRrbb RRrbB RrbBB  12 blue: 09(03) red: 11(04)
+blue plays BILLIONS                  --b-- -rbbb rrbBB RrbBB rbBBB  13 blue: 14(07) red: 06(01)
+ red plays BILLS                     --b-- -rbbr rRrbb RRrbB RrbBB  14 blue: 10(03) red: 10(04)
+blue plays SYMBOLIC                  b-b-- -bBbr rrbBb RrbBB rbBBB  15 blue: 15(07) red: 06(01)
+ red plays BLOSSOMY                  b-r-- -rbbr rRrbr RRrbb RrbBB  16 blue: 09(02) red: 12(04)
+blue plays ILLOGICS                  Bbrbb brbbr rrbbr RRrbb RrbBB  17 blue: 14(03) red: 11(03)
+Blue wins!
+players tied 1-1
+they both played the same amount of moves to win
+
+***********************   GAME 0020   ***********************
+  score: player0: 23.0 player1: 19.5
+
+player0 plays blue
+player1 plays red
+LTEGHFLAARRDPTUEUXRRSNSTI ----- ----- ----- ----- -----
+blue plays UNSEXIST                  ----- ----- ----- bbb-- BBBbb  1 blue: 08(03) red: 00(00)
+ red plays UNRETIRE                  --r-- ----r ----- rrb-r bbbrR  2 blue: 04(00) red: 07(01)
+blue plays RETURFED                  --b-- b---r Bb--- BBb-b BBBbr  3 blue: 12(06) red: 02(00)
+ red plays DAUGHTER                  --rRR b--rR br--r Bbb-r BBbrR  4 blue: 08(03) red: 10(04)
+blue plays RAPTURED                  --brR b--br Bbb-b BBBbb BBBbr  5 blue: 16(07) red: 04(01)
+ red plays UPDATERS                  --rRR b--rR brr-r Bbbbr BBbrR  6 blue: 09(03) red: 11(04)
+blue plays PATTERED                  --brR b--br Bbbbr BBBBb BBBbr  7 blue: 16(08) red: 05(01)
+ red plays TARTANED                  --rRR b-rRR brbrR BbBbr BBbrR  8 blue: 10(04) red: 12(06)
+blue plays STALLED                   BBbrR BBbrR BBbrR BBBbr BBbrR  9 blue: 16(11) red: 09(04)
+Blue wins!
+player1 plays blue
+player0 plays red
+LTEGHFLAARRDPTUEUXRRSNSTI ----- ----- ----- ----- -----
+blue plays ENSURERS                  --b-- ----b b---- Bb--- BBb--  1 blue: 08(03) red: 00(00)
+ red plays GRATEFUL                  RrRr- r-r-b r---- br--- Bbb--  2 blue: 05(01) red: 08(02)
+blue plays TEXTURED                  rbrr- r-r-b bb--- BBb-- BBBb-  3 blue: 11(05) red: 05(00)
+ red plays TURTLED                   RRRr- RRr-b rr--r bbb-- BBbr-  4 blue: 07(02) red: 11(05)
+blue plays RAPTURED                  RRrr- rrb-b bbb-b BBBb- BBBb-  5 blue: 14(06) red: 06(02)
+ red plays READAPTS                  RRRr- RRRrb rrr-b bbbb- BBbr-  6 blue: 09(02) red: 12(06)
+blue plays STRAIGHT                  RRrbB RRrbB rrrbB bbbBB BBBBB  7 blue: 16(10) red: 09(04)
+Blue wins!
+players tied 1-1
+however player1 won faster
+
+***********************     RESULT     ***********************
+player0 wins 24.0-21.0
+ties: 16  equal games: 6 player0 wins: 3  player1 wins: 1
+average seconds per game: 51.33
+>>> 
