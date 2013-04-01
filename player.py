@@ -7,10 +7,8 @@
 # Created:     24/03/2013
 
 #idea to improve:
-#put the top 3 (unique) ways of playing a word in wordscore, in case one way loses and another way doesn't
-#analyze performance impact, if any
-
-
+#combine groupwords and concentrate functions (group words as they are found)
+#put wordlist code in __init__ ?
 
 class player0:
     listfile = open('easy.txt','r')
