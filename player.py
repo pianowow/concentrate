@@ -97,7 +97,7 @@ class player0:
 
     def concentrate(self, allletters,needletters='',anyletters=''):
         '''filter possible(allletters) for those that use all needletters, not notletters, and any of anyletters.
-        Also removes words that are prefixes of other words'''
+        Also removes words that are prefixes of played words'''
         allletters = allletters.upper()
         needletters = needletters.upper()
         found = self.possible(allletters)
@@ -189,7 +189,7 @@ class player0:
             elif board[4][4] < 0:
                 board[4][4] = -1
             else:
-                board[4][4] = 0                
+                board[4][4] = 0
         #edges
         for col in (1,2,3):
             if board[0][col] > 0 and board[0][col-1] > 0 and board[0][col+1] > 0 and board[1][col] > 0:
@@ -202,11 +202,11 @@ class player0:
                 elif board[0][col] < 0:
                     board[0][col] = -1
                 else:
-                    board[0][col] = 0                    
+                    board[0][col] = 0
             if board[4][col] > 0 and board[4][col-1] > 0 and board[4][col+1] > 0 and board[3][col] > 0:
                 board[4][col] = dw
             elif board[4][col] < 0 and board[4][col-1] < 0 and board[4][col+1] < 0 and board[3][col] < 0:
-                board[4][col] = ndw            
+                board[4][col] = ndw
             else:
                 if board[4][col] > 0:
                     board[4][col] = 1
@@ -237,8 +237,6 @@ class player0:
                     board[row][4] = -1
                 else:
                     board[row][4] = 0
-
-
         #others
         for row in (1,2,3):
             for col in (1,2,3):
@@ -253,7 +251,6 @@ class player0:
                         board[row][col] = -1
                     else:
                         board[row][col] = 0
-                    
 
     def evaluatepos(self, allletters,board):
         self.normalize(board)
@@ -267,14 +264,15 @@ class player0:
                     board[row][col] = board[row][col] - u[row][col]
                 elif board[row][col] == 1: #not defended, used
                     board[row][col] = d[row][col]
-                elif board[row][col] == -1: #not defended, used                    
+                elif board[row][col] == -1: #not defended, used
                     board[row][col] = - d[row][col]
         total = sum([num for row in board for num in row])
         if 0 in [num for row in board for num in row]: #game not over
             return total
         else: #game over
-            total = sum([1 for row in board for num in row if num > 0])
-            total += sum([-1 for row in board for num in row if num < 0])
+            #total = sum([1 for row in board for num in row if num > 0])
+            #total += sum([-1 for row in board for num in row if num < 0])
+            total = sum([num/abs(num) for row in board for num in row])
             return total * 1000
 
     def arrange(self, allletters,word,wordscore=[[0 for x in range(5)] for y in range(5)],scores=[],used=[],move=1):
@@ -437,7 +435,7 @@ class player0:
     def playword(self, allletters, word):
         self.cache[allletters][1].append(word)
 
-    def turn(self, allletters,score='wwwwwwwwwwwwwwwwwwwwwwwww',move=1):
+    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww',move=1):
         '''displays results of decide'''
         allletters = allletters.upper()
         score = score.upper()
