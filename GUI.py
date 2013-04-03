@@ -17,7 +17,7 @@ root = Tk()
 root.title("Concentrate")
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
-root.aspect(3,1,3,1)
+#root.aspect(3,1,3,1)
 
 mainframe = ttk.Frame(root, padding=(3,3,12,12))
 mainframe.grid(column=0, row=0, sticky=(N, S, E, W))
@@ -52,8 +52,11 @@ def getrowcol(x,y):
     return (row,col)
 
 def nex(event):
-    (row,col) = getrowcol(event.x,event.y)
-    #print('keyboard: %s' % (event.char))
+    #(row,col) = getrowcol(event.x,event.y)
+    #print(event.y,event.x)
+    (row,col) = selected
+    print(row,col)
+    print('keyboard: %s' % (event.char))
     char = event.char.upper()
     if char in alpha:
         board.itemconfig(boardstuff[row][col][1],text=char)
@@ -147,13 +150,16 @@ boardsize = 250
 sqsize = boardsize//5
 
 def selectsquare(selectrow,selectcol):
+    global selected
+    selected = (selectrow,selectcol)
+    board.focus_set()
     for row in range(5):
         for col in range(5):
             board.itemconfig(boardstuff[row][col][0],outline='gray')
     board.itemconfig(boardstuff[selectrow][selectcol][0],outline='black')
 
 def highlight(event):
-    board.focus_set()
+    print(event.x,event.y)
     (row,col) = getrowcol(event.x, event.y)
     selectsquare(row,col)
     #me = event.widget
@@ -163,7 +169,7 @@ board = Canvas(mainframe, width=boardsize, height=boardsize,bg='white')
 board.grid(row=1,column=0)
 board.bind('<Key>',nex)  #to write that character to the square and select the next one
 board.bind('<Button-1>',highlight)  #to tell which square is selected
-board.bind('<Button-3>',chgcolor)
+board.bind('<Double-Button-1>',chgcolor)
 
 for row in range(5):
     for col in range(5):
@@ -174,6 +180,10 @@ for row in range(5):
         rect = board.create_rectangle(left,top,right,bottom,outline='gray')
         text = board.create_text(left+sqsize/2, top+sqsize/2,text='',font='Helvetica 20')
         boardstuff[row][col] = (rect,text)
+
+selected = (0,0)
+selectsquare(selected[0],selected[1])
+
 
 history = ttk.Treeview(historyframe)
 history.grid(row=0,column=0,sticky=(N,S,E,W))
