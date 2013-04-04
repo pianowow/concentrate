@@ -12,10 +12,11 @@ from player import player0
 
 alpha = ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z')
 
-class concentrateGUI(Frame):
+class concentrateGUI(Tk):
 
-    def __init__(self, master):
-        Frame.__init__(self, master)
+    def __init__(self):
+        #Frame.__init__(self, master)
+        Tk.__init__(self)
         print('beginning')
 
         self.boardstuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
@@ -23,14 +24,15 @@ class concentrateGUI(Frame):
         self.sqsize = self.boardsize//5
         self.blue = ('cornflower blue','DodgerBlue2')
         self.red = ('salmon','red')
-        self.initialdraw(master)
 
-    def initialdraw(self,master):
-        master.title("Concentrate")
-        master.columnconfigure(0, weight=1)
-        master.rowconfigure(0, weight=1)
+        self.title("Concentrate")
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
-        mainframe = ttk.Frame(master, padding=(3,3,12,12))
+        self.initialdraw()
+
+    def initialdraw(self):
+        mainframe = ttk.Frame(self, padding=(3,3,12,12))
         mainframe.grid(column=0, row=0, sticky=(N, S, E, W))
         mainframe.columnconfigure(0, weight=0)
         mainframe.columnconfigure(1, weight=1)
@@ -43,9 +45,6 @@ class concentrateGUI(Frame):
         btnsearch = ttk.Button(mainframe, text="Search")
         btnsearch.grid(column=2,row=0)
         btnsearch['default'] = 'active'
-
-    #boardframe = ttk.Frame(mainframe,width=200, height=200)
-    #boardframe.grid(column=0,row=1,sticky=(N, W, E) )
 
         historyframe = ttk.Frame(mainframe,width=200, height=200)
         historyframe.grid(column=1,row=1,sticky=(N, W, E, S) )
@@ -164,6 +163,5 @@ class concentrateGUI(Frame):
 
 
 if __name__ == '__main__':
-    tk = Tk()
-    gui = concentrateGUI(tk)
+    gui = concentrateGUI()
     gui.mainloop()
