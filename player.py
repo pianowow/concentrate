@@ -8,19 +8,20 @@
 
 #idea to improve:
 #combine groupwords and concentrate functions (group words as they are found)
-#put wordlist code in __init__ ?
+#define span for each word (average distance between each successive letter) ... could be useful for eliminating non-human words on an easy level
+#limited minimax... pick 10 words that pass endgame check and run search on those
 
 class player0:
-    listfile = open('easy.txt','r')
-#    listfile = open('en14.txt','r')
-    wordset = set()
-    for word in [word.upper().strip() for word in listfile]:
-        if len(word) <= 25:
-            wordset.add(word)
-    listfile.close()
-    wordlist = list(wordset)
-
-    cache = dict() #dict of {letters:(words,played,usability,defendability)}
+    def __init__(self):
+        #self.listfile = open('easy.txt','r')
+        self.listfile = open('en14.txt','r')
+        self.wordset = set()
+        for word in [word.upper().strip() for word in self.listfile]:
+            if len(word) <= 25:
+                self.wordset.add(word)
+        self.listfile.close()
+        self.wordlist = list(self.wordset)
+        self.cache = dict() #dict of {letters:(words,played,usability,defendability)}
 
     def letterpopularity(self, words):
         '''returns a histogram (values 0-1) of the letters in words'''

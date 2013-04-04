@@ -43,7 +43,7 @@ class search(player0):
                     if losing:
                         if showhidden:
                             print(wordnum,word.ljust(25),score,groupsize,self.displayscore(board),zeroletters,'loses')
-                            displayed += 1                            
+                            displayed += 1
                     elif endingsoon:
                         print(wordnum,word.ljust(25),score,groupsize,self.displayscore(board),zeroletters,'ending soon')
                         lastdisplayed = wordnum
@@ -77,14 +77,17 @@ class search(player0):
                 self.cache[allletters][1].append(word)
 
 class easysearch(search):
-    listfile = open('easy.txt','r')
-    wordset = set()
-    for word in [word.upper().strip() for word in listfile]:
-        if len(word) <= 25:
-            wordset.add(word)
-    listfile.close()
-    wordlist = list(wordset)
-    
+    def __init__(self):
+        self.listfile = open('easy.txt','r')
+        #self.listfile = open('en14.txt','r')
+        self.wordset = set()
+        for word in [word.upper().strip() for word in self.listfile]:
+            if len(word) <= 25:
+                self.wordset.add(word)
+        self.listfile.close()
+        self.wordlist = list(self.wordset)
+        self.cache = dict() #dict of {letters:(words,played,usability,defendability)}
+
 
 
 h = search()
