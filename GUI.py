@@ -6,6 +6,13 @@
 #
 # Created:     31/03/2013
 
+#TODO
+#need some way to tell the engine whose turn it is
+#hook into player0 to get a list (might need that to be threaded)
+#single-click searched word to display it on the board
+#double-click searched word to add it to the history and update the board
+
+
 from tkinter import *
 from tkinter import ttk
 from player import player0
@@ -91,7 +98,7 @@ class concentrateGUI(Frame):
             self.board.itemconfig(self.boardstuff[row][col][0],fill=self.red[0])
         else:
             self.board.itemconfig(self.boardstuff[row][col][0],fill='')
-        #TODO defended check
+
         #check if I am defneded
         self.checkdefended(row,col)
         #check if neighbors are defended
