@@ -28,7 +28,10 @@ class search(player0):
         print('')
         print('best scoring words:')
         #words = sorted(list(worddict.keys()),key=lambda x:worddict[x][0],reverse=True)
-        wordscores.sort(reverse=True)  #turn bias here
+        if move == 1:
+            wordscores.sort(reverse=True)
+        else:
+            wordscores.sort()
         showhidden = False
         wordnum = 0
         amounttodisplay = 5
@@ -87,8 +90,6 @@ class easysearch(search):
         self.listfile.close()
         self.wordlist = list(self.wordset)
         self.cache = dict() #dict of {letters:(words,played,usability,defendability)}
-
-
 
 h = search()
 def turn(alll,score='wwwwwwwwwwwwwwwwwwwwwwwww',m=1):

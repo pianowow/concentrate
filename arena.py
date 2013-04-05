@@ -8,6 +8,8 @@
 
 #TODO
 
+#fix game board generation (fix q and j to be 25% of n)
+#display thinking time for each move
 #simulate from the middle of the game, have score be an input
 
 from player import player0,player1
@@ -36,15 +38,15 @@ def genletters():
         break
     return board
 
-def reverseboard(board):
-    out = ''
-    for char in board:
-        if char == 'r': out += 'b'
-        elif char == 'R': out += 'B'
-        elif char == 'b': out += 'r'
-        elif char == 'B': out += 'R'
-        else: out += char
-    return out
+##def reverseboard(board):
+##    out = ''
+##    for char in board:
+##        if char == 'r': out += 'b'
+##        elif char == 'R': out += 'B'
+##        elif char == 'b': out += 'r'
+##        elif char == 'B': out += 'R'
+##        else: out += char
+##    return out
 
 def numscore(board):
     blue = 0
@@ -89,16 +91,14 @@ def game(allletters='',player0blue=False):
     playedwords = list()
     while board.find('-') != -1:
         if turn == 'blue':
-            word,board = b.turn(allletters,board)
+            word,board = b.turn(allletters,board,1)
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             r.playword(allletters,word)
             print('blue plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')')
             turn = 'red'
         else:
-            board = reverseboard(board)
-            word,board = r.turn(allletters,board)
-            board = reverseboard(board)
+            word,board = r.turn(allletters,board,-1)
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             b.playword(allletters,word)

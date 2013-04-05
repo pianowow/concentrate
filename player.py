@@ -7,9 +7,10 @@
 # Created:     24/03/2013
 
 #idea to improve:
-#combine groupwords and concentrate functions (group words as they are found)
 #define span for each word (average distance between each successive letter) ... could be useful for eliminating non-human words on an easy level
 #limited minimax... pick 10 words that pass endgame check and run search on those
+#combine groupwords and concentrate functions (group words as they are found)
+
 
 class player0:
     def __init__(self):
@@ -128,10 +129,10 @@ class player0:
             anyletterlist = allletterlist
         anyletterlist.sort(key=len)
         goodlist = list()
-        for i,word1 in enumerate(anyletterlist): #remove words that are prefixes other words
+        for i,word1 in enumerate(anyletterlist): #remove words that are prefixes of played words
             good = True
             lenword1 = len(word1)
-            for word2 in self.cache[allletters][1]: #added cache here because we shouldn't suggest "IT" if "ITS" is already played
+            for word2 in self.cache[allletters][1]:
                 if word2[:lenword1] == word1:
                     good = False
                     break
@@ -377,8 +378,12 @@ class player0:
             for j,s in enumerate(row):
                 if s == 0:
                     zeroletters += allletters[i*5+j]
-                if 0 <= s <= 1:  #turn bias (opponent's move)
-                    anyl += allletters[5*i+j]
+                if move == 1:  #group on red's reply
+                    if 0 <= s <= 1:
+                        anyl += allletters[5*i+j]
+                else:  #group on blue's reply
+                    if -1 <= s <= 0:
+                        anyl += allletters[5*i+j]
         gameendingwords = []
         losing = False
         if zeroletters != '':  #don't check if we've already finished the game
@@ -393,27 +398,36 @@ class player0:
                 used = []
                 arrboard = [row[:] for row in board]
                 self.arrange(allletters,gameendingword,arrboard,scores,used,-move)
-                minscore = min(scores)  #turn bias here
-                if minscore[0] < -999:  #turn bias here
-                    losing = True
-                    bestplayscore = minscore[0]
-                    break
+                if move == 1:
+                    minscore = min(scores)
+                    if minscore[0] < -999:
+                        losing = True
+                        break
+                else:
+                    maxscore = max(scores)
+                    if maxscore[0] > 999:
+                        losing = True
+                        break
         if len(gameendingwords) > 0:
             endingsoon = True
         else:
             endingsoon = False
         return (zeroletters,endingsoon,losing)
 
-    def decide(self, allletters,score,move):
+    def decide(self, allletters,score,move): #move is 1 for
         '''judges the merit of possible words for this board'''
         board = self.convertboardscore(score)
         self.normalize(board)
-        #letters to focus on are undefended opponent (-1) and unclaimed (0)
+        #letters to focus on are undefended opponent and unclaimed
         anyl = ''
         for i,row in enumerate(board):
             for j,score in enumerate(row):
-                if -1 <= score <= 0:  #turn bias here
-                    anyl += allletters[5*i+j]
+                if move == 1:
+                    if -1 <= score <= 0:
+                        anyl += allletters[5*i+j]
+                else:
+                    if 0 <= score <= 1:
+                        anyl += allletters[5*i+j]
         words = self.concentrate(allletters,anyletters=anyl)
         num = round(self.evaluatepos(allletters,board),2)
         wordgroups = self.groupwords(words,anyl)
@@ -421,16 +435,13 @@ class player0:
         for x,group in enumerate(wordgroups.keys()):
             wordscore = [row[:] for row in board] #much faster than deepcopy!
             scores = list() #scores formed by different arrangements of the same group
-            self.arrange(allletters,group,wordscore,scores,[],1)
-            scores.sort(reverse=True)
-            topscores = scores[:3]
-            #bestplay = max(scores) #turn bias here
-            for bestplay in topscores:
-                bestplayscore = bestplay[0]
-                bestplayboard = bestplay[1]
+            self.arrange(allletters,group,wordscore,scores,[],move)
+            for play in scores:
+                playscore = play[0]
+                playboard = play[1]
                 groupsize = len(wordgroups[group])
                 for word in wordgroups[group]:
-                    wordscores.append((bestplayscore,word,groupsize,bestplayboard))
+                    wordscores.append((playscore,word,groupsize,playboard))
         return wordscores
 
     def playword(self, allletters, word):
@@ -447,17 +458,26 @@ class player0:
         wordscores = self.decide(allletters,score,move)
 
         #look at the highest scores, return first word that doesn't lose
-
-        wordscores.sort(reverse=True)  #turn bias here
+        if move == 1:
+            wordscores.sort(reverse=True)
+        else:
+            wordscores.sort()
         play = 0
         for wordnum,(score,word,groupsize,board) in enumerate(wordscores):
             zeroletters,endingsoon,losing = self.endgamecheck(allletters,board,move)
             if not losing:
-                if score > -999: #turn bias here
-                    play = wordnum
-                    break
+                if move == 1:
+                    if score > -999:
+                        play = wordnum
+                        break
+                    else:
+                        break
                 else:
-                    break
+                    if score < 999:
+                        play = wordnum
+                        break
+                    else:
+                        break
         word = wordscores[play][1]
         board = self.displayscore(wordscores[play][3])
         self.playword(allletters,word)
