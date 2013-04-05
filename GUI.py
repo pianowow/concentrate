@@ -164,7 +164,6 @@ class concentrateGUI(Frame):
         selected = (0,0)
         self.selectsquare(0,0)
 
-
         historyscroll = ttk.Scrollbar(mainframe,orient=VERTICAL)
         historyscroll.grid(row=1,column=2,sticky=(N,S,E))
 
