@@ -8,13 +8,12 @@
 
 #TODO
 
-#fix game board generation (fix q and j to be 25% of n)
-#display thinking time for each move
-#simulate from the middle of the game, have score be an input
+#simulate from the middle of the game, have score be an input (need a way to force the engine to choose different words first though)
 
 from player import player0,player1
 from time import time
 from random import choice
+from string import ascii_uppercase
 
 listfile = open('en14.txt','r')
 letterlist = list()
@@ -26,9 +25,24 @@ listfile.close()
 
 vowels = ('A','E','I','O','U')
 
+letterhist = dict()
+for letter in letterlist:
+    if letter in letterhist:
+        letterhist[letter] += 1
+    else:
+        letterhist[letter] = 1
+
+tot = len(letterlist)
+minimum = .25 * letterhist['N'] / tot
+newletterlist = []
+for letter in letterhist:
+    letterhist[letter] = int(max((letterhist[letter]/tot,minimum)) / minimum * 100)
+    newletterlist += [letter]*letterhist[letter]
+
 def genletters():
+
     while True:
-        board = ''.join([choice(letterlist) for x in range(25)])
+        board = ''.join([choice(newletterlist) for x in range(25)])
         if 'Q' in board:
             if 'I' not in board:
                 continue
@@ -91,18 +105,20 @@ def game(allletters='',player0blue=False):
     playedwords = list()
     while board.find('-') != -1:
         if turn == 'blue':
+            start = time()
             word,board = b.turn(allletters,board,1)
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             r.playword(allletters,word)
-            print('blue plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')')
+            print('blue plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',round(time()-start,2),'seconds')
             turn = 'red'
         else:
+            start = time()
             word,board = r.turn(allletters,board,-1)
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             b.playword(allletters,word)
-            print(' red plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')')
+            print(' red plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',round(time()-start,2),'seconds')
             turn = 'blue'
     if int(blue) > int(red):
         print('Blue wins!')
@@ -183,7 +199,6 @@ def tournament(matchcount):
                 equal += 1
     print()
     print('***********************     RESULT     ***********************')
-
 
     if p0tot > p1tot:
         print('player0 wins',str(p0tot)+'-'+str(p1tot))
