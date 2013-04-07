@@ -10,14 +10,14 @@
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
 
-listfile = open('en.txt','r')
+listfile = open('easy.txt','r')
 wordset1 = set()
 for line in listfile:
     wordset1.add(line.upper().strip())
 listfile.close()
 wordlist1 = list(wordset1)
 
-listfile = open('en14.txt','r')
+listfile = open('easy2.txt','r')
 wordset2 = set()
 for line in listfile:
     wordset2.add(line.upper().strip())

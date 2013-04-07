@@ -33,9 +33,13 @@ for eslword in eslset:
         goodeslset.add(eslword)
         for variant in [x for x in [p.upper()+eslword+e.upper() for e in endings for p in prefixes] if x in en14set]:
             goodeslset.add(variant)
+        if eslword[-1] == 'E':
+            withoute = eslword [:-1]
+            for variant in [x for x in [p.upper()+withoute+e.upper() for e in endings for p in prefixes] if x in en14set]:
+                goodeslset.add(variant) 
 
 esllist = sorted([w+'\n' for w in goodeslset])
 
-easydict = open('easy.txt','w')
+easydict = open('reduced.txt','w')
 easydict.writelines(esllist)
 easydict.close()

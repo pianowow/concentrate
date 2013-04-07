@@ -14,7 +14,7 @@
 
 class player0:
     def __init__(self):
-        #self.listfile = open('easy.txt','r')
+        #self.listfile = open('reduced.txt','r')
         self.listfile = open('en14.txt','r')
         self.wordset = set()
         for word in [word.upper().strip() for word in self.listfile]:
