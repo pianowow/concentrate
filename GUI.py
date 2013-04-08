@@ -180,7 +180,43 @@ class concentrateGUI(Frame):
         suggest.column('#0',width=1)
         suggest.column(0,width=150)
 
+class GUIplayer(player0):
+    def search(self, allletters, score, move=1):
+        '''returns a list for the GUI to display'''
+
+        wordscores = self.decide(allletters,score,move)
+
+        if move == 1:
+            wordscores.sort(reverse=True)
+        else:
+            wordscores.sort()
+        play = 0
+        results = list()
+        for wordnum,(score,word,groupsize,board) in enumerate(wordscores):
+            zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
+            if not losing:
+                if move == 1:
+                    if score > -999:
+                        play = wordnum
+                        break
+                    else:
+                        break
+                else:
+                    if score < 999:
+                        play = wordnum
+                        break
+                    else:
+                        break
+        word = wordscores[play][1]
+        board = self.displayscore(wordscores[play][3])
+        self.playword(allletters,word)
+
+
+
+
+
 if __name__ == '__main__':
     tk = Tk()
     gui = concentrateGUI(tk)
     tk.mainloop()
+

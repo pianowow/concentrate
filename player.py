@@ -386,6 +386,8 @@ class player0:
                         anyl += allletters[5*i+j]
         gameendingwords = []
         losing = False
+        endingsoon = False
+        newscore = None
         if zeroletters != '':  #don't check if we've already finished the game
             if allletters+zeroletters in self.cache:
                 gameendingwords = self.cache[allletters+zeroletters]
@@ -399,20 +401,20 @@ class player0:
                 arrboard = [row[:] for row in board]
                 self.arrange(allletters,gameendingword,arrboard,scores,used,-move)
                 if move == 1:
-                    minscore = min(scores)
-                    if minscore[0] < -999:
+                    newscore = min(scores)[0]
+                    if newscore < -999:
                         losing = True
                         break
                 else:
-                    maxscore = max(scores)
-                    if maxscore[0] > 999:
+                    newscore = max(scores)
+                    if newscore > 999:
                         losing = True
                         break
         if len(gameendingwords) > 0:
             endingsoon = True
         else:
             endingsoon = False
-        return (zeroletters,endingsoon,losing)
+        return (zeroletters,endingsoon,losing,newscore)
 
     def decide(self, allletters,score,move): #move is 1 for
         '''judges the merit of possible words for this board'''
@@ -464,7 +466,7 @@ class player0:
             wordscores.sort()
         play = 0
         for wordnum,(score,word,groupsize,board) in enumerate(wordscores):
-            zeroletters,endingsoon,losing = self.endgamecheck(allletters,board,move)
+            zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
             if not losing:
                 if move == 1:
                     if score > -999:
