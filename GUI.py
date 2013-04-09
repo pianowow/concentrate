@@ -11,6 +11,7 @@
 #hook into player0 to get a list (might need that to be threaded)
 #single-click searched word to display it on the board
 #double-click searched word to add it to the history and update the board
+#click on history to show the game at that move (first entry will be beginning of the analysis)
 
 
 from tkinter import *
