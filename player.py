@@ -11,18 +11,29 @@
 #limited minimax... pick 10 words that pass endgame check and run search on those
 #combine groupwords and concentrate functions (group words as they are found)
 
+from string import ascii_uppercase
 
 class player0:
-    def __init__(self):
-        #self.listfile = open('reduced.txt','r')
-        self.listfile = open('en14.txt','r')
-        self.wordset = set()
-        for word in [word.upper().strip() for word in self.listfile]:
-            if len(word) <= 25:
-                self.wordset.add(word)
-        self.listfile.close()
-        self.wordlist = list(self.wordset)
+    def __init__(self, difficulty=['A',5,25]): #this represents maximum difficulty
+        '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
+        self.difficulty = difficulty
+        listfile = open('en14.txt','r')
+        reducedfile = open('reduced.txt','r')
+        wordset = set()
+        reducedset = set()
+        for word in [word.upper().strip() for word in listfile]:
+            wordset.add(word)
+        for word in [word.upper().strip() for word in reducedfile]:
+            reducedset.add(word)
+        listfile.close()
+        reducedfile.close()
+        self.wordlist = list(wordset)
+        self.reducedlist = list(reducedset)
         self.cache = dict() #dict of {letters:(words,played,usability,defendability)}
+
+    def changedifficulty(self, diff):
+        self.difficulty = diff
+        self.cache = dict() #cache saves the word list for the board, which can change if we are using one dictionary vs another
 
     def letterpopularity(self, words):
         '''returns a histogram (values 0-1) of the letters in words'''
@@ -46,6 +57,9 @@ class player0:
             cnt[i] = num/maxcnt  #gets it into range 0-1
         for i,letter in enumerate(letters):
             letterdict[letter] = round(cnt[i],2)
+        for l in ascii_uppercase:
+            if l not in letterdict:
+                letterdict[l] = 0
         return letterdict
 
     #usablility is a bonus for defended tiles based on letterpopularity
@@ -83,18 +97,29 @@ class player0:
             return [x for x in self.cache[letters][0] if x not in self.cache[letters][1]] #so we don't suggest words that have already been played
         else:
             found = list()
-            for word in self.wordlist:
-                good = True
-                for l in word:
-                    if letters.count(l) < word.count(l):
-                        good = False
-                        break
-                if good:
-                    found.append(word)
+            wordsizelimit = self.difficulty[2]
+            if self.difficulty[0] == 'A':
+                for word in [x for x in self.wordlist if len(x) <= wordsizelimit]:
+                    good = True
+                    for l in word:
+                        if letters.count(l) < word.count(l):
+                            good = False
+                            break
+                    if good:
+                        found.append(word)
+            else:
+                for word in [x for x in self.reducedlist if len(x) <= wordsizelimit]:
+                    good = True
+                    for l in word:
+                        if letters.count(l) < word.count(l):
+                            good = False
+                            break
+                    if good:
+                        found.append(word)
             lp = self.letterpopularity(found)
             u = self.usability(letters,lp)
             d = self.defendability(u)
-            self.cache[letters] = (found,[],u,d)
+            self.cache[letters] = (tuple(found),[],u,d)
             return found
 
     def concentrate(self, allletters,needletters='',anyletters=''):
@@ -138,7 +163,7 @@ class player0:
                     break
             if good:
                 goodlist.append(word1)
-        return sorted(goodlist,key=lambda x:(len(x),x))
+        return tuple(sorted(goodlist,key=lambda x:(len(x),x)))
 
     def normalize(self, board):
         '''board is a 2D array of numbers. modifies board to show weighted score (from dw) of defended tiles'''
@@ -343,7 +368,7 @@ class player0:
         return board
 
     def displayscore(self, board):
-        '''produces string of bBrRw from numeric score'''
+        '''produces string of bB-rR from numeric score'''
         s = ''
         for row in board:
             for num in row:
@@ -392,9 +417,9 @@ class player0:
             if allletters+zeroletters in self.cache:
                 gameendingwords = self.cache[allletters+zeroletters]
             else:
-                gameendingwords = self.concentrate(allletters,needletters=zeroletters)
+                gameendingwords = tuple(self.concentrate(allletters,needletters=zeroletters))
                 self.cache[allletters+zeroletters] = gameendingwords
-            wordgroups = self.groupwords(gameendingwords,anyl)
+            wordgroups = tuple(self.groupwords(gameendingwords,anyl))
             for gameendingword in wordgroups:
                 scores = []
                 used = []
@@ -406,7 +431,7 @@ class player0:
                         losing = True
                         break
                 else:
-                    newscore = max(scores)
+                    newscore = max(scores)[0]
                     if newscore > 999:
                         losing = True
                         break
