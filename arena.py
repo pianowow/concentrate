@@ -13,7 +13,7 @@
 from player import player0,player1
 from time import time
 from random import choice
-from string import ascii_uppercase
+
 
 listfile = open('en14.txt','r')
 letterlist = list()
