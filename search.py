@@ -7,9 +7,12 @@
 # Created:     11/02/2013
 
 from time import time
-from player import player0,player1
+from player import player0
 
 class search(player0):
+    def __init__(self,difficulty=['A',5,25]):
+        player0.__init__(self,difficulty)
+
     def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww',move=1):
         '''displays results of decide'''
         allletters = allletters.upper()
@@ -42,7 +45,7 @@ class search(player0):
             previouslastdisplayed = lastdisplayed
             for wordnum,(score,word,groupsize,board) in enumerate(wordscores): #print score and check if opponent can win on next turn
                 if wordnum > lastdisplayed and displayed < amounttodisplay:
-                    zeroletters,endingsoon,losing = self.endgamecheck(allletters,board,move)
+                    zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
                     if losing:
                         if showhidden:
                             print(wordnum,word.ljust(25),score,groupsize,self.displayscore(board),zeroletters,'loses')
@@ -79,22 +82,11 @@ class search(player0):
                 lastdisplayed = previouslastdisplayed
                 self.cache[allletters][1].append(word)
 
-class easysearch(search):
-    def __init__(self):
-        self.listfile = open('reduced.txt','r')
-        #self.listfile = open('en14.txt','r')
-        self.wordset = set()
-        for word in [word.upper().strip() for word in self.listfile]:
-            if len(word) <= 25:
-                self.wordset.add(word)
-        self.listfile.close()
-        self.wordlist = list(self.wordset)
-        self.cache = dict() #dict of {letters:(words,played,usability,defendability)}
 
-h = search()
+h = search(difficulty=['A',5,25])
 def turn(alll,score='wwwwwwwwwwwwwwwwwwwwwwwww',m=1):
     h.turn(alll,score,m)
 
-e = easysearch()
+e = search(difficulty=['R',5,25])
 def easy(alll,score='wwwwwwwwwwwwwwwwwwwwwwwww',m=1):
     e.turn(alll,score,m)
