@@ -12,18 +12,27 @@
 #single-click searched word to display it on the board
 #double-click searched word to add it to the history and update the board
 #click on history to show the game at that move (first entry will be beginning of the analysis)
-
+#maybe stretch the board on resize somehow?  or just fix everything with no stretching anywhere...
+#menu
+    #random board
+    #clear board
+    #difficulty
+        #word list choice (full size or reduced)
+        #word length limit
+    #search
 
 from tkinter import *
 from tkinter import ttk
 from player import player0
+from time import time
+import arena
 
-alpha = ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z')
+alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
-class concentrateGUI(Frame):
+class concentrateGUI(ttk.Frame):
 
     def __init__(self, master):
-        Frame.__init__(self, master)
+        ttk.Frame.__init__(self, master, padding=(3,3,3,3))
 
         self.boardstuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
         self.boardsize = 250
@@ -34,15 +43,75 @@ class concentrateGUI(Frame):
         master.title("Concentrate")
         master.columnconfigure(0, weight=1)
         master.rowconfigure(0, weight=1)
+        self.grid(column=0, row=0, sticky=(N, S, E, W))
+        self.columnconfigure(0, weight=0)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=0) #scroll bar shouldn't stretch
+        self.columnconfigure(3, weight=1)
+        self.columnconfigure(4, weight=0) #scroll bar shouldn't stretch
+        self.rowconfigure(0, weight=0)
+        self.rowconfigure(1, weight=1)
 
-        self.initialdraw()
+        ttk.Label(self, text='Board').grid(column=0,row=0)
+        ttk.Label(self, text='Played Words').grid(column=1,row=0,columnspan=2)
+        btnclear = ttk.Button(self, text='Clear',command=self.canvasdraw)
+        btnclear.grid(column=0,row=0,sticky='NW')
+        btnrandom = ttk.Button(self, text='Random',command=self.randomboard)
+        btnrandom.grid(column=0,row=0,sticky='NE')
+        btnsearch = ttk.Button(self, text='Search',command=self.dosearch)
+        btnsearch.grid(column=3,row=0,columnspan=2)
+        btnsearch['default'] = 'active'
 
-        self.grid(row=0,column=0)
+        self.history = ttk.Treeview(self,columns=('Word','Board'), displaycolumns=('Word'),selectmode='browse',show='tree')
+        historyscroll = ttk.Scrollbar(self,orient=VERTICAL,command=self.history.yview)
+        historyscroll.grid(row=1,column=2,sticky=(N,S,E))
+        self.history['yscrollcommand'] = historyscroll.set
+        self.history.grid(row=1,column=1,sticky=(N,S,W,E))
+        self.history.column('#0',width=1)
+        self.history.column(0,width=150)
+
+        self.suggest = ttk.Treeview(self, columns=('Word', 'Score','Board'), displaycolumns=('Word', 'Score'),selectmode='browse',show='tree')
+        suggestscroll = ttk.Scrollbar(self,orient=VERTICAL,command=self.suggest.yview)
+        suggestscroll.grid(row=1,column=4,sticky=(N,S,E))
+        self.suggest['yscrollcommand'] = suggestscroll.set
+
+        self.suggest.grid(row=1,column=3,sticky=(N,S,W,E))
+        self.suggest.column('#0',width=1)
+        self.suggest.column(0,width=150)
+        self.suggest.column(1,width=75)
+
+        self.canvasdraw()
+        self.player = GUIplayer()
+
+
+    def canvasdraw(self):
+        self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
+        self.board.grid(row=1,column=0)
+        self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
+        self.board.bind('<Button-1>',self.chgcolor)
+
+        for row in range(5):
+            for col in range(5):
+                top = row * self.sqsize
+                left = col * self.sqsize
+                bottom = row * self.sqsize + self.sqsize -1
+                right = col * self.sqsize + self.sqsize -1
+                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
+                text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text='',font='Helvetica 20 bold')
+                self.boardstuff[row][col] = (rect,text)
+
+        self.selectsquare(0,0)
+
+    def randomboard(self):
+        letters = arena.genletters()
+        for x,c in enumerate(letters):
+            row = x // 5
+            col = x % 5
+            self.board.itemconfig(self.boardstuff[row][col][1],text=c)
 
 
     def nex(self,event):
-        #(row,col) = getrowcol(event.x,event.y)
-        (row,col) = selected
+        (row,col) = self.selected
         char = event.char.upper()
         if char in alpha:
             self.board.itemconfig(self.boardstuff[row][col][1],text=char)
@@ -59,11 +128,11 @@ class concentrateGUI(Frame):
     def getcolor(self,row,col):
         color = self.board.itemcget(self.boardstuff[row][col][0],'fill')
         if color in self.blue:
-            return 'b'
+            return 'B'
         elif color in self.red:
-            return 'r'
+            return 'R'
         else:
-            return 'w'
+            return 'W'
 
     def checkdefended(self,row,col):
         ncolors = set()
@@ -82,14 +151,14 @@ class concentrateGUI(Frame):
             nrow,ncol = row+1,col
             if nrow in range(5) and ncol in range(5):
                 ncolors.add(self.getcolor(nrow,ncol))
-            if 'b' not in ncolors and 'w' not in ncolors:
+            if 'B' not in ncolors and 'W' not in ncolors:
                 self.board.itemconfig(self.boardstuff[row][col][0],fill=self.red[1])
-            elif 'r' not in ncolors and 'w' not in ncolors:
+            elif 'R' not in ncolors and 'W' not in ncolors:
                 self.board.itemconfig(self.boardstuff[row][col][0],fill=self.blue[1])
             else:
-                if mycolor == 'b':
+                if mycolor == 'B':
                     self.board.itemconfig(self.boardstuff[row][col][0],fill=self.blue[0])
-                elif mycolor == 'r':
+                elif mycolor == 'R':
                     self.board.itemconfig(self.boardstuff[row][col][0],fill=self.red[0])
 
     def updatecolors(self,row,col,color):
@@ -100,14 +169,13 @@ class concentrateGUI(Frame):
         else:
             self.board.itemconfig(self.boardstuff[row][col][0],fill='')
 
-        #check if I am defneded
+        #check if I am defended
         self.checkdefended(row,col)
         #check if neighbors are defended
         self.checkdefended(row,col-1)
         self.checkdefended(row-1,col)
         self.checkdefended(row,col+1)
         self.checkdefended(row+1,col)
-
 
     def chgcolor(self,event):
         self.board.focus_set()
@@ -122,98 +190,49 @@ class concentrateGUI(Frame):
             self.updatecolors(row,col,'')
 
     def selectsquare(self,selectrow,selectcol):
-        global selected
-        selected = (selectrow,selectcol)
+        self.selected = (selectrow,selectcol)
         self.board.focus_set()
         for row in range(5):
             for col in range(5):
                 self.board.itemconfig(self.boardstuff[row][col][0],outline='gray')
         self.board.itemconfig(self.boardstuff[selectrow][selectcol][0],outline='black')
 
-    def initialdraw(self):
-        mainframe = ttk.Frame(self, padding=(3,3,12,12))
-        mainframe.grid(column=0, row=0, sticky=(N, S, E, W))
-        mainframe.columnconfigure(0, weight=0)
-        mainframe.columnconfigure(1, weight=1)
-        mainframe.columnconfigure(2, weight=1)
-        mainframe.rowconfigure(0, weight=0)
-        mainframe.rowconfigure(1, weight=1)
+    def dosearch(self):
+        for iid in self.suggest.get_children():
+            self.suggest.delete(iid)
+        letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
+        if not(all([x in alpha for x in letters]) and len(letters) == 25):
+            return  #TODO error message box
+        score = ''.join(self.getcolor(row,col) for row in range(5) for col in range(5))
+        print(letters,score)
 
-        ttk.Label(mainframe, text="Board").grid(column=0,row=0)
-        ttk.Label(mainframe, text="Played Words").grid(column=1,row=0,columnspan=2)
-        btnclear = ttk.Button(mainframe, text='Clear',command=self.initialdraw)
-        btnclear.grid(column=0,row=0,sticky='NW')
-        btnsearch = ttk.Button(mainframe, text="Search")
-        btnsearch.grid(column=3,row=0,columnspan=2)
-        btnsearch['default'] = 'active'
+        wordlist = self.player.search(letters,score,1)
+        for i,word in enumerate(wordlist):
+            self.suggest.insert('','end',values=(word[1],word[0]))
 
-        self.board = Canvas(mainframe, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
-        self.board.grid(row=1,column=0)
-        self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
-        self.board.bind('<Button-1>',self.chgcolor)
-
-        for row in range(5):
-            for col in range(5):
-                top = row * self.sqsize 
-                left = col * self.sqsize 
-                bottom = row * self.sqsize + self.sqsize -1
-                right = col * self.sqsize + self.sqsize -1
-                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
-                text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text='',font='Helvetica 20 bold')
-                self.boardstuff[row][col] = (rect,text)
-
-        selected = (0,0)
-        self.selectsquare(0,0)
-
-        historyscroll = ttk.Scrollbar(mainframe,orient=VERTICAL)
-        historyscroll.grid(row=1,column=2,sticky=(N,S,E))
-
-        history = ttk.Treeview(mainframe,columns='Word')
-        history.grid(row=1,column=1,sticky=(N,S,W))
-        history.column('#0',width=1)
-        history.column(0,width=150)
-
-        suggestscroll = ttk.Scrollbar(mainframe,orient=VERTICAL)
-        suggestscroll.grid(row=1,column=4,sticky=(N,S,E))
-
-        suggest = ttk.Treeview(mainframe, columns=('Word'))
-        suggest.grid(row=1,column=3,sticky=(N,S,W))
-        suggest.column('#0',width=1)
-        suggest.column(0,width=150)
 
 class GUIplayer(player0):
+    def __init__(self, difficulty=['A',5,25]):
+        player0.__init__(self, difficulty)
+
     def search(self, allletters, score, move=1):
         '''returns a list for the GUI to display'''
-
+        start = time()
         wordscores = self.decide(allletters,score,move)
-
-        if move == 1:
-            wordscores.sort(reverse=True)
-        else:
-            wordscores.sort()
-        play = 0
+        print(round(time()-start,2),'seconds to decide')
+        start = time()
         results = list()
-        for wordnum,(score,word,groupsize,board) in enumerate(wordscores):
+        for (score,word,groupsize,board) in wordscores:
             zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
-            if not losing:
-                if move == 1:
-                    if score > -999:
-                        play = wordnum
-                        break
-                    else:
-                        break
-                else:
-                    if score < 999:
-                        play = wordnum
-                        break
-                    else:
-                        break
-        word = wordscores[play][1]
-        board = self.displayscore(wordscores[play][3])
-        self.playword(allletters,word)
-
-
-
+            if newscore: #endgame check found a way for opponent to use all remaining squares
+                results.append((newscore,word,self.displayscore(board)))
+            else:
+                results.append((score,word,self.displayscore(board)))
+        print(round(time()-start,2),'seconds to endgame check')
+        if move == 1:
+            return sorted(results, reverse=True)
+        else:
+            return sorted(results)
 
 
 if __name__ == '__main__':
