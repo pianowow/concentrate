@@ -147,15 +147,15 @@ class concentrateGUI(Frame):
         btnsearch.grid(column=3,row=0,columnspan=2)
         btnsearch['default'] = 'active'
 
-        self.board = Canvas(mainframe, width=self.boardsize, height=self.boardsize,bg='white')
+        self.board = Canvas(mainframe, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
         self.board.grid(row=1,column=0)
         self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
         self.board.bind('<Button-1>',self.chgcolor)
 
         for row in range(5):
             for col in range(5):
-                top = row * self.sqsize
-                left = col * self.sqsize
+                top = row * self.sqsize 
+                left = col * self.sqsize 
                 bottom = row * self.sqsize + self.sqsize -1
                 right = col * self.sqsize + self.sqsize -1
                 rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
