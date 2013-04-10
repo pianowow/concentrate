@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        search
+# Name:        GUI
 # Purpose:
 #
 # Author:      CHRISTOPHER_IRWIN
@@ -8,7 +8,7 @@
 
 #TODO
 #need some way to tell the engine whose turn it is
-#hook into player0 to get a list (might need that to be threaded)
+#can GUIplayer yield the words as they are endgame checked, and the GUI can insert them in the proper place?
 #single-click searched word to display it on the board
 #double-click searched word to add it to the history and update the board
 #click on history to show the game at that move (first entry will be beginning of the analysis)
@@ -16,10 +16,16 @@
 #menu
     #random board
     #clear board
+    #search
+
     #difficulty
         #word list choice (full size or reduced)
         #word length limit
-    #search
+    #theme
+        #light
+        #dark
+        #pop, etc
+
 
 from tkinter import *
 from tkinter import ttk
