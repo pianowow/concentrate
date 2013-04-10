@@ -8,23 +8,25 @@
 
 #TODO
 #need some way to tell the engine whose turn it is
+#progress bar dialog
 #can GUIplayer yield the words as they are endgame checked, and the GUI can insert them in the proper place?
 #single-click searched word to display it on the board
 #double-click searched word to add it to the history and update the board
 #click on history to show the game at that move (first entry will be beginning of the analysis)
 #maybe stretch the board on resize somehow?  or just fix everything with no stretching anywhere...
 #menu
-    #random board
-    #clear board
-    #search
-
-    #difficulty
-        #word list choice (full size or reduced)
-        #word length limit
-    #theme
-        #light
-        #dark
-        #pop, etc
+    #Concentrate
+        #random board
+        #clear board
+        #search
+    #Options
+        #difficulty
+            #word list choice (full size or reduced)
+            #word length limit
+        #theme
+            #light
+            #dark
+            #pop, etc
 
 
 from tkinter import *
@@ -49,6 +51,7 @@ class concentrateGUI(ttk.Frame):
         master.title("Concentrate")
         master.columnconfigure(0, weight=1)
         master.rowconfigure(0, weight=1)
+        self.master = master
         self.grid(column=0, row=0, sticky=(N, S, E, W))
         self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=1)
@@ -89,6 +92,7 @@ class concentrateGUI(ttk.Frame):
         self.canvasdraw()
         self.player = GUIplayer()
 
+        self.notbusywidgetcursors = dict() #for busy and notbusy
 
     def canvasdraw(self):
         self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
@@ -203,7 +207,35 @@ class concentrateGUI(ttk.Frame):
                 self.board.itemconfig(self.boardstuff[row][col][0],outline='gray')
         self.board.itemconfig(self.boardstuff[selectrow][selectcol][0],outline='black')
 
+    def busy(self, widget=None):
+        if widget == None:
+            w = self.master
+        else:
+            w = widget
+        if not str(w) in self.notbusywidgetcursors:
+            try:
+                # attach cursor to this widget
+                cursor = w.cget("cursor")
+                if cursor != "watch":
+                    self.notbusywidgetcursors[str(w)] = (w, cursor)
+                    w.config(cursor="watch")
+            except TclError:
+                pass
+
+        for w in w.children.values():
+            self.busy(w)
+
+
+    def notbusy(self):
+        for w, cursor in self.notbusywidgetcursors.values():
+            try:
+                w.config(cursor=cursor)
+            except TclError:
+                pass
+        self.notbusywidgetcursors = dict()
+
     def dosearch(self):
+        self.busy()
         for iid in self.suggest.get_children():
             self.suggest.delete(iid)
         letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
@@ -215,7 +247,7 @@ class concentrateGUI(ttk.Frame):
         wordlist = self.player.search(letters,score,1)
         for i,word in enumerate(wordlist):
             self.suggest.insert('','end',values=(word[1],word[0]))
-
+        self.notbusy()
 
 class GUIplayer(player0):
     def __init__(self, difficulty=['A',5,25]):
