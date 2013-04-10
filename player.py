@@ -165,136 +165,147 @@ class player0:
                 goodlist.append(word1)
         return tuple(sorted(goodlist,key=lambda x:(len(x),x)))
 
-    def normalize(self, board):
+##    def normalize(self, board):
+
+    def evaluatepos(self, allletters,board):
         '''board is a 2D array of numbers. modifies board to show weighted score (from dw) of defended tiles'''
         #defended weights
+        total = 0
+        ending = True
         dw = 2
         ndw = -dw
+        u = self.cache[allletters][2] #usability
+        d = self.cache[allletters][3] #defendability
         #nested loop testing if neighbors were in range(5) was slower than this hardcoding... so I kept it
         #also the overhead of writing my own sign function was too slow (to make this more readable)
         #corners
         if board[0][0] > 0 and board[1][0] > 0 and board[0][1] > 0:
-            board[0][0] = dw
+            board[0][0] = dw + u[0][0]
         elif board[0][0] < 0 and board[1][0] < 0 and board[0][1] < 0:
-            board[0][0] = ndw
+            board[0][0] = ndw - u[0][0]
         else:
             if board[0][0] > 0:
-                board[0][0] = 1
+                board[0][0] = d[0][0]
             elif board[0][0] < 0:
-                board[0][0] = -1
+                board[0][0] = -d[0][0]
             else:
                 board[0][0] = 0
+                ending = False
+        total += board[0][0]
         if board[0][4] > 0 and board[1][4] > 0 and board[0][3] > 0:
-            board[0][4] = dw
+            board[0][4] = dw + u[0][4]
         elif board[0][4] < 0 and board[1][4] < 0 and board[0][3] < 0:
-            board[0][4] = ndw
+            board[0][4] = ndw - u[0][4]
         else:
             if board[0][4] > 0:
-                board[0][4] = 1
+                board[0][4] = d[0][4]
             elif  board[0][4] < 0:
-                board[0][4] = -1
+                board[0][4] = -d[0][4]
             else:
                 board[0][4] = 0
+                ending = False
+        total += board[0][4]
         if board[4][0] > 0 and board[3][0] > 0 and board[4][1] > 0:
-            board[4][0] = dw
+            board[4][0] = dw + u[4][0]
         elif board[4][0] < 0 and board[3][0] < 0 and board[4][1] < 0:
-            board[4][0] = ndw
+            board[4][0] = ndw - u[4][0]
         else:
             if board[4][0] > 0:
-                board[4][0] = 1
+                board[4][0] = d[4][0]
             elif board[4][0] < 0:
-                board[4][0] = -1
+                board[4][0] = -d[4][0]
             else:
                 board[4][0] = 0
+                ending = False
+        total += board[0][0]
         if board[4][4] > 0 and board[3][4] > 0 and board[4][3] > 0:
-            board[4][4] = dw
+            board[4][4] = dw + u[4][4]
         elif board[4][4] < 0 and board[3][4] < 0 and board[4][3] < 0:
-            board[4][4] = ndw
+            board[4][4] = ndw - u[4][4]
         else:
             if board[4][4] > 0:
-                board[4][4] = 1
+                board[4][4] = d[4][4]
             elif board[4][4] < 0:
-                board[4][4] = -1
+                board[4][4] = -d[4][4]
             else:
                 board[4][4] = 0
+                ending = False
+        total += board[4][4]
         #edges
         for col in (1,2,3):
             if board[0][col] > 0 and board[0][col-1] > 0 and board[0][col+1] > 0 and board[1][col] > 0:
-                board[0][col] = dw
+                board[0][col] = dw + u[0][col]
             elif board[0][col] < 0 and board[0][col-1] < 0 and board[0][col+1] < 0 and board[1][col] < 0:
-                board[0][col] = ndw
+                board[0][col] = ndw - u[0][col]
             else:
                 if board[0][col] > 0:
-                    board[0][col] = 1
+                    board[0][col] = d[0][col]
                 elif board[0][col] < 0:
-                    board[0][col] = -1
+                    board[0][col] = -d[0][col]
                 else:
                     board[0][col] = 0
+                    ending = False
+            total += board[0][col]
             if board[4][col] > 0 and board[4][col-1] > 0 and board[4][col+1] > 0 and board[3][col] > 0:
-                board[4][col] = dw
+                board[4][col] = dw + u[4][col]
             elif board[4][col] < 0 and board[4][col-1] < 0 and board[4][col+1] < 0 and board[3][col] < 0:
-                board[4][col] = ndw
+                board[4][col] = ndw - u[4][col]
             else:
                 if board[4][col] > 0:
-                    board[4][col] = 1
+                    board[4][col] = d[4][col]
                 elif board[4][col] < 0:
-                    board[4][col] = -1
+                    board[4][col] = -d[4][col]
                 else:
                     board[4][col] = 0
+                    ending = False
+            total += board[4][col]
         for row in (1,2,3):
             if board[row][0] > 0 and board[row-1][0] > 0 and board[row+1][0] > 0 and board[row][1] > 0:
-                board[row][0] = dw
+                board[row][0] = dw + u[row][0]
             elif board[row][0] < 0 and board[row-1][0] < 0 and board[row+1][0] < 0 and board[row][1] < 0:
-                board[row][0] = ndw
+                board[row][0] = ndw - u[row][0]
             else:
                 if board[row][0] > 0:
-                    board[row][0] = 1
+                    board[row][0] = d[row][0]
                 elif board[row][0] < 0:
-                    board[row][0] = -1
+                    board[row][0] = -d[row][0]
                 else:
                     board[row][0] = 0
+                    ending = False
+            total += board[row][0]
             if board[row][4] > 0 and board[row-1][4] > 0 and board[row+1][4] > 0 and board[row][3] > 0:
-                board[row][4] = dw
+                board[row][4] = dw + u[row][4]
             elif board[row][4] < 0 and board[row-1][4] < 0 and board[row+1][4] < 0 and board[row][3] < 0:
-                board[row][4] = ndw
+                board[row][4] = ndw - u[row][4]
             else:
                 if board[row][4] > 0:
-                    board[row][4] = 1
+                    board[row][4] = d[row][4]
                 elif board[row][4] < 0:
-                    board[row][4] = -1
+                    board[row][4] = -d[row][4]
                 else:
                     board[row][4] = 0
+                    ending = False
+            total += board[row][4]
         #others
         for row in (1,2,3):
             for col in (1,2,3):
                 if board[row][col] > 0 and board[row][col-1] > 0 and board[row][col+1] > 0 and board[row+1][col] > 0 and board[row-1][col] > 0:
-                    board[row][col] = dw
+                    board[row][col] = dw + u[row][col]
                 elif board[row][col] < 0 and board[row][col-1] < 0 and board[row][col+1] < 0 and board[row+1][col] < 0 and board[row-1][col] < 0:
-                    board[row][col] = ndw
+                    board[row][col] = ndw - u[row][col]
                 else:
                     if board[row][col] > 0:
-                        board[row][col] = 1
+                        board[row][col] = d[row][col]
                     elif board[row][col] < 0:
-                        board[row][col] = -1
+                        board[row][col] = -d[row][col]
                     else:
                         board[row][col] = 0
-
-    def evaluatepos(self, allletters,board):
-        self.normalize(board)
-        u = self.cache[allletters][2] #usability
-        d = self.cache[allletters][3] #defendability
-        for row in range(5):
-            for col in range(5):
-                if board[row][col] > 1: #defended
-                    board[row][col] = board[row][col] + u[row][col]
-                elif board[row][col] < -1: #defended
-                    board[row][col] = board[row][col] - u[row][col]
-                elif board[row][col] == 1: #not defended, used
-                    board[row][col] = d[row][col]
-                elif board[row][col] == -1: #not defended, used
-                    board[row][col] = - d[row][col]
-        total = sum([num for row in board for num in row])
-        if 0 in [num for row in board for num in row]: #game not over
+                        ending = False
+                total += board[row][col]
+        #TODO I could eliminate these two list comprehensions by adding the logic in the hard-coded mess above
+        #total = sum([num for row in board for num in row])
+        #if 0 in [num for row in board for num in row]: #game not over
+        if not ending:
             return total
         else: #game over
             #total = sum([1 for row in board for num in row if num > 0])
@@ -441,10 +452,11 @@ class player0:
             endingsoon = False
         return (zeroletters,endingsoon,losing,newscore)
 
-    def decide(self, allletters,score,move): #move is 1 for
+    def decide(self, allletters,score,move):
         '''judges the merit of possible words for this board'''
         board = self.convertboardscore(score)
-        self.normalize(board)
+        self.possible(allletters) #saves word list and board stats to cache
+        self.evaluatepos(allletters,board) #uses board stats to determine score
         #letters to focus on are undefended opponent and unclaimed
         anyl = ''
         for i,row in enumerate(board):
