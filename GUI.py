@@ -8,6 +8,7 @@
 
 #TODO
 #need some way to tell the engine whose turn it is
+#clear search with board
 #progress bar dialog
 #can GUIplayer yield the words as they are endgame checked, and the GUI can insert them in the proper place?
 #single-click searched word to display it on the board
