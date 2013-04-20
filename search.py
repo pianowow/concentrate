@@ -22,9 +22,12 @@ class search(player0):
         print('searching...')
         start = time()
         wordscores = self.decide(allletters,score,move)
-        end = time()
-        print(round(end-start,2),'seconds to determe the best plays',)
-        print(len(wordscores),'words found')
+        decidetime = round(time() - start,2)
+        plays = len(wordscores)
+        rate = int(plays/decidetime)
+        print(decidetime,'seconds to determe the best plays',)
+        print(plays,'plays found')
+        print(rate,'per second')
         showhidden = False
         #look at the highest scores, print each word list associated
 

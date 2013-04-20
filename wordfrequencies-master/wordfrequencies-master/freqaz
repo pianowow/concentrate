@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for c in jot -c 26 a z; do
+  ./freq.pl $c > freq-$c.txt
+done;
+
