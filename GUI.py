@@ -7,11 +7,9 @@
 # Created:     31/03/2013
 
 #TODO
-#need some way to tell the engine whose turn it is
-#clear search with board
+#need some way to tell the engine whose turn it is, combo box at the top?
 #progress bar dialog
-#can GUIplayer yield the words as they are endgame checked, and the GUI can insert them in the proper place?
-#single-click searched word to display it on the board
+#When more is clicked, add more from the list.
 #double-click searched word to add it to the history and update the board
 #click on history to show the game at that move (first entry will be beginning of the analysis)
 #maybe stretch the board on resize somehow?  or just fix everything with no stretching anywhere...
@@ -23,7 +21,7 @@
     #Options
         #difficulty
             #word list choice (full size or reduced)
-            #word length limit
+            #word length limit (this should bring up a popup or something)
         #theme
             #light
             #dark
@@ -89,13 +87,18 @@ class concentrateGUI(ttk.Frame):
         self.suggest.column('#0',width=1)
         self.suggest.column(0,width=150)
         self.suggest.column(1,width=75)
+        self.suggest.bind('<<TreeviewSelect>>',self.suggestclick)
+        self.suggestselection = -1
+        self.suggestignore = False
 
         self.canvasdraw()
+        self.boardcolors = 'w'*25
         self.player = GUIplayer()
 
         self.notbusywidgetcursors = dict() #for busy and notbusy
 
     def canvasdraw(self):
+        self.clearsearch()       
         self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
         self.board.grid(row=1,column=0)
         self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
@@ -144,6 +147,20 @@ class concentrateGUI(ttk.Frame):
             return 'R'
         else:
             return 'W'
+
+    def getdefendedcolor(self,row,col):
+        color = self.board.itemcget(self.boardstuff[row][col][0],'fill')
+        if color == self.blue[0]:
+            return 'b'
+        if color == self.blue[1]:
+            return 'B'
+        if color == self.red[0]:
+            return 'r'
+        if color == self.red[1]:
+            return 'R'
+        else:
+            return '-'
+        
 
     def checkdefended(self,row,col):
         ncolors = set()
@@ -235,8 +252,77 @@ class concentrateGUI(ttk.Frame):
                 pass
         self.notbusywidgetcursors = dict()
 
-    def dosearch(self):
+    def clearsearch(self):
+        for iid in self.suggest.get_children():
+            self.suggest.delete(iid)
+
+    def saveboard(self):
+        '''saves the state of the board for later retrieval'''
+        board = ''
+        for row in range(5):
+            for col in range(5):
+                board += self.getdefendedcolor(row,col)
+        self.boardcolors = board                
+
+    def restoreboard(self):
+        '''restores the state of the board saved by saveboard'''
+        self.updateboard(self.boardcolors)
+        pass
+
+    def updateboard(self, newboard):
+        '''changes the colors of the board'''
+        newboard = newboard.replace(' ','')
+        #self.board.itemconfig(self.boardstuff[row][col][0],fill=self.blue[1])
+        for row in range(5):
+            for col in range(5):
+                i = row*5+col
+                l = newboard[i]
+                color = ''
+                if l == 'b':
+                    color = self.blue[0]
+                elif l == 'B':
+                    color = self.blue[1]
+                elif l == 'r':
+                    color = self.red[0]                    
+                elif l == 'R':
+                    color = self.red[1]                    
+                self.board.itemconfig(self.boardstuff[row][col][0],fill=color)
+
+    def suggestclick(self, event):
+        '''tied to suggest.<<TreeviewSelect>>'''
+        if not self.suggestignore:
+            #columns=('Word', 'Score','Board')
+            #get item id clicked on
+            clickediid = self.suggest.focus()
+            if self.suggestselection != clickediid:
+                self.suggestselection = clickediid
+                txt = self.suggest.set(clickediid,'Word')
+                board = self.suggest.set(clickediid,'Board')
+                print(txt, board)
+                if txt == "click for more...":
+                    #get number of words in suggest
+                    #delete the last entry (click for more...)
+                    #call do search with lastdisplayed
+                    #add a new "click for more..." entry
+                    pass
+                else:
+                    #update colors on the board to match the board of the word suggested
+                    self.updateboard(board)
+                
+            else:
+                self.suggestignore = True
+                self.suggest.selection_remove(clickediid)
+                self.suggestselection = -1
+                self.restoreboard()
+        else:
+            self.suggestignore = False
+                
+
+    def dosearch(self, lastdisplayed=-1):
+        
         self.busy()
+        self.saveboard() #to restore back to when the user un-selects a word
+        self.clearsearch()
         for iid in self.suggest.get_children():
             self.suggest.delete(iid)
         letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
@@ -245,33 +331,47 @@ class concentrateGUI(ttk.Frame):
         score = ''.join(self.getcolor(row,col) for row in range(5) for col in range(5))
         print(letters,score)
 
-        wordlist = self.player.search(letters,score,1)
+
+        wordlist = self.player.search(letters,score,1,lastdisplayed)
         for i,word in enumerate(wordlist):
-            self.suggest.insert('','end',values=(word[1],word[0]))
+            self.suggest.insert('','end',values=(word[1],word[0],word[2]))
+        self.suggest.insert('','end',values=('click for more...',))
         self.notbusy()
 
+
 class GUIplayer(player0):
-    def __init__(self, difficulty=['A',5,25]):
+    def __init__(self, difficulty=['R',5,25]):
         player0.__init__(self, difficulty)
 
-    def search(self, allletters, score, move=1):
+    def search(self, allletters, score, move, lastdisplayed):
         '''returns a list for the GUI to display'''
         start = time()
         wordscores = self.decide(allletters,score,move)
+        if move == 1:
+            wordscores.sort(reverse=True)
+        else:
+            wordscores.sort()
         print(round(time()-start,2),'seconds to decide')
         start = time()
         results = list()
-        for (score,word,groupsize,board) in wordscores:
-            zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
-            if newscore: #endgame check found a way for opponent to use all remaining squares
-                results.append((newscore,word,self.displayscore(board)))
-            else:
-                results.append((score,word,self.displayscore(board)))
+        amounttodisplay = 20
+        displayed = 0
+        for wordnum,(score,word,groupsize,board) in enumerate(wordscores):
+            if wordnum > lastdisplayed and displayed < amounttodisplay:
+                zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
+                if losing: #endgame check found a way for opponent to win
+                   results.append((score,'-'+word,self.displayscore(board)))
+                   displayed += 1
+                elif endingsoon: #endgame check only found way for opponent to end game, but not win
+                   results.append((score,'*'+word,self.displayscore(board)))
+                   displayed += 1
+                else:
+                    results.append((score,word,self.displayscore(board)))
+                    displayed += 1
+            elif displayed >= amounttodisplay:
+                break
         print(round(time()-start,2),'seconds to endgame check')
-        if move == 1:
-            return sorted(results, reverse=True)
-        else:
-            return sorted(results)
+        return results
 
 
 if __name__ == '__main__':
