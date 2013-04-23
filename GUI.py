@@ -92,13 +92,41 @@ class concentrateGUI(ttk.Frame):
         self.suggestignore = False
 
         self.canvasdraw()
+
+        menubar = Menu(master)
+
+        # create a pulldown menu, and add it to the menu bar
+        filemenu = Menu(menubar, tearoff=0)
+        filemenu.add_command(label="Open", command=self.dummy)
+        filemenu.add_command(label="Save", command=self.dummy)
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", command=master.quit)
+        menubar.add_cascade(label="File", menu=filemenu)
+
+        # create more pulldown menus
+        editmenu = Menu(menubar, tearoff=0)
+        editmenu.add_command(label="Cut", command=self.dummy)
+        editmenu.add_command(label="Copy", command=self.dummy)
+        editmenu.add_command(label="Paste", command=self.dummy)
+        menubar.add_cascade(label="Edit", menu=editmenu)
+
+        helpmenu = Menu(menubar, tearoff=0)
+        helpmenu.add_command(label="About", command=self.dummy)
+        menubar.add_cascade(label="Help", menu=helpmenu)
+
+        # display the menu
+        master.config(menu=menubar)
+
         self.boardcolors = 'w'*25
         self.player = GUIplayer()
 
         self.notbusywidgetcursors = dict() #for busy and notbusy
 
+    def dummy(self):
+        pass
+
     def canvasdraw(self):
-        self.clearsearch()       
+        self.clearsearch()
         self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
         self.board.grid(row=1,column=0)
         self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
@@ -160,7 +188,7 @@ class concentrateGUI(ttk.Frame):
             return 'R'
         else:
             return '-'
-        
+
 
     def checkdefended(self,row,col):
         ncolors = set()
@@ -262,7 +290,7 @@ class concentrateGUI(ttk.Frame):
         for row in range(5):
             for col in range(5):
                 board += self.getdefendedcolor(row,col)
-        self.boardcolors = board                
+        self.boardcolors = board
 
     def restoreboard(self):
         '''restores the state of the board saved by saveboard'''
@@ -283,9 +311,9 @@ class concentrateGUI(ttk.Frame):
                 elif l == 'B':
                     color = self.blue[1]
                 elif l == 'r':
-                    color = self.red[0]                    
+                    color = self.red[0]
                 elif l == 'R':
-                    color = self.red[1]                    
+                    color = self.red[1]
                 self.board.itemconfig(self.boardstuff[row][col][0],fill=color)
 
     def suggestclick(self, event):
@@ -308,7 +336,7 @@ class concentrateGUI(ttk.Frame):
                 else:
                     #update colors on the board to match the board of the word suggested
                     self.updateboard(board)
-                
+
             else:
                 self.suggestignore = True
                 self.suggest.selection_remove(clickediid)
@@ -316,10 +344,10 @@ class concentrateGUI(ttk.Frame):
                 self.restoreboard()
         else:
             self.suggestignore = False
-                
+
 
     def dosearch(self, lastdisplayed=-1):
-        
+
         self.busy()
         self.saveboard() #to restore back to when the user un-selects a word
         self.clearsearch()
