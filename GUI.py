@@ -10,6 +10,7 @@
 #need some way to tell the engine whose turn it is, combo box at the top?
 #progress bar dialog
 #When more is clicked, add more from the list.
+#error message on invalid search
 #double-click searched word to add it to the history and update the board
 #click on history to show the game at that move (first entry will be beginning of the analysis)
 #maybe stretch the board on resize somehow?  or just fix everything with no stretching anywhere...
@@ -40,8 +41,7 @@ class concentrateGUI(ttk.Frame):
         self.blue = ('light sky blue','RoyalBlue2')
         self.red = ('salmon','red')
 
-        sys = master.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
-        print(sys)
+
 
         master.title("Concentrate")
         master.columnconfigure(0, weight=1)
@@ -90,11 +90,12 @@ class concentrateGUI(ttk.Frame):
         self.canvasdraw()
         self.player = GUIplayer()
 
-        self.menubar = Menu(self)
-
+        self.menubar = Menu(self, tearoff=0)
+        sys = master.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+        print(sys)
 
         if sys == 'aqua': #mac os x
-            self.concentratemenu = Menu(self.menubar)
+            self.concentratemenu = Menu(self.menubar, tearoff=0)
             self.concentratemenu.add_command(label="Random Board", command=self.randomboard)
             self.concentratemenu.add_command(label="Clear Letters and Colors",  command=self.canvasdraw)
             self.concentratemenu.add_command(label="Clear Colors", command=self.whiteboard)
@@ -104,30 +105,38 @@ class concentrateGUI(ttk.Frame):
 
             self.optionsmenu = Menu(self.menubar)
             self.difficulty = StringVar()
-            self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty)
-            self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty)
-            self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty)
-            self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty)
+            self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty, accelerator='Command-1')
+            self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty, accelerator='Command-2')
+            self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty, accelerator='Command-3')
+            self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Command-4')
             self.difficulty.set('H')
             self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
-        else: #windows/nix
-            self.concentratemenu = Menu(self.menubar)
-            self.concentratemenu.add_command(label="Random Board", underline=0, command=self.randomboard)
-            self.concentratemenu.add_command(label="Clear Letters and Colors", underline=6, command=self.canvasdraw)
-            self.concentratemenu.add_command(label="Clear Colors", underline=6, command=self.whiteboard)
+        else: #windows
+            self.concentratemenu = Menu(self.menubar, tearoff=0)
+            self.concentratemenu.add_command(label="Random Board", underline=0, command=self.randomboard, accelerator='Ctrl+R')
+            master.bind('<Control-r>',self.randomboard)
+            self.concentratemenu.add_command(label="Clear Letters and Colors", underline=6, command=self.canvasdraw, accelerator='Ctrl+L')
+            master.bind('<Control-l>',self.canvasdraw)
+            self.concentratemenu.add_command(label="Clear Colors", underline=6, command=self.whiteboard, accelerator='Ctrl+C')
+            master.bind('<Control-c>',self.whiteboard)
             self.concentratemenu.add_separator()
-            self.concentratemenu.add_command(label="Search", underline=6, command=self.dosearch)
-            self.menubar.add_cascade(label="Concentrate", underline=0, menu=self.concentratemenu)
+            self.concentratemenu.add_command(label="Search", underline=0, command=self.dosearch, accelerator='Ctrl+S')
+            master.bind('<Control-s>',self.dosearch)
+            self.menubar.add_cascade(label="Board", underline=0, menu=self.concentratemenu)
 
-            self.optionsmenu = Menu(self.menubar)
+            self.optionsmenu = Menu(self.menubar, tearoff=0)
             self.difficulty = StringVar()
-            self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty)
-            self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty)
-            self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty)
-            self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty)
+            self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty, accelerator='Ctrl+1')
+            master.bind('<Control-Key-1>',self.easydifficulty)
+            self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty, accelerator='Ctrl+2')
+            master.bind('<Control-Key-2>',self.mediumdifficulty)
+            self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty, accelerator='Ctrl+3')
+            master.bind('<Control-Key-3>',self.harddifficulty)
+            self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Ctrl+4')
+            master.bind('<Control-Key-4>',self.extremedifficulty)
             self.difficulty.set('H')
-            self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
-            
+            self.menubar.add_cascade(label="Options", underline=0, menu=self.optionsmenu)
+
 
         # display the menu
         master.config(menu=self.menubar)
@@ -139,8 +148,25 @@ class concentrateGUI(ttk.Frame):
     def dummy(self):
         pass
 
-    def whiteboard(self):
-         self.updateboard('w'*25)                                        
+    def whiteboard(self, x=1):
+         self.updateboard('w'*25)
+
+    def easydifficulty(self,x=0):
+        print('easy')
+        self.difficulty.set('E')
+        self.chgdifficulty()
+
+    def mediumdifficulty(self,x=0):
+        self.difficulty.set('M')
+        self.chgdifficulty()
+
+    def harddifficulty(self,x=0):
+        self.difficulty.set('H')
+        self.chgdifficulty()
+
+    def extremedifficulty(self,x=0):
+        self.difficulty.set('X')
+        self.chgdifficulty()
 
     def chgdifficulty(self):
         self.clearsearch()
@@ -159,9 +185,9 @@ class concentrateGUI(ttk.Frame):
         else:
             self.player.changedifficulty(['A',5,25])
             print(self.player.difficulty)
-        
 
-    def canvasdraw(self):
+
+    def canvasdraw(self, x=1):
         self.clearsearch()
         self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
         self.board.grid(row=1,column=0)
@@ -180,7 +206,8 @@ class concentrateGUI(ttk.Frame):
 
         self.selectsquare(0,0)
 
-    def randomboard(self):
+    def randomboard(self, x=0):
+        self.whiteboard()
         letters = arena.genletters()
         for x,c in enumerate(letters):
             row = x // 5
@@ -191,7 +218,8 @@ class concentrateGUI(ttk.Frame):
     def nex(self,event):
         (row,col) = self.selected
         char = event.char.upper()
-        if char in alpha:
+        if char in alpha and len(char) > 0: #len is used to avoid moving forward with Control/Command buttons
+            print(char, len(char))
             self.board.itemconfig(self.boardstuff[row][col][1],text=char)
             nextnum = (row*5 + col + 1) % 25
             nextrow = nextnum // 5
@@ -362,7 +390,6 @@ class concentrateGUI(ttk.Frame):
                 self.suggestselection = clickediid
                 txt = self.suggest.set(clickediid,'Word')
                 board = self.suggest.set(clickediid,'Board')
-                print(txt, board)
                 if txt == "click for more...":
                     #get number of words in suggest
                     #delete the last entry (click for more...)
@@ -382,7 +409,7 @@ class concentrateGUI(ttk.Frame):
             self.suggestignore = False
 
 
-    def dosearch(self, lastdisplayed=-1):
+    def dosearch(self, x=1, lastdisplayed=-1):
 
         self.busy()
         self.saveboard() #to restore back to when the user un-selects a word
@@ -391,6 +418,7 @@ class concentrateGUI(ttk.Frame):
             self.suggest.delete(iid)
         letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
         if not(all([x in alpha for x in letters]) and len(letters) == 25):
+            self.notbusy()
             return  #TODO error message box
         score = ''.join(self.getcolor(row,col) for row in range(5) for col in range(5))
         print(letters,score)
