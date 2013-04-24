@@ -14,14 +14,7 @@
 #click on history to show the game at that move (first entry will be beginning of the analysis)
 #maybe stretch the board on resize somehow?  or just fix everything with no stretching anywhere...
 #menu
-    #Concentrate
-        #random board
-        #clear board
-        #search
     #Options
-        #difficulty
-            #word list choice (full size or reduced)
-            #word length limit (this should bring up a popup or something)
         #theme
             #light
             #dark
@@ -47,6 +40,9 @@ class concentrateGUI(ttk.Frame):
         self.blue = ('light sky blue','RoyalBlue2')
         self.red = ('salmon','red')
 
+        sys = master.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+        print(sys)
+
         master.title("Concentrate")
         master.columnconfigure(0, weight=1)
         master.rowconfigure(0, weight=1)
@@ -62,10 +58,10 @@ class concentrateGUI(ttk.Frame):
 
         ttk.Label(self, text='Board').grid(column=0,row=0)
         ttk.Label(self, text='Played Words').grid(column=1,row=0,columnspan=2)
-        btnclear = ttk.Button(self, text='Clear',command=self.canvasdraw)
-        btnclear.grid(column=0,row=0,sticky='NW')
-        btnrandom = ttk.Button(self, text='Random',command=self.randomboard)
-        btnrandom.grid(column=0,row=0,sticky='NE')
+        #btnclear = ttk.Button(self, text='Clear',command=self.canvasdraw)
+        #btnclear.grid(column=0,row=0,sticky='NW')
+        #btnrandom = ttk.Button(self, text='Random',command=self.randomboard)
+        #btnrandom.grid(column=0,row=0,sticky='NE')
         btnsearch = ttk.Button(self, text='Search',command=self.dosearch)
         btnsearch.grid(column=3,row=0,columnspan=2)
         btnsearch['default'] = 'active'
@@ -92,38 +88,78 @@ class concentrateGUI(ttk.Frame):
         self.suggestignore = False
 
         self.canvasdraw()
+        self.player = GUIplayer()
 
-        menubar = Menu(master)
+        self.menubar = Menu(self)
 
-        # create a pulldown menu, and add it to the menu bar
-        filemenu = Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Open", command=self.dummy)
-        filemenu.add_command(label="Save", command=self.dummy)
-        filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=master.quit)
-        menubar.add_cascade(label="File", menu=filemenu)
 
-        # create more pulldown menus
-        editmenu = Menu(menubar, tearoff=0)
-        editmenu.add_command(label="Cut", command=self.dummy)
-        editmenu.add_command(label="Copy", command=self.dummy)
-        editmenu.add_command(label="Paste", command=self.dummy)
-        menubar.add_cascade(label="Edit", menu=editmenu)
+        if sys == 'aqua': #mac os x
+            self.concentratemenu = Menu(self.menubar)
+            self.concentratemenu.add_command(label="Random Board", command=self.randomboard)
+            self.concentratemenu.add_command(label="Clear Letters and Colors",  command=self.canvasdraw)
+            self.concentratemenu.add_command(label="Clear Colors", command=self.whiteboard)
+            self.concentratemenu.add_separator()
+            self.concentratemenu.add_command(label="Search", command=self.dosearch, accelerator='Return')
+            self.menubar.add_cascade(label="Concentrate", menu=self.concentratemenu)
 
-        helpmenu = Menu(menubar, tearoff=0)
-        helpmenu.add_command(label="About", command=self.dummy)
-        menubar.add_cascade(label="Help", menu=helpmenu)
+            self.optionsmenu = Menu(self.menubar)
+            self.difficulty = StringVar()
+            self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty)
+            self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty)
+            self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty)
+            self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty)
+            self.difficulty.set('H')
+            self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
+        else: #windows/nix
+            self.concentratemenu = Menu(self.menubar)
+            self.concentratemenu.add_command(label="Random Board", underline=0, command=self.randomboard)
+            self.concentratemenu.add_command(label="Clear Letters and Colors", underline=6, command=self.canvasdraw)
+            self.concentratemenu.add_command(label="Clear Colors", underline=6, command=self.whiteboard)
+            self.concentratemenu.add_separator()
+            self.concentratemenu.add_command(label="Search", underline=6, command=self.dosearch)
+            self.menubar.add_cascade(label="Concentrate", underline=0, menu=self.concentratemenu)
+
+            self.optionsmenu = Menu(self.menubar)
+            self.difficulty = StringVar()
+            self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty)
+            self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty)
+            self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty)
+            self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty)
+            self.difficulty.set('H')
+            self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
+            
 
         # display the menu
-        master.config(menu=menubar)
+        master.config(menu=self.menubar)
 
         self.boardcolors = 'w'*25
-        self.player = GUIplayer()
 
         self.notbusywidgetcursors = dict() #for busy and notbusy
 
     def dummy(self):
         pass
+
+    def whiteboard(self):
+         self.updateboard('w'*25)                                        
+
+    def chgdifficulty(self):
+        self.clearsearch()
+        print(self.difficulty.get())
+        if self.difficulty.get() == 'E':
+            self.player.changedifficulty(['R',5,5])
+            self.player.difficulty = ['R',5,5]
+            self.player.cache = dict()
+            print(self.player.difficulty)
+        elif self.difficulty.get() == 'M':
+            self.player.changedifficulty(['R',5,8])
+            print(self.player.difficulty)
+        elif self.difficulty.get() == 'H':
+            self.player.changedifficulty(['R',5,25])
+            print(self.player.difficulty)
+        else:
+            self.player.changedifficulty(['A',5,25])
+            print(self.player.difficulty)
+        
 
     def canvasdraw(self):
         self.clearsearch()
