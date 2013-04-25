@@ -526,4 +526,89 @@ class player0:
         return word,board
 
 class player1(player0):
-    pass
+    def __init__(self, difficulty=['A',5,25]): #this represents maximum difficulty
+        '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
+        self.difficulty = difficulty
+        listfile = open('en14.txt','r')
+        reducedfile = open('reduced.txt','r')
+        wordset = set()
+        reducedset = set()
+        for word in [word.upper().strip() for word in listfile]:
+            wordset.add(word)
+        for word in [word.upper().strip() for word in reducedfile]:
+            reducedset.add(word)
+        listfile.close()
+        reducedfile.close()
+        self.wordlist = list(wordset)
+        self.reducedlist = list(reducedset)
+        self.cache = dict() #dict of {letters:(words,played,usability,defendability)}
+        self.neighbors= dict() #dict of (row,col):[(nrow1,ncol1),(nrow2,ncol2),...] for all neighboring squares
+        self.makeneighbordict()
+
+    def makeneighbordict(self):
+        for row in range(5):
+            for col in range(5):
+                self.saveneighbor(row,col,row-1,col)
+                self.saveneighbor(row,col,row,col+1)
+                self.saveneighbor(row,col,row,col-1)
+                self.saveneighbor(row,col,row+1,col)
+
+    def saveneighbor(self, row, col, nrow, ncol):
+        if nrow in range(5) and ncol in range(5):
+            if (row,col) in self.neighbors:
+                self.neighbors[(row,col)].append((nrow,ncol))
+            else:
+                self.neighbors[(row,col)] = [(nrow,ncol)]
+
+    def evaluatepos(self, allletters,board):
+        '''board is a 2D array of numbers. modifies board to show weighted score (from dw) of defended tiles'''
+        #defended weights
+        total = 0
+        ending = True
+        dw = 2
+        ndw = -dw
+        u = self.cache[allletters][2] #usability
+        d = self.cache[allletters][3] #defendability
+        for row in range(5):
+            for col in range(5):
+                neighbors = self.neighbors[(row,col)]
+                allblue = True
+                allred = True
+                if board[row][col] > 0:
+                    allred = False
+                if board[row][col] < 0:
+                    allblue = False
+                if board[row][col] == 0:
+                    allblue = allred = False
+                for nrow,ncol in neighbors:
+                    if allblue or allred:
+                        if board[nrow][ncol] > 0:
+                            allred = False
+                        elif board[nrow][ncol] < 0:
+                            allblue = False
+                        elif board[nrow][ncol] == 0:
+                            allblue = allred = False
+                            break
+                    else:
+                        break
+                if allblue:
+                    board[row][col] = dw + u[row][col]
+                elif allred:
+                    board[row][col] = ndw - u[row][col]
+                else:
+                    if board[row][col] > 0:
+                        board[row][col] = d[row][col]
+                    elif board[row][col] < 0:
+                        board[row][col] = -d[row][col]
+                    else:
+                        board[0][0] = 0
+                        ending = False
+                total += board[row][col]
+
+        if not ending:
+            return total
+        else: #game over
+            #total = sum([1 for row in board for num in row if num > 0])
+            #total += sum([-1 for row in board for num in row if num < 0])
+            total = sum([num/abs(num) for row in board for num in row])
+            return total * 1000
