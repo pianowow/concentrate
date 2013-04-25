@@ -23,6 +23,7 @@
 
 
 from tkinter import *
+from tkinter import messagebox
 from tkinter import ttk
 from player import player0
 from time import time
@@ -40,8 +41,6 @@ class concentrateGUI(ttk.Frame):
         self.sqsize = self.boardsize//5
         self.blue = ('light sky blue','RoyalBlue2')
         self.red = ('salmon','red')
-
-
 
         master.title("Concentrate")
         master.columnconfigure(0, weight=1)
@@ -401,16 +400,14 @@ class concentrateGUI(ttk.Frame):
                 if txt == "click for more...":
                     #delete the last entry (click for more...)
                     last = ''
+                    #get number of words in suggest
                     amt = 0
                     for iid in self.suggest.get_children():
                         last = iid
                         amt += 1
                     self.suggest.delete(last)
-                    #get number of words in suggest
-                    #amt = len(self.suggest.get_children())
-                    print(amt)
                     #call do search with lastdisplayed
-                    dosearch
+                    self.dosearch(lastdisplayed=amt-1)
                     #add a new "click for more..." entry
                     pass
                 else:
@@ -427,18 +424,16 @@ class concentrateGUI(ttk.Frame):
 
 
     def dosearch(self, x=1, lastdisplayed=-1):
-
         self.busy()
         self.saveboard() #to restore back to when the user un-selects a word
-        self.clearsearch()
+        if lastdisplayed == -1:
+            self.clearsearch()
         letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
         if not(all([x in alpha for x in letters]) and len(letters) == 25):
             self.notbusy()
             messagebox.showwarning("Concentrate","The board must be completely filled with letters.")
-            return  #TODO error message box
+            return
         score = ''.join(self.getcolor(row,col) for row in range(5) for col in range(5))
-        print(letters,score)
-
 
         wordlist = self.player.search(letters,score,1,lastdisplayed)
         for i,word in enumerate(wordlist):
@@ -453,18 +448,19 @@ class GUIplayer(player0):
 
     def search(self, allletters, score, move, lastdisplayed):
         '''returns a list for the GUI to display'''
-        start = time()
-        wordscores = self.decide(allletters,score,move)
-        if move == 1:
-            wordscores.sort(reverse=True)
-        else:
-            wordscores.sort()
-        print(round(time()-start,2),'seconds to decide')
+        if lastdisplayed == -1:
+            start = time()
+            self.wordscores = self.decide(allletters,score,move)
+            if move == 1:
+                self.wordscores.sort(reverse=True)
+            else:
+                self.wordscores.sort()
+            print(round(time()-start,2),'seconds to decide')
         start = time()
         results = list()
         amounttodisplay = 20
         displayed = 0
-        for wordnum,(score,word,groupsize,board) in enumerate(wordscores):
+        for wordnum,(score,word,groupsize,board) in enumerate(self.wordscores):
             if wordnum > lastdisplayed and displayed < amounttodisplay:
                 zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
                 if losing: #endgame check found a way for opponent to win
