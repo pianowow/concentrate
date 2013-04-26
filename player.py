@@ -8,12 +8,13 @@
 
 #idea to improve:
 #consider re-working the evaluation to take advantage of bitmap representation of tiles.
-#implement and test vulnerability in player1
+#implement and test vulnerability in player1 (number of adjacent white and red squares)
 #define span for each word (average distance between each successive letter) ... could be useful for eliminating non-human words on an easy level
 #limited minimax... pick 10 words that pass endgame check and run search on those
 #combine groupwords and concentrate functions (group words as they are found)
 
-from string import ascii_uppercase
+from string import ascii_uppercase, digits
+
 
 class player0:
     def __init__(self, difficulty=['A',5,25]): #this represents maximum difficulty
@@ -546,22 +547,30 @@ class player1(player0):
         self.makeneighbordict()
 
     def makeneighbordict(self):
-        for row in range(5):
-            for col in range(5):
-                self.saveneighbor(row,col,row-1,col)
-                self.saveneighbor(row,col,row,col+1)
-                self.saveneighbor(row,col,row,col-1)
-                self.saveneighbor(row,col,row+1,col)
+        for square in range(25):
+            self.saveneighbor(square,square)
+            self.saveneighbor(square,square-5)
+            if square % 5 != 4:
+                self.saveneighbor(square,square+1)
+            if square % 5 != 0:
+                self.saveneighbor(square,square-1)
+            self.saveneighbor(square,square+5)
 
-    def saveneighbor(self, row, col, nrow, ncol):
-        if nrow in range(5) and ncol in range(5):
-            if (row,col) in self.neighbors:
-                self.neighbors[(row,col)].append((nrow,ncol))
+    def saveneighbor(self, square, nsquare):
+        if nsquare in range(25):
+            if square in self.neighbors:
+                self.neighbors[square] = self.neighbors[square] | (1 << nsquare)
             else:
-                self.neighbors[(row,col)] = [(nrow,ncol)]
+                self.neighbors[square] = (1 << nsquare)
 
-    def evaluatepos(self, allletters,board):
-        '''board is a 2D array of numbers. modifies board to show weighted score (from dw) of defended tiles'''
+    def turnonbit(self,bitmap,bitnum):
+        return bitmap | (1 << bitnum)
+
+    def turnoffbit(self,bitmap,bitnum):
+        return bitmap & ~(1 << bitnum)
+
+    def evaluatepos(self, allletters,blue,red):
+        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red'''
         #defended weights
         total = 0
         ending = True
@@ -569,6 +578,9 @@ class player1(player0):
         ndw = -dw
         u = self.cache[allletters][2] #usability
         d = self.cache[allletters][3] #defendability
+
+        #TODO !!!
+
         for row in range(5):
             for col in range(5):
                 neighbors = self.neighbors[(row,col)]
@@ -612,3 +624,92 @@ class player1(player0):
             #total += sum([-1 for row in board for num in row if num < 0])
             total = sum([num/abs(num) for row in board for num in row])
             return total * 1000
+
+    def arrange(self,allletters,word,blue,red,bluedef,reddef,targets,scores=[],used=[],move=1):
+        '''recursive function to determine the best placement of word'''
+        if len(word) == 0:
+            #newboard = [row[:] for row in wordscore] #faster than deepcopy
+            score = round(self.evaluatepos(allletters,blue,red),2)
+            scores.append((score,newboard))
+        else:
+            l = word[0]
+            listindex = list()
+            i = allletters.find(l)
+            while i >= 0:
+                if i not in used and ((1<<i) & targets): #only care about tiles that change the score
+                    used.append(i)
+                    oldred = red
+                    oldblue = blue
+                    if move == 1:
+                        blue = blue | (1<<i)
+                        red = red & ~(1<<i)
+                    else:
+                        blue = blue & ~(1<<i)
+                        red = red | (1<<i)
+                    self.arrange(allletters,word[1:],blue,red,bluedef,reddef,targets,scores,used,move)
+                    red = oldred
+                    blue = oldblue
+                    used.pop()
+                i = allletters.find(l, i + 1)
+
+    def convertboardscore(self, rbscore):
+        i = 0
+        prevchar = 'W'
+        blue = 0 #bitmap of blue's occupied tiles
+        bluedef = 0 #bitmap of blue's defended tiles
+        red = 0 #bitmap of red's occupied tiles
+        reddef = 0 #bitmap of red's defended tiles
+        for char in rbscore:
+            if char == 'B':
+                blue = blue | (1 << i) #assign 1 to that position in the bitmap
+                prevchar = char
+                i += 1
+            elif char == 'R':
+                red = red | (1 << i) #assign 1 to that position in the bitmap
+                prevchar = char
+                i += 1
+            elif char in digits:
+                num = int(char)
+                for x in range(num-1):
+                    if prevchar == 'R':
+                        red = red | (1 << i)
+                    elif prevchar == 'B':
+                        blue = blue | (1 << i)
+                    i+=1
+            else:
+                prevchar = 'W'
+                i+=1
+        for i in range(25): #check defended
+            if (blue & self.neighbors[i]) == self.neighbors[i]:
+                bluedef = bluedef | (1 << i) #assign 1 to that position in the bitmap
+            if (red & self.neighbors[i]) == self.neighbors[i]:
+                reddef = reddef | (1 << i) #assign 1 to that position in the bitmap
+        return (blue,red,bluedef,reddef)
+
+    def decide(self, allletters,score,move):
+        '''judges the merit of possible words for this board'''
+        #board = self.convertboardscore(score)
+        blue,red,bluedef,reddef = self.convertboardscore(score)
+        #letters to focus on are undefended opponent and unclaimed
+        if move == 1:
+            targets = (red & ~reddef) | (~blue & ~red)
+        else:
+            targets = (blue & ~bluedef) | (~blue & ~red)
+        anyl = ''
+        for i in range(25):
+            if (1 << i) & targets:
+                anyl += allletters[i]
+        words = self.concentrate(allletters,anyletters=anyl)
+        wordgroups = self.groupwords(words,anyl)
+        wordscores = list()
+        for x,group in enumerate(wordgroups.keys()):
+            #wordscore = [row[:] for row in board] #much faster than deepcopy!
+            scores = list() #scores formed by different arrangements of the same group
+            self.arrange(allletters,group,blue,red,bluedef,reddef,targets,scores,[],move)
+            for play in scores:
+                playscore = play[0]
+                playboard = play[1]
+                groupsize = len(wordgroups[group])
+                for word in wordgroups[group]:
+                    wordscores.append((playscore,word,groupsize,playboard))
+        return wordscores
