@@ -91,7 +91,6 @@ class concentrateGUI(ttk.Frame):
 
         self.menubar = Menu(self, tearoff=0)
         sys = master.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
-        print(sys)
 
         if sys == 'aqua': #mac os x
             self.concentratemenu = Menu(self.menubar, tearoff=0)
