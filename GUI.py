@@ -48,8 +48,8 @@ class concentrateGUI(ttk.Frame):
         self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=0) #scroll bar shouldn't stretch
-        self.columnconfigure(3, weight=1) 
-        self.columnconfigure(4, weight=0) #scroll bar shouldn't stretch        
+        self.columnconfigure(3, weight=1)
+        self.columnconfigure(4, weight=0) #scroll bar shouldn't stretch
         self.rowconfigure(0, weight=0)
         self.rowconfigure(1, weight=1)
         self.rowconfigure(2, weight=0)
@@ -64,7 +64,7 @@ class concentrateGUI(ttk.Frame):
         btnsearch.grid(column=3,row=0,columnspan=2)
         btnsearch['default'] = 'active'
 
-        self.history = ttk.Treeview(self,columns=('Word','Board'), displaycolumns=('Word'),selectmode='browse',show='tree')
+        self.history = ttk.Treeview(self,columns=('Word','Score','Board'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
         historyscroll = ttk.Scrollbar(self,orient=VERTICAL,command=self.history.yview)
         historyscroll.grid(row=1,column=2,rowspan=2,sticky=(N,S,E))
         self.history['yscrollcommand'] = historyscroll.set
@@ -90,6 +90,14 @@ class concentrateGUI(ttk.Frame):
         self.btnsuggestselect.state(['disabled'])
 
         self.canvasdraw()
+        master.bind('<Key>',self.nex)  #to write that character to the square and select the next one
+        master.bind('<Up>',self.moveup)
+        master.bind('<Down>',self.movedown)
+        master.bind('<Left>',self.moveleft)
+        master.bind('<Right>',self.moveright)
+        master.bind('<BackSpace>',self.backspace)
+        master.bind('<Delete>',self.delete)
+
         self.player = GUIplayer()
 
         self.menubar = Menu(self, tearoff=0)
@@ -120,9 +128,8 @@ class concentrateGUI(ttk.Frame):
             master.bind('<Command-Key-4>',self.extremedifficulty)
             self.difficulty.set('H')
             self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
-            self.suggest.bind('<Button-2>',self.suggestpopupshow)
 
-            
+
         else: #windows
             self.concentratemenu = Menu(self.menubar, tearoff=0)
             self.concentratemenu.add_command(label="Random Board", underline=0, command=self.randomboard, accelerator='Ctrl+R')
@@ -149,8 +156,6 @@ class concentrateGUI(ttk.Frame):
             self.difficulty.set('H')
             self.menubar.add_cascade(label="Options", underline=0, menu=self.optionsmenu)
 
-            self.suggest.bind('<Button-3>',self.suggestpopup)
-
 
         master.bind('<Return>',self.dosearch)
 
@@ -168,7 +173,6 @@ class concentrateGUI(ttk.Frame):
          self.updateboard('w'*25)
 
     def easydifficulty(self,x=0):
-        print('easy')
         self.difficulty.set('E')
         self.chgdifficulty()
 
@@ -186,27 +190,25 @@ class concentrateGUI(ttk.Frame):
 
     def chgdifficulty(self):
         self.clearsearch()
-        print(self.difficulty.get())
         if self.difficulty.get() == 'E':
             self.player.changedifficulty(['R',5,5])
             self.player.difficulty = ['R',5,5]
             self.player.cache = dict()
-            print(self.player.difficulty)
+
         elif self.difficulty.get() == 'M':
             self.player.changedifficulty(['R',5,8])
-            print(self.player.difficulty)
+
         elif self.difficulty.get() == 'H':
             self.player.changedifficulty(['R',5,25])
-            print(self.player.difficulty)
+
         else:
             self.player.changedifficulty(['A',5,25])
-            print(self.player.difficulty)
 
     def canvasdraw(self, x=1):
         self.clearsearch()
         self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
         self.board.grid(row=1,column=0,rowspan=2)
-        self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
+
         self.board.bind('<Button-1>',self.chgcolor)
 
         for row in range(5):
@@ -230,6 +232,45 @@ class concentrateGUI(ttk.Frame):
             col = x % 5
             self.board.itemconfig(self.boardstuff[row][col][1],text=c)
 
+    def moveup(self,event):
+        (row,col) = self.selected
+        nextnum = ((row-1)*5 + col) % 25
+        nextrow = nextnum // 5
+        nextcol = nextnum % 5
+        self.selectsquare(nextrow,nextcol)
+
+    def movedown(self,event):
+        (row,col) = self.selected
+        nextnum = ((row+1)*5 + col) % 25
+        nextrow = nextnum // 5
+        nextcol = nextnum % 5
+        self.selectsquare(nextrow,nextcol)
+
+    def moveleft(self,event):
+        (row,col) = self.selected
+        nextnum = (row*5 + col - 1) % 25
+        nextrow = nextnum // 5
+        nextcol = nextnum % 5
+        self.selectsquare(nextrow,nextcol)
+
+    def moveright(self,event):
+        (row,col) = self.selected
+        nextnum = (row*5 + col + 1) % 25
+        nextrow = nextnum // 5
+        nextcol = nextnum % 5
+        self.selectsquare(nextrow,nextcol)
+
+    def backspace(self,event):
+        (row,col) = self.selected
+        nextnum = (row*5 + col - 1) % 25
+        nextrow = nextnum // 5
+        nextcol = nextnum % 5
+        self.selectsquare(nextrow,nextcol)
+        self.board.itemconfig(self.boardstuff[nextrow][nextcol][1],text='')
+
+    def delete(self,event):
+        (row,col) = self.selected
+        self.board.itemconfig(self.boardstuff[row][col][1],text='')
 
     def nex(self,event):
         (row,col) = self.selected
@@ -240,38 +281,6 @@ class concentrateGUI(ttk.Frame):
             nextrow = nextnum // 5
             nextcol = nextnum % 5
             self.selectsquare(nextrow,nextcol)
-        elif len(char) > 0:
-            keynum = ord(event.char)
-            print(keynum)
-            if keynum == 63232: #up
-                nextnum = ((row-1)*5 + col) % 25
-                nextrow = nextnum // 5
-                nextcol = nextnum % 5
-                self.selectsquare(nextrow,nextcol)
-            elif keynum == 63233: #down
-                nextnum = ((row+1)*5 + col) % 25
-                nextrow = nextnum // 5
-                nextcol = nextnum % 5
-                self.selectsquare(nextrow,nextcol)
-            elif keynum == 63234: #left 
-                nextnum = (row*5 + col - 1) % 25
-                nextrow = nextnum // 5
-                nextcol = nextnum % 5
-                self.selectsquare(nextrow,nextcol) 
-            elif keynum == 63235: #right
-                nextnum = (row*5 + col + 1) % 25
-                nextrow = nextnum // 5
-                nextcol = nextnum % 5
-                self.selectsquare(nextrow,nextcol)            
-            elif keynum == 127: #backspace
-                nextnum = (row*5 + col - 1) % 25
-                nextrow = nextnum // 5
-                nextcol = nextnum % 5
-                self.selectsquare(nextrow,nextcol)                 
-                self.board.itemconfig(self.boardstuff[nextrow][nextcol][1],text='')
-            elif keynum == 63272: #delete
-                self.board.itemconfig(self.boardstuff[row][col][1],text='')
-
 
     def getrowcol(self,x,y):
         col = x//self.sqsize
@@ -427,7 +436,7 @@ class concentrateGUI(ttk.Frame):
                     color = self.red[1]
                 self.board.itemconfig(self.boardstuff[row][col][0],fill=color)
 
-    def suggestclick(self, event, popup=False):
+    def suggestclick(self, event):
         '''tied to suggest.<<TreeviewSelect>>'''
         if not self.suggestignore:
             #columns=('Word', 'Score','Board')
@@ -462,17 +471,7 @@ class concentrateGUI(ttk.Frame):
                 self.restoreboard()
         else:
             self.suggestignore = False
-        if popup:
-            self.suggestpopup.tk_popup(event.x_root, event.y_root, 0)
 
-    def suggestpopupshow(self, event):
-        #print(event.x,event.y)
-        iid = self.suggest.identify_row(event.y)
-        self.suggest.selection_set(iid)
-        self.suggest.focus_set()
-        self.suggest.focus(iid)        
-        self.suggestpopup.tk_popup(event.x_root, event.y_root, 0)
-        #self.suggestclick(event, True)
 
     def suggestselect(self):
         item = self.suggest.focus()
@@ -515,8 +514,7 @@ class GUIplayer(player0):
             plays = len(self.wordscores)
             rate = int(plays/decidetime)
             print(decidetime,'seconds to decide')
-            print(plays,'plays found')
-            print(rate,'per second')
+            print(plays,'plays found,',rate,'per second')
         start = time()
         results = list()
         amounttodisplay = 20
