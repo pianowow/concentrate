@@ -9,7 +9,6 @@
 #TODO
 #need some way to tell the engine whose turn it is, combo box at the top?
 #progress bar dialog
-#When more is clicked, add more from the list.
 #error message on invalid search
 #double-click searched word to add it to the history and update the board
 #click on history to show the game at that move (first entry will be beginning of the analysis)
@@ -49,10 +48,11 @@ class concentrateGUI(ttk.Frame):
         self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=0) #scroll bar shouldn't stretch
-        self.columnconfigure(3, weight=1)
-        self.columnconfigure(4, weight=0) #scroll bar shouldn't stretch
+        self.columnconfigure(3, weight=1) 
+        self.columnconfigure(4, weight=0) #scroll bar shouldn't stretch        
         self.rowconfigure(0, weight=0)
         self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=0)
 
         ttk.Label(self, text='Board').grid(column=0,row=0)
         ttk.Label(self, text='Played Words').grid(column=1,row=0,columnspan=2)
@@ -66,9 +66,9 @@ class concentrateGUI(ttk.Frame):
 
         self.history = ttk.Treeview(self,columns=('Word','Board'), displaycolumns=('Word'),selectmode='browse',show='tree')
         historyscroll = ttk.Scrollbar(self,orient=VERTICAL,command=self.history.yview)
-        historyscroll.grid(row=1,column=2,sticky=(N,S,E))
+        historyscroll.grid(row=1,column=2,rowspan=2,sticky=(N,S,E))
         self.history['yscrollcommand'] = historyscroll.set
-        self.history.grid(row=1,column=1,sticky=(N,S,W,E))
+        self.history.grid(row=1,column=1,rowspan=2,sticky=(N,S,W,E))
         self.history.column('#0',width=1)
         self.history.column(0,width=150)
 
@@ -84,6 +84,10 @@ class concentrateGUI(ttk.Frame):
         self.suggest.bind('<<TreeviewSelect>>',self.suggestclick)
         self.suggestselection = -1
         self.suggestignore = False
+
+        self.btnsuggestselect = ttk.Button(self, text='Select',command=self.suggestselect)
+        self.btnsuggestselect.grid(row=2,column=3,columnspan=2)
+        self.btnsuggestselect.state(['disabled'])
 
         self.canvasdraw()
         self.player = GUIplayer()
@@ -116,6 +120,9 @@ class concentrateGUI(ttk.Frame):
             master.bind('<Command-Key-4>',self.extremedifficulty)
             self.difficulty.set('H')
             self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
+            self.suggest.bind('<Button-2>',self.suggestpopupshow)
+
+            
         else: #windows
             self.concentratemenu = Menu(self.menubar, tearoff=0)
             self.concentratemenu.add_command(label="Random Board", underline=0, command=self.randomboard, accelerator='Ctrl+R')
@@ -142,6 +149,10 @@ class concentrateGUI(ttk.Frame):
             self.difficulty.set('H')
             self.menubar.add_cascade(label="Options", underline=0, menu=self.optionsmenu)
 
+            self.suggest.bind('<Button-3>',self.suggestpopup)
+
+
+        master.bind('<Return>',self.dosearch)
 
         # display the menu
         master.config(menu=self.menubar)
@@ -194,7 +205,7 @@ class concentrateGUI(ttk.Frame):
     def canvasdraw(self, x=1):
         self.clearsearch()
         self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
-        self.board.grid(row=1,column=0)
+        self.board.grid(row=1,column=0,rowspan=2)
         self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
         self.board.bind('<Button-1>',self.chgcolor)
 
@@ -229,7 +240,7 @@ class concentrateGUI(ttk.Frame):
             nextrow = nextnum // 5
             nextcol = nextnum % 5
             self.selectsquare(nextrow,nextcol)
-        else:
+        elif len(char) > 0:
             keynum = ord(event.char)
             print(keynum)
             if keynum == 63232: #up
@@ -259,8 +270,7 @@ class concentrateGUI(ttk.Frame):
                 self.selectsquare(nextrow,nextcol)                 
                 self.board.itemconfig(self.boardstuff[nextrow][nextcol][1],text='')
             elif keynum == 63272: #delete
-                self.board.itemconfig(self.boardstuff[row][col][1],text='')                
-        
+                self.board.itemconfig(self.boardstuff[row][col][1],text='')
 
 
     def getrowcol(self,x,y):
@@ -417,7 +427,7 @@ class concentrateGUI(ttk.Frame):
                     color = self.red[1]
                 self.board.itemconfig(self.boardstuff[row][col][0],fill=color)
 
-    def suggestclick(self, event):
+    def suggestclick(self, event, popup=False):
         '''tied to suggest.<<TreeviewSelect>>'''
         if not self.suggestignore:
             #columns=('Word', 'Score','Board')
@@ -438,19 +448,35 @@ class concentrateGUI(ttk.Frame):
                     self.suggest.delete(last)
                     #call do search with lastdisplayed
                     self.dosearch(lastdisplayed=amt-1)
-                    #add a new "click for more..." entry
-                    pass
+
                 else:
                     #update colors on the board to match the board of the word suggested
                     self.updateboard(board)
+                    self.btnsuggestselect.state(['!disabled'])
 
             else:
                 self.suggestignore = True
                 self.suggest.selection_remove(clickediid)
+                self.btnsuggestselect.state(['disabled'])
                 self.suggestselection = -1
                 self.restoreboard()
         else:
             self.suggestignore = False
+        if popup:
+            self.suggestpopup.tk_popup(event.x_root, event.y_root, 0)
+
+    def suggestpopupshow(self, event):
+        #print(event.x,event.y)
+        iid = self.suggest.identify_row(event.y)
+        self.suggest.selection_set(iid)
+        self.suggest.focus_set()
+        self.suggest.focus(iid)        
+        self.suggestpopup.tk_popup(event.x_root, event.y_root, 0)
+        #self.suggestclick(event, True)
+
+    def suggestselect(self):
+        item = self.suggest.focus()
+        print ("you selected", self.suggest.set(item,'Word'))
 
 
     def dosearch(self, x=1, lastdisplayed=-1):
@@ -485,7 +511,12 @@ class GUIplayer(player0):
                 self.wordscores.sort(reverse=True)
             else:
                 self.wordscores.sort()
-            print(round(time()-start,2),'seconds to decide')
+            decidetime = round(time() - start,2)
+            plays = len(self.wordscores)
+            rate = int(plays/decidetime)
+            print(decidetime,'seconds to decide')
+            print(plays,'plays found')
+            print(rate,'per second')
         start = time()
         results = list()
         amounttodisplay = 20
