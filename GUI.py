@@ -27,9 +27,8 @@ from tkinter import messagebox
 from tkinter import ttk
 from player import player0
 from time import time
+from string import ascii_uppercase
 import arena
-
-alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 class concentrateGUI(ttk.Frame):
 
@@ -192,7 +191,6 @@ class concentrateGUI(ttk.Frame):
             self.player.changedifficulty(['A',5,25])
             print(self.player.difficulty)
 
-
     def canvasdraw(self, x=1):
         self.clearsearch()
         self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
@@ -225,12 +223,45 @@ class concentrateGUI(ttk.Frame):
     def nex(self,event):
         (row,col) = self.selected
         char = event.char.upper()
-        if char in alpha and len(char) > 0: #len is used to avoid moving forward with Control/Command buttons
+        if char in ascii_uppercase and len(char) > 0: #len is used to avoid moving forward with Control/Command buttons
             self.board.itemconfig(self.boardstuff[row][col][1],text=char)
             nextnum = (row*5 + col + 1) % 25
             nextrow = nextnum // 5
             nextcol = nextnum % 5
             self.selectsquare(nextrow,nextcol)
+        else:
+            keynum = ord(event.char)
+            print(keynum)
+            if keynum == 63232: #up
+                nextnum = ((row-1)*5 + col) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol)
+            elif keynum == 63233: #down
+                nextnum = ((row+1)*5 + col) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol)
+            elif keynum == 63234: #left 
+                nextnum = (row*5 + col - 1) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol) 
+            elif keynum == 63235: #right
+                nextnum = (row*5 + col + 1) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol)            
+            elif keynum == 127: #backspace
+                nextnum = (row*5 + col - 1) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol)                 
+                self.board.itemconfig(self.boardstuff[nextrow][nextcol][1],text='')
+            elif keynum == 63272: #delete
+                self.board.itemconfig(self.boardstuff[row][col][1],text='')                
+        
+
 
     def getrowcol(self,x,y):
         col = x//self.sqsize
@@ -428,7 +459,7 @@ class concentrateGUI(ttk.Frame):
         if lastdisplayed == -1:
             self.clearsearch()
         letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
-        if not(all([x in alpha for x in letters]) and len(letters) == 25):
+        if not(all([x in ascii_uppercase for x in letters]) and len(letters) == 25):
             self.notbusy()
             messagebox.showwarning("Concentrate","The board must be completely filled with letters.")
             return
@@ -459,17 +490,17 @@ class GUIplayer(player0):
         results = list()
         amounttodisplay = 20
         displayed = 0
-        for wordnum,(score,word,groupsize,board) in enumerate(self.wordscores):
+        for wordnum,(score,word,groupsize,blue,red,bluedef,reddef) in enumerate(self.wordscores):
             if wordnum > lastdisplayed and displayed < amounttodisplay:
-                zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
+                zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
                 if losing: #endgame check found a way for opponent to win
-                   results.append((score,'-'+word,self.displayscore(board)))
+                   results.append((score,'-'+word,self.displayscore(blue,red,bluedef,reddef)))
                    displayed += 1
                 elif endingsoon: #endgame check only found way for opponent to end game, but not win
-                   results.append((score,'*'+word,self.displayscore(board)))
+                   results.append((score,'*'+word,self.displayscore(blue,red,bluedef,reddef)))
                    displayed += 1
                 else:
-                    results.append((score,word,self.displayscore(board)))
+                    results.append((score,word,self.displayscore(blue,red,bluedef,reddef)))
                     displayed += 1
             elif displayed >= amounttodisplay:
                 break
