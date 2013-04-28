@@ -46,19 +46,20 @@ class search(player0):
         while True:
             displayed = 0
             previouslastdisplayed = lastdisplayed
-            for wordnum,(score,word,groupsize,board) in enumerate(wordscores): #print score and check if opponent can win on next turn
+            for wordnum,(score,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores): #print score and check if opponent can win on next turn
+
                 if wordnum > lastdisplayed and displayed < amounttodisplay:
-                    zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,board,move)
+                    zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
                     if losing:
                         if showhidden:
-                            print(wordnum,word.ljust(25),score,groupsize,self.displayscore(board),zeroletters,'loses')
+                            print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red,bluedef,reddef),zeroletters,'loses')
                             displayed += 1
                     elif endingsoon:
-                        print(wordnum,word.ljust(25),score,groupsize,self.displayscore(board),zeroletters,'ending soon')
+                        print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red,bluedef,reddef),zeroletters,'ending soon')
                         lastdisplayed = wordnum
                         displayed += 1
                     else:
-                        print(wordnum,word.ljust(25),score,groupsize,self.displayscore(board),zeroletters)
+                        print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red,bluedef,reddef),zeroletters)
                         lastdisplayed = wordnum
                         displayed += 1
                 elif displayed >= amounttodisplay:
@@ -83,7 +84,7 @@ class search(player0):
                 print()
                 wordscores.pop(num)
                 lastdisplayed = previouslastdisplayed
-                self.cache[allletters][1].append(word)
+                self.cache[allletters][1].append(word) 
 
 class search1(player1):
     def __init__(self,difficulty=['A',5,25]):
@@ -161,9 +162,6 @@ class search1(player1):
                 wordscores.pop(num)
                 lastdisplayed = previouslastdisplayed
                 self.cache[allletters][1].append(word)    
-
-
-
 
 
 h = search(difficulty=['A',5,25])
