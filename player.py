@@ -220,7 +220,7 @@ class player0:
             else:
                 board[4][0] = 0
                 ending = False
-        total += board[0][0]
+        total += board[4][0]
         if board[4][4] > 0 and board[3][4] > 0 and board[4][3] > 0:
             board[4][4] = dw + u[4][4]
         elif board[4][4] < 0 and board[3][4] < 0 and board[4][3] < 0:
@@ -546,6 +546,32 @@ class player1(player0):
         self.neighbors= dict() #dict of (row,col):[(nrow1,ncol1),(nrow2,ncol2),...] for all neighboring squares
         self.makeneighbordict()
 
+    #usablility is a bonus for defended tiles based on letterpopularity
+    def usability(self, allletters,lp):
+        '''returns a 2D list based on how usable each letter is'''
+        m = [0 for x in range(25)]
+        for i,l in enumerate(allletters):
+            m[i] = lp[l]
+        return m
+
+    #defendability is the average usability of surrounding squares
+    def defendability(self, u):
+        '''returns a 2D list based on how defendable each letter is'''
+        m = [0 for x in range(25)]
+        for row in range(5):
+            for col in range(5):
+                neighborlist = []
+                if row-1 in range(5):
+                    neighborlist.append(u[(row-1)*5+col])
+                if col+1 in range(5):
+                    neighborlist.append(u[row*5+col+1]) 
+                if row+1 in range(5):
+                    neighborlist.append(u[(row+1)*5+col])
+                if col-1 in range(5):
+                    neighborlist.append(u[row*5+col-1])
+                m[row*5+col] = round(sum(neighborlist) / len(neighborlist),2)
+        return m
+
     def makeneighbordict(self):
         for square in range(25):
             self.saveneighbor(square,square)
@@ -569,84 +595,67 @@ class player1(player0):
     def turnoffbit(self,bitmap,bitnum):
         return bitmap & ~(1 << bitnum)
 
+    def countbits(self,bitmap): #fastest way I could find to compute the hamming weight
+        return bin(bitmap).count('1')
+
     def evaluatepos(self, allletters,blue,red):
-        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red'''
-        #defended weights
-        total = 0
-        ending = True
+        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
+        bluedef = reddef = 0
+        ending = (self.countbits((blue|red)) == 25)
         dw = 2
-        ndw = -dw
         u = self.cache[allletters][2] #usability
         d = self.cache[allletters][3] #defendability
-
-        #TODO !!!
-
-        for row in range(5):
-            for col in range(5):
-                neighbors = self.neighbors[(row,col)]
-                allblue = True
-                allred = True
-                if board[row][col] > 0:
-                    allred = False
-                if board[row][col] < 0:
-                    allblue = False
-                if board[row][col] == 0:
-                    allblue = allred = False
-                for nrow,ncol in neighbors:
-                    if allblue or allred:
-                        if board[nrow][ncol] > 0:
-                            allred = False
-                        elif board[nrow][ncol] < 0:
-                            allblue = False
-                        elif board[nrow][ncol] == 0:
-                            allblue = allred = False
-                            break
-                    else:
-                        break
-                if allblue:
-                    board[row][col] = dw + u[row][col]
-                elif allred:
-                    board[row][col] = ndw - u[row][col]
+        bluescore = redscore = 0
+        for i in range(25): #check defended
+            if blue & (1<<i):
+                if (blue & self.neighbors[i]) == self.neighbors[i]:
+                    bluescore += (dw + u[i])
+                    bluedef = bluedef | (1<<i)
                 else:
-                    if board[row][col] > 0:
-                        board[row][col] = d[row][col]
-                    elif board[row][col] < 0:
-                        board[row][col] = -d[row][col]
-                    else:
-                        board[0][0] = 0
-                        ending = False
-                total += board[row][col]
+                    bluescore += d[i]
+            if red & (1<<i):
+                if (red & self.neighbors[i]) == self.neighbors[i]:
+                    redscore += (dw + u[i])
+                    reddef = reddef | (1<<i)
+                else:
+                    redscore += d[i]
+        total = bluescore - redscore
 
         if not ending:
-            return total
+            return round(total,2),bluedef,reddef
         else: #game over
-            #total = sum([1 for row in board for num in row if num > 0])
-            #total += sum([-1 for row in board for num in row if num < 0])
-            total = sum([num/abs(num) for row in board for num in row])
-            return total * 1000
+            total = self.countbits(blue) - self.countbits(red)
+            return total * 1000,bluedef,reddef
 
-    def arrange(self,allletters,word,blue,red,bluedef,reddef,targets,scores=[],used=[],move=1):
+    def arrange(self,allletters,word,blue,red,targets,scores=[],used=[],move=1):
         '''recursive function to determine the best placement of word'''
         if len(word) == 0:
-            #newboard = [row[:] for row in wordscore] #faster than deepcopy
-            score = round(self.evaluatepos(allletters,blue,red),2)
-            scores.append((score,newboard))
+            score,bluedef,reddef = self.evaluatepos(allletters,blue,red)
+            if len(scores) > 0:
+                if move > 0:
+                    if score > max(x[0] for x in scores):
+                        scores.append((score,blue,red,bluedef,reddef))
+                else:
+                    if score < min(x[0] for x in scores):
+                        scores.append((score,blue,red,bluedef,reddef))
+            else:
+                scores.append((score,blue,red,bluedef,reddef))
         else:
             l = word[0]
             listindex = list()
             i = allletters.find(l)
+            oldred = red
+            oldblue = blue
             while i >= 0:
                 if i not in used and ((1<<i) & targets): #only care about tiles that change the score
                     used.append(i)
-                    oldred = red
-                    oldblue = blue
                     if move == 1:
-                        blue = blue | (1<<i)
-                        red = red & ~(1<<i)
+                        blue = blue | (1<<i) #set 1 to position i
+                        red = red & ~(1<<i) #set 0 to position i
                     else:
-                        blue = blue & ~(1<<i)
-                        red = red | (1<<i)
-                    self.arrange(allletters,word[1:],blue,red,bluedef,reddef,targets,scores,used,move)
+                        blue = blue & ~(1<<i) #set 0 to position i
+                        red = red | (1<<i) #set 1 to position i
+                    self.arrange(allletters,word[1:],blue,red,targets,scores,used,move)
                     red = oldred
                     blue = oldblue
                     used.pop()
@@ -704,12 +713,116 @@ class player1(player0):
         wordscores = list()
         for x,group in enumerate(wordgroups.keys()):
             #wordscore = [row[:] for row in board] #much faster than deepcopy!
-            scores = list() #scores formed by different arrangements of the same group
-            self.arrange(allletters,group,blue,red,bluedef,reddef,targets,scores,[],move)
+            scores = list() #scores formed by different arrangements of the same group  #TODO make this a set
+            self.arrange(allletters,group,blue,red,targets,scores,[],move)
             for play in scores:
                 playscore = play[0]
-                playboard = play[1]
+                playblue = play[1]
+                playred = play[2]
+                playbluedef = play[3]
+                playreddef = play[4]
                 groupsize = len(wordgroups[group])
                 for word in wordgroups[group]:
-                    wordscores.append((playscore,word,groupsize,playboard))
+                    wordscores.append((playscore,word,groupsize,playblue,playred,playbluedef,playreddef))
         return wordscores
+
+    def endgamecheck(self, allletters, blue, red, bluedef, reddef, move):
+        zeroletters = ''
+        anyl = ''
+        zeros = (~blue & ~red)
+        if move == 1: #reversed here for opponent's reply
+            targets = (blue & ~bluedef) | zeros
+        else:
+            targets = (red & ~reddef) | zeros            
+        for i in range(25):
+            if (1<<i) & targets:
+                anyl += allletters[i]
+            if (1<<i) & zeros:
+                zeroletters += allletters[i]
+                
+        gameendingwords = []
+        losing = False
+        endingsoon = False
+        newscore = None
+        if zeroletters != '':  #don't check if we've already finished the game
+            if allletters+zeroletters in self.cache:
+                gameendingwords = self.cache[allletters+zeroletters]
+            else:
+                gameendingwords = self.concentrate(allletters,needletters=zeroletters)
+                self.cache[allletters+zeroletters] = gameendingwords
+            wordgroups = tuple(self.groupwords(gameendingwords,anyl))
+            for gameendingword in wordgroups:
+                scores = []
+                used = []
+                self.arrange(allletters,gameendingword,blue,red,targets,scores,used,-move)
+                if move == 1:
+                    newscore = min(scores)[0]
+                    if newscore < -999:
+                        losing = True
+                        break
+                else:
+                    newscore = max(scores)[0]
+                    if newscore > 999:
+                        losing = True
+                        break
+        if len(gameendingwords) > 0:
+            endingsoon = True
+        else:
+            endingsoon = False
+        return (zeroletters,endingsoon,losing,newscore)
+
+    def displayscore(self, blue, red, bluedef, reddef):
+        '''produces string of bB-rR from numeric score'''
+        s = ''
+        for i in range(25): 
+            if (blue & self.neighbors[i]) == self.neighbors[i]:
+                s += 'B'
+            elif (red & self.neighbors[i]) == self.neighbors[i]:
+                s += 'R'
+            elif blue & (1<<i):
+                s += 'b'
+            elif red & (1<<i):
+                s += 'r'
+            else:
+                s += '-'
+            if i % 5 == 4:
+                s += ' '
+        return s
+    
+    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww',move=1):
+        '''displays results of decide'''
+        allletters = allletters.upper()
+        score = score.upper()
+        score = score.replace(' ','')
+        if len(allletters) != 25:
+            raise ValueError('allletters must be 25 letters')
+
+        wordscores = self.decide(allletters,score,move)
+
+        #look at the highest scores, return first word that doesn't lose
+        if move == 1:
+            wordscores.sort(reverse=True)
+        else:
+            wordscores.sort()
+        play = 0
+        for wordnum,(score,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
+            zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
+            if not losing:
+                if move == 1:
+                    if score > -999:
+                        play = wordnum
+                        break
+                    else:
+                        break
+                else:
+                    if score < 999:
+                        play = wordnum
+                        break
+                    else:
+                        break
+        word = wordscores[play][1]
+        board = self.displayscore(wordscores[play][3],wordscores[play][4],wordscores[play][5],wordscores[play][6])
+        self.playword(allletters,word)
+
+        return word,board
+    
