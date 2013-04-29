@@ -95,7 +95,7 @@ class concentrateGUI(ttk.Frame):
 
         sys = master.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
 
-        if sys != 'aqua':
+        if sys != 'aqua': #these special key bindings are handled on the mac by the key binding above, self.nex
             self.board.bind('<Up>',self.moveup)
             self.board.bind('<Down>',self.movedown)
             self.board.bind('<Left>',self.moveleft)
@@ -106,7 +106,6 @@ class concentrateGUI(ttk.Frame):
         self.player = GUIplayer()
 
         self.menubar = Menu(self, tearoff=0)
-
 
         if sys == 'aqua': #mac os x
             self.concentratemenu = Menu(self.menubar, tearoff=0)
@@ -360,7 +359,6 @@ class concentrateGUI(ttk.Frame):
         else:
             return '-'
 
-
     def checkdefended(self,row,col):
         ncolors = set()
         if row in range(5) and col in range(5):
@@ -522,7 +520,6 @@ class concentrateGUI(ttk.Frame):
         else:
             self.suggestignore = False
 
-
     def suggestselect(self):
         item = self.suggest.focus()
         print ("you selected", self.suggest.set(item,'Word'))
@@ -533,11 +530,12 @@ class concentrateGUI(ttk.Frame):
             print(self.boardcolors)
             self.history.insert('','end',values=('[initial position]','' ,self.boardcolors))
         #copy the word, board, and score to the end of the history treeview
-
+        txt = self.suggest.set(item,'Word')
+        score = self.suggest.set(item,'Score')
+        board = self.suggest.set(item,'Board')
+        self.history.insert('','end',values=(txt,score,board))
         #change whose turn it is
         self.move.set(-self.move.get())
-
-
 
     def dosearch(self, x=1, lastdisplayed=-1):
         self.busy()
