@@ -9,10 +9,10 @@
 #TODO
 #need some way to tell the engine whose turn it is, combo box at the top?
 #progress bar dialog
-#error message on invalid search
-#double-click searched word to add it to the history and update the board
+#select searched word to add it to the history and update the board
 #click on history to show the game at that move (first entry will be beginning of the analysis)
 #maybe stretch the board on resize somehow?  or just fix everything with no stretching anywhere...
+#save, load game.  Save initial position and word list to reload for analysis later.
 #menu
     #Options
         #theme
@@ -72,7 +72,7 @@ class concentrateGUI(ttk.Frame):
         self.history.column('#0',width=1)
         self.history.column(0,width=150)
 
-        self.suggest = ttk.Treeview(self, columns=('Word', 'Score','Board'), displaycolumns=('Word', 'Score'),selectmode='browse',show='tree')
+        self.suggest = ttk.Treeview(self,columns=('Word','Score','Board'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
         suggestscroll = ttk.Scrollbar(self,orient=VERTICAL,command=self.suggest.yview)
         suggestscroll.grid(row=1,column=4,sticky=(N,S,E))
         self.suggest['yscrollcommand'] = suggestscroll.set
@@ -127,6 +127,11 @@ class concentrateGUI(ttk.Frame):
             self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Command-4')
             master.bind('<Command-Key-4>',self.extremedifficulty)
             self.difficulty.set('H')
+            self.optionsmenu.add_separator()
+            self.move = IntVar()
+            self.optionsmenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blueturn)
+            self.optionsmenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.redturn)
+            self.move.set(1)
             self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
 
 
@@ -166,8 +171,11 @@ class concentrateGUI(ttk.Frame):
 
         self.notbusywidgetcursors = dict() #for busy and notbusy
 
-    def dummy(self):
-        pass
+    def blueturn(self):
+        self.move.set(1)
+
+    def redturn(self):
+        self.move.set(-1)
 
     def whiteboard(self, x=1):
          self.updateboard('w'*25)
@@ -436,7 +444,12 @@ class concentrateGUI(ttk.Frame):
                     color = self.red[1]
                 self.board.itemconfig(self.boardstuff[row][col][0],fill=color)
 
+<<<<<<< HEAD
     def suggestclick(self, event):
+=======
+
+    def suggestclick(self, event, popup=False):
+>>>>>>> history continued
         '''tied to suggest.<<TreeviewSelect>>'''
         if not self.suggestignore:
             #columns=('Word', 'Score','Board')
@@ -471,11 +484,27 @@ class concentrateGUI(ttk.Frame):
                 self.restoreboard()
         else:
             self.suggestignore = False
+<<<<<<< HEAD
+=======
+        if popup:
+            self.suggestpopup.tk_popup(event.x_root, event.y_root, 0)
+>>>>>>> history continued
 
 
     def suggestselect(self):
         item = self.suggest.focus()
         print ("you selected", self.suggest.set(item,'Word'))
+        #check if the history treeview is empty
+        cnt = len(self.history.get_children())
+        if cnt == 0:
+            #save the board before the search in first entry, called "[initial position]"
+            print(self.boardcolors)
+            self.history.insert('','end',values=('[initial position]','' ,self.boardcolors)
+        #copy the word, board, and score to the end of the history treeview
+        
+        #change whose turn it is
+        self.move.set(-self.move.get())
+        
 
 
     def dosearch(self, x=1, lastdisplayed=-1):
@@ -490,7 +519,7 @@ class concentrateGUI(ttk.Frame):
             return
         score = ''.join(self.getcolor(row,col) for row in range(5) for col in range(5))
 
-        wordlist = self.player.search(letters,score,1,lastdisplayed)
+        wordlist = self.player.search(letters,score,self.move.get(),lastdisplayed)
         for i,word in enumerate(wordlist):
             self.suggest.insert('','end',values=(word[1],word[0],word[2]))
         self.suggest.insert('','end',values=('click for more...',))
