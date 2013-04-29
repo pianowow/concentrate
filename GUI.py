@@ -164,6 +164,11 @@ class concentrateGUI(ttk.Frame):
             self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Ctrl+4')
             master.bind('<Control-Key-4>',self.extremedifficulty)
             self.difficulty.set('H')
+            self.optionsmenu.add_separator()
+            self.move = IntVar()
+            self.optionsmenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blueturn)
+            self.optionsmenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.redturn)
+            self.move.set(1)
             self.menubar.add_cascade(label="Options", underline=0, menu=self.optionsmenu)
 
 
@@ -309,24 +314,24 @@ class concentrateGUI(ttk.Frame):
                 nextrow = nextnum // 5
                 nextcol = nextnum % 5
                 self.selectsquare(nextrow,nextcol)
-            elif keynum == 63234: #left 
+            elif keynum == 63234: #left
                 nextnum = (row*5 + col - 1) % 25
                 nextrow = nextnum // 5
                 nextcol = nextnum % 5
-                self.selectsquare(nextrow,nextcol) 
+                self.selectsquare(nextrow,nextcol)
             elif keynum == 63235: #right
                 nextnum = (row*5 + col + 1) % 25
                 nextrow = nextnum // 5
                 nextcol = nextnum % 5
-                self.selectsquare(nextrow,nextcol)            
+                self.selectsquare(nextrow,nextcol)
             elif keynum == 127: #backspace
                 nextnum = (row*5 + col - 1) % 25
                 nextrow = nextnum // 5
                 nextcol = nextnum % 5
-                self.selectsquare(nextrow,nextcol)                 
+                self.selectsquare(nextrow,nextcol)
                 self.board.itemconfig(self.boardstuff[nextrow][nextcol][1],text='')
             elif keynum == 63272: #delete
-                self.board.itemconfig(self.boardstuff[row][col][1],text='')            
+                self.board.itemconfig(self.boardstuff[row][col][1],text='')
 
     def getrowcol(self,x,y):
         col = x//self.sqsize
@@ -528,10 +533,10 @@ class concentrateGUI(ttk.Frame):
             print(self.boardcolors)
             self.history.insert('','end',values=('[initial position]','' ,self.boardcolors))
         #copy the word, board, and score to the end of the history treeview
-        
+
         #change whose turn it is
         self.move.set(-self.move.get())
-        
+
 
 
     def dosearch(self, x=1, lastdisplayed=-1):
