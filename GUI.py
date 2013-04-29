@@ -71,6 +71,7 @@ class concentrateGUI(ttk.Frame):
         self.history.grid(row=1,column=1,rowspan=2,sticky=(N,S,W,E))
         self.history.column('#0',width=1)
         self.history.column(0,width=150)
+        self.history.column(1,width=75)
 
         self.suggest = ttk.Treeview(self,columns=('Word','Score','Board'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
         suggestscroll = ttk.Scrollbar(self,orient=VERTICAL,command=self.suggest.yview)
@@ -90,18 +91,22 @@ class concentrateGUI(ttk.Frame):
         self.btnsuggestselect.state(['disabled'])
 
         self.canvasdraw()
-        master.bind('<Key>',self.nex)  #to write that character to the square and select the next one
-        master.bind('<Up>',self.moveup)
-        master.bind('<Down>',self.movedown)
-        master.bind('<Left>',self.moveleft)
-        master.bind('<Right>',self.moveright)
-        master.bind('<BackSpace>',self.backspace)
-        master.bind('<Delete>',self.delete)
+        self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
+
+        sys = master.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+
+        if sys != 'aqua':
+            self.board.bind('<Up>',self.moveup)
+            self.board.bind('<Down>',self.movedown)
+            self.board.bind('<Left>',self.moveleft)
+            self.board.bind('<Right>',self.moveright)
+            self.board.bind('<BackSpace>',self.backspace)
+            self.board.bind('<Delete>',self.delete)
 
         self.player = GUIplayer()
 
         self.menubar = Menu(self, tearoff=0)
-        sys = master.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+
 
         if sys == 'aqua': #mac os x
             self.concentratemenu = Menu(self.menubar, tearoff=0)
@@ -170,6 +175,7 @@ class concentrateGUI(ttk.Frame):
         self.boardcolors = 'w'*25
 
         self.notbusywidgetcursors = dict() #for busy and notbusy
+        self.board.focus_set()
 
     def blueturn(self):
         self.move.set(1)
@@ -239,8 +245,9 @@ class concentrateGUI(ttk.Frame):
             row = x // 5
             col = x % 5
             self.board.itemconfig(self.boardstuff[row][col][1],text=c)
+        print(self.board.focus_get().winfo_class())
 
-    def moveup(self,event):
+    def moveup(self,event):  #these methods work on windows, not on mac
         (row,col) = self.selected
         nextnum = ((row-1)*5 + col) % 25
         nextrow = nextnum // 5
@@ -289,6 +296,37 @@ class concentrateGUI(ttk.Frame):
             nextrow = nextnum // 5
             nextcol = nextnum % 5
             self.selectsquare(nextrow,nextcol)
+        elif len(char) > 0:  #works on the mac, not on windows
+            keynum = ord(event.char)
+            print(keynum)
+            if keynum == 63232: #up
+                nextnum = ((row-1)*5 + col) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol)
+            elif keynum == 63233: #down
+                nextnum = ((row+1)*5 + col) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol)
+            elif keynum == 63234: #left 
+                nextnum = (row*5 + col - 1) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol) 
+            elif keynum == 63235: #right
+                nextnum = (row*5 + col + 1) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol)            
+            elif keynum == 127: #backspace
+                nextnum = (row*5 + col - 1) % 25
+                nextrow = nextnum // 5
+                nextcol = nextnum % 5
+                self.selectsquare(nextrow,nextcol)                 
+                self.board.itemconfig(self.boardstuff[nextrow][nextcol][1],text='')
+            elif keynum == 63272: #delete
+                self.board.itemconfig(self.boardstuff[row][col][1],text='')            
 
     def getrowcol(self,x,y):
         col = x//self.sqsize
@@ -362,7 +400,6 @@ class concentrateGUI(ttk.Frame):
         self.checkdefended(row+1,col)
 
     def chgcolor(self,event):
-        self.board.focus_set()
         (row,col) = self.getrowcol(event.x,event.y)
         self.selectsquare(row,col)
         color = self.board.itemcget(self.boardstuff[row][col][0],'fill')
@@ -375,7 +412,6 @@ class concentrateGUI(ttk.Frame):
 
     def selectsquare(self,selectrow,selectcol):
         self.selected = (selectrow,selectcol)
-        self.board.focus_set()
         for row in range(5):
             for col in range(5):
                 self.board.itemconfig(self.boardstuff[row][col][0],outline='gray')
@@ -444,12 +480,7 @@ class concentrateGUI(ttk.Frame):
                     color = self.red[1]
                 self.board.itemconfig(self.boardstuff[row][col][0],fill=color)
 
-<<<<<<< HEAD
     def suggestclick(self, event):
-=======
-
-    def suggestclick(self, event, popup=False):
->>>>>>> history continued
         '''tied to suggest.<<TreeviewSelect>>'''
         if not self.suggestignore:
             #columns=('Word', 'Score','Board')
@@ -475,6 +506,7 @@ class concentrateGUI(ttk.Frame):
                     #update colors on the board to match the board of the word suggested
                     self.updateboard(board)
                     self.btnsuggestselect.state(['!disabled'])
+                    self.suggest.focus_set()
 
             else:
                 self.suggestignore = True
@@ -484,11 +516,6 @@ class concentrateGUI(ttk.Frame):
                 self.restoreboard()
         else:
             self.suggestignore = False
-<<<<<<< HEAD
-=======
-        if popup:
-            self.suggestpopup.tk_popup(event.x_root, event.y_root, 0)
->>>>>>> history continued
 
 
     def suggestselect(self):
@@ -499,7 +526,7 @@ class concentrateGUI(ttk.Frame):
         if cnt == 0:
             #save the board before the search in first entry, called "[initial position]"
             print(self.boardcolors)
-            self.history.insert('','end',values=('[initial position]','' ,self.boardcolors)
+            self.history.insert('','end',values=('[initial position]','' ,self.boardcolors))
         #copy the word, board, and score to the end of the history treeview
         
         #change whose turn it is
