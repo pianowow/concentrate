@@ -102,7 +102,7 @@ class player0:
                 if row-1 in range(5):
                     neighborlist.append(u[(row-1)*5+col])
                 if col+1 in range(5):
-                    neighborlist.append(u[row*5+col+1]) 
+                    neighborlist.append(u[row*5+col+1])
                 if row+1 in range(5):
                     neighborlist.append(u[(row+1)*5+col])
                 if col-1 in range(5):
@@ -139,7 +139,7 @@ class player0:
             lp = self.letterpopularity(found)
             u = self.usability(letters,lp)
             d = self.defendability(u)
-            self.cache[letters] = (tuple(found),[],u,d)
+            self.cache[letters] = [tuple(found),[],u,d]
             return found
 
     def concentrate(self, allletters,needletters='',anyletters=''):
@@ -252,7 +252,7 @@ class player0:
         if letter == 'R': return -1
         elif letter == 'B': return 1
         else: return 0
-    
+
     def convertboardscore(self, rbscore):
         i = 0
         prevchar = 'W'
@@ -286,11 +286,11 @@ class player0:
             if (red & self.neighbors[i]) == self.neighbors[i]:
                 reddef = reddef | (1 << i) #assign 1 to that position in the bitmap
         return (blue,red,bluedef,reddef)
-    
+
     def displayscore(self, blue, red, bluedef, reddef):
         '''produces string of bB-rR from numeric score'''
         s = ''
-        for i in range(25): 
+        for i in range(25):
             if (blue & self.neighbors[i]) == self.neighbors[i]:
                 s += 'B'
             elif (red & self.neighbors[i]) == self.neighbors[i]:
@@ -328,13 +328,13 @@ class player0:
         if move == 1: #reversed here for opponent's reply
             targets = (blue & ~bluedef) | zeros
         else:
-            targets = (red & ~reddef) | zeros            
+            targets = (red & ~reddef) | zeros
         for i in range(25):
             if (1<<i) & targets:
                 anyl += allletters[i]
             if (1<<i) & zeros:
                 zeroletters += allletters[i]
-                
+
         gameendingwords = []
         losing = False
         endingsoon = False
@@ -400,6 +400,9 @@ class player0:
     def playword(self, allletters, word):
         self.cache[allletters][1].append(word)
 
+    def resetplayed(self, allletters, words):
+        self.cache[allletters][1] = words
+
     def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww',move=1):
         '''displays results of decide'''
         allletters = allletters.upper()
@@ -436,8 +439,8 @@ class player0:
         self.playword(allletters,word)
 
         return word,board
-    
+
 
 class player1(player0):
     pass
-    
+
