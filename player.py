@@ -7,11 +7,9 @@
 # Created:     24/03/2013
 
 #idea to improve:
-#consider re-working the evaluation to take advantage of bitmap representation of tiles.
 #implement and test vulnerability in player1 (number of adjacent white and red squares)
 #define span for each word (average distance between each successive letter) ... could be useful for eliminating non-human words on an easy level
 #limited minimax... pick 10 words that pass endgame check and run search on those
-#combine groupwords and concentrate functions (group words as they are found)
 
 from string import ascii_uppercase, digits
 
