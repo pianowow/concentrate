@@ -10,19 +10,23 @@
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
 
-listfile = open('easy.txt','r')
+listfile = open('en14.txt','r')
 wordset1 = set()
 for line in listfile:
     wordset1.add(line.upper().strip())
 listfile.close()
 wordlist1 = list(wordset1)
 
-listfile = open('easy2.txt','r')
-wordset2 = set()
-for line in listfile:
-    wordset2.add(line.upper().strip())
-listfile.close()
-wordlist2 = list(wordset2)
+for word in wordlist1:
+    if len(word) > 20:
+        print(word, len(word))
 
-print([x for x in wordlist1 if x not in wordset2])
-print(sorted([x for x in wordlist2 if x not in wordset1]))
+##listfile = open('easy2.txt','r')
+##wordset2 = set()
+##for line in listfile:
+##    wordset2.add(line.upper().strip())
+##listfile.close()
+##wordlist2 = list(wordset2)
+##
+##print([x for x in wordlist1 if x not in wordset2])
+##print(sorted([x for x in wordlist2 if x not in wordset1]))
