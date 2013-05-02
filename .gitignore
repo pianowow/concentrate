@@ -3,3 +3,5 @@
 *.pyc
 
 *.pyc
+
+__pycache__/arena.cpython-33.pyc
