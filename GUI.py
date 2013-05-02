@@ -343,7 +343,8 @@ class concentrateGUI(ttk.Frame):
         self.board.focus_set()
         self.board.focus()
         char = event.char.upper()
-        if char in ascii_uppercase and len(char) > 0: #len is used to avoid moving forward with Control/Command buttons
+        if char in ascii_uppercase and len(char) > 0 and event.state == 0: #len is used to avoid moving forward with Control/Command buttons alone
+                                                                           #event.state is used to avoid doing the same for Command-key on the mac
             go = True
             if len(self.history.get_children()) > 0:
                 if messagebox.askyesno('Are you sure?','Editing the letters on the board will clear the history and search box.  Do you want to proceed?'):
