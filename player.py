@@ -216,15 +216,17 @@ class player0:
         '''recursive function to determine the best placement of word'''
         if len(word) == 0:
             score,bluedef,reddef = self.evaluatepos(allletters,blue,red)
-            if len(scores) > 0:
-                if move > 0:
-                    if score > max(x[0] for x in scores):
-                        scores.append((score,blue,red,bluedef,reddef))
-                else:
-                    if score < min(x[0] for x in scores):
-                        scores.append((score,blue,red,bluedef,reddef))
-            else:
+            if score not in (x[0] for x in scores):
                 scores.append((score,blue,red,bluedef,reddef))
+##            if len(scores) > 0:
+##                if move > 0:
+##                    if score > max(x[0] for x in scores):
+##                        scores.append((score,blue,red,bluedef,reddef))
+##                else:
+##                    if score < min(x[0] for x in scores):
+##                        scores.append((score,blue,red,bluedef,reddef))
+##            else:
+##                scores.append((score,blue,red,bluedef,reddef))
         else:
             l = word[0]
             listindex = list()
