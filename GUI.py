@@ -7,6 +7,7 @@
 # Created:     31/03/2013
 
 #TODO
+#search button should do "see" on the first element in suggest
 #save, load game.  Save initial position and word list to reload for analysis later.
 
 #maybe stretch the board on resize somehow?  or just fix everything with no stretching anywhere...
@@ -276,7 +277,7 @@ class concentrateGUI(ttk.Frame):
                 bottom = row * self.sqsize + self.sqsize -1
                 right = col * self.sqsize + self.sqsize -1
                 rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
-                text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text='',font='Helvetica 20 bold')
+                text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text='',font='Helvetica 20')
                 self.boardstuff[row][col] = (rect,text)
         self.board.focus_set()
         self.selectsquare(0,0)
@@ -342,9 +343,14 @@ class concentrateGUI(ttk.Frame):
         (row,col) = self.selected
         self.board.focus_set()
         self.board.focus()
+        print(event.char,event.state)
+        if self.sys == 'aqua':
+            nomodifier = 0
+        else:
+            nomodifier = 8
         char = event.char.upper()
-        if char in ascii_uppercase and len(char) > 0 and event.state == 0: #len is used to avoid moving forward with Control/Command buttons alone
-                                                                           #event.state is used to avoid doing the same for Command-key on the mac
+        if char in ascii_uppercase and len(char) > 0 and event.state == nomodifier: #len is used to avoid moving forward with Control/Command buttons alone
+                                                                                    #event.state is used to avoid doing the same for Command-key on the mac
             go = True
             if len(self.history.get_children()) > 0:
                 if messagebox.askyesno('Are you sure?','Editing the letters on the board will clear the history and search box.  Do you want to proceed?'):
@@ -668,6 +674,10 @@ class concentrateGUI(ttk.Frame):
             messagebox.showwarning("Concentrate","The board must be completely filled with letters.")
             return
         score = ''.join(self.getcolor(row,col) for row in range(5) for col in range(5))
+        if 'W' not in score:
+            self.notbusy()
+            messagebox.showwarning("Concentrate","Game Over.")
+            return
         #make the engine aware of which words are in the history
         words = list()
         for iid in self.history.get_children():
