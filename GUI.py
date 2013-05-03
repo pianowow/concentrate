@@ -490,7 +490,7 @@ class concentrateGUI(Tk):
 
     def busy(self, widget=None):
         if widget == None:
-            w = self.master
+            w = self
         else:
             w = widget
         if not str(w) in self.notbusywidgetcursors:
