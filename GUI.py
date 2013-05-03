@@ -8,8 +8,7 @@
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
 #TODO
-#search button should do "see" on the first element in suggest
-#don't display "click  for more" if you're at the last word
+
 #save, load game.  Save initial position and word list to reload for analysis later.
 
 #progress bar dialog?
@@ -111,12 +110,14 @@ class concentrateGUI(Tk):
 
         self.menubar = Menu(self, tearoff=0)
 
+        self.file = None
+
         if self.sys == 'aqua': #mac os x
             self.filemenu= Menu(self.menubar, tearoff=0)
-            self.filemenu.add_command(label="New", underline=0, command=self.randomboard, accelerator='Command-N')
-            self.filemenu.add_command(label="Open...", underline=0, command=self.randomboard, accelerator='Command-O')
-            self.filemenu.add_command(label="Save",underline=0, command=self.randomboard, accelerator='Command-S')
-            self.filemenu.add_command(label="Save As...", underline=5, command=self.randomboard, accelerator='Command+A')
+            self.filemenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
+            self.filemenu.add_command(label="Open...", underline=0, command=self.open, accelerator='Command-O')
+            self.filemenu.add_command(label="Save",underline=0, command=self.save, accelerator='Command-S')
+            self.filemenu.add_command(label="Save As...", underline=5, command=self.saveas, accelerator='Command+A')
             self.menubar.add_cascade(label="Concentrate", underline=0, menu=self.filemenu)
 
             self.boardmenu = Menu(self.menubar, tearoff=0)
@@ -154,10 +155,10 @@ class concentrateGUI(Tk):
 
         else: #windows
             self.filemenu= Menu(self.menubar, tearoff=0)
-            self.filemenu.add_command(label="New", underline=0, command=self.randomboard, accelerator='Ctrl+N')
-            self.filemenu.add_command(label="Open...", underline=0, command=self.randomboard, accelerator='Ctrl+O')
-            self.filemenu.add_command(label="Save",underline=0, command=self.randomboard, accelerator='Ctrl+S')
-            self.filemenu.add_command(label="Save As...", underline=5, command=self.randomboard, accelerator='Ctrl+A')
+            self.filemenu.add_command(label="New", underline=0, command=self.new, accelerator='Ctrl+N')
+            self.filemenu.add_command(label="Open...", underline=0, command=self.open, accelerator='Ctrl+O')
+            self.filemenu.add_command(label="Save",underline=0, command=self.save, accelerator='Ctrl+S')
+            self.filemenu.add_command(label="Save As...", underline=5, command=self.saveas, accelerator='Ctrl+A')
             self.menubar.add_cascade(label="File", underline=0, menu=self.filemenu)
             self.boardmenu = Menu(self.menubar, tearoff=0)
             self.boardmenu.add_command(label="Empty Board", underline=6, command=self.canvasdraw, accelerator='Ctrl+E')
@@ -188,9 +189,6 @@ class concentrateGUI(Tk):
             self.move.set(1)
             self.menubar.add_cascade(label="Options", underline=0, menu=self.optionsmenu)
 
-            #temp
-            self.bind('<Control-t>', self.loophist)
-
         self.bind('<Return>',self.dosearch)
 
         # display the menu
@@ -208,10 +206,27 @@ class concentrateGUI(Tk):
             else:
                 print(iid)
 
-    def key(self, event):
-        c = event.char.upper()
-        if c in ascii_uppercase:
-            self.nex(event)
+    def new(self):
+        '''closes any previously open file, erases board, history, search'''
+        if self.file != None:
+            self.file.close()
+            self.file = None
+        self.canvasdraw()
+
+    def open(self):
+        '''presents file dialog box for selecting one file.  loads data to the board and history'''
+        self.canvasdraw()
+        print('filename',['HELLO',23,'BBBBBWWWWWWWWWWWWWWWWWWWW','HELLOXXXXXXXXXXXXXXX'])
+
+    def save(self):
+        '''loops over the history and saves to the current open file'''
+        print('save')
+        pass
+
+    def saveas(self):
+        '''loops over the history and presents the file save dialog box'''
+        print('save as')
+        pass
 
     def blueturn(self):
         self.move.set(1)
@@ -266,7 +281,6 @@ class concentrateGUI(Tk):
         self.board.bind('<Key>',self.nex)  #to write that character to the square and select the next one
 
         if self.sys != 'aqua': #these special key bindings are handled on the mac by the key binding above, self.nex
-            #master.bind('<Key>',self.key)
             self.board.bind('<Up>',self.moveup)
             self.board.bind('<Down>',self.movedown)
             self.board.bind('<Left>',self.moveleft)
@@ -287,13 +301,20 @@ class concentrateGUI(Tk):
         self.selectsquare(0,0)
 
     def randomboard(self, event=0):
-        letters = arena.genletters()
-        for x,c in enumerate(letters):
-            row = x // 5
-            col = x % 5
-            self.board.itemconfig(self.boardstuff[row][col][1],text=c)
-        self.board.focus_set()
-        #print(self.board.focus_get().winfo_class())
+        go = True
+        if len(self.history.get_children()) > 0:
+            if messagebox.askyesno('Are you sure?','Editing the letters on the board will clear the history and search box.  Proceed?'):
+                self.clearhistory()
+                self.clearsearch()
+            else:
+                go = False
+        if go:
+            letters = arena.genletters()
+            for x,c in enumerate(letters):
+                row = x // 5
+                col = x % 5
+                self.board.itemconfig(self.boardstuff[row][col][1],text=c)
+            self.board.focus_set()
 
     def randomcolors(self, event=0):
         self.whiteboard()
@@ -303,7 +324,7 @@ class concentrateGUI(Tk):
         self.board.focus_set()
         #print(self.board.focus_get().winfo_class())
 
-    def moveup(self,event):  #these methods work on windows, not on mac
+    def moveup(self,event):  #these methods work on windows, mac is handled by self.nex
         (row,col) = self.selected
         nextnum = ((row-1)*5 + col) % 25
         nextrow = nextnum // 5
@@ -697,7 +718,7 @@ class concentrateGUI(Tk):
                 self.suggest.insert('','end',values=(word[1],word[0],word[2]))
         if more:
             self.suggest.insert('','end',values=(self.moretxt,))
-        else:
+        elif len(self.suggest.get_children()) == 0:
             self.suggest.insert('','end',values=(self.notxt,))
         if lastdisplayed == -1:
             self.suggest.see(self.suggest.get_children()[0])
