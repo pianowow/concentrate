@@ -14,7 +14,6 @@ Two functions are useful for displaying the results of the ai analysis: turn('le
 
 - arena.py 
 This was created to test minor changes to Concentrate, whether they improve or reduce the strength of the program.  Results of arena running are in the tests folder.  
-
 The simplest function is just game().  This creates a game between player0 and player1, both defined in player.py, where player0 is the one that search.py uses, and player1 is the modification.  Game can accept a board or generate one if none is passed in, another parameter controls whether player0 goes first or not.  It will display each move played, the board as it looks after that move is played, and the current score with the number of defended squares in parentheses. Match() builds on top of game() by calling game() twice with the same (optionally passed in) board so that both players go first once on the same board.  Finally tournament(n) calls match n times for n randomly generated boards and sums the results, displaying the grand total at the end to see who won.  
 
 - GUI.py 
