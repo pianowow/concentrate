@@ -216,17 +216,8 @@ class player0:
         '''recursive function to determine the best placement of word'''
         if len(word) == 0:
             score,bluedef,reddef = self.evaluatepos(allletters,blue,red)
-            if score not in (x[0] for x in scores):
+            if (blue,red) not in ((x[1],x[2]) for x in scores):
                 scores.append((score,blue,red,bluedef,reddef))
-##            if len(scores) > 0:
-##                if move > 0:
-##                    if score > max(x[0] for x in scores):
-##                        scores.append((score,blue,red,bluedef,reddef))
-##                else:
-##                    if score < min(x[0] for x in scores):
-##                        scores.append((score,blue,red,bluedef,reddef))
-##            else:
-##                scores.append((score,blue,red,bluedef,reddef))
         else:
             l = word[0]
             listindex = list()
@@ -366,7 +357,7 @@ class player0:
             endingsoon = False
         return (zeroletters,endingsoon,losing,newscore)
 
-    def decide(self, allletters,score,move):
+    def decide(self, allletters,score,needletters,move):
         '''judges the merit of possible words for this board'''
         #board = self.convertboardscore(score)
         blue,red,bluedef,reddef = self.convertboardscore(score)
@@ -379,7 +370,7 @@ class player0:
         for i in range(25):
             if (1 << i) & targets:
                 anyl += allletters[i]
-        words = self.concentrate(allletters,anyletters=anyl)
+        words = self.concentrate(allletters,needletters,anyletters=anyl)
         wordgroups = self.groupwords(words,anyl)
         wordscores = list()
         for x,group in enumerate(wordgroups.keys()):
@@ -403,7 +394,7 @@ class player0:
     def resetplayed(self, allletters, words):
         self.cache[allletters][1] = words
 
-    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww',move=1):
+    def turn(self, allletters,score='wwwwwwwwwwwwwwwwwwwwwwwww',move=1):
         '''displays results of decide'''
         allletters = allletters.upper()
         score = score.upper()
@@ -411,7 +402,7 @@ class player0:
         if len(allletters) != 25:
             raise ValueError('allletters must be 25 letters')
 
-        wordscores = self.decide(allletters,score,move)
+        wordscores = self.decide(allletters,score,'',move)
 
         #look at the highest scores, return first word that doesn't lose
         if move == 1:
@@ -443,4 +434,3 @@ class player0:
 
 class player1(player0):
     pass
-
