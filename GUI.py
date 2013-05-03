@@ -2,15 +2,16 @@
 # Name:        GUI
 # Purpose:
 #
-# Author:      CHRISTOPHER_IRWIN
+# Author:      CHRISTOPHER IRWIN
 #
 # Created:     31/03/2013
+# Copyright:   (c) CHRISTOPHER IRWIN 2013
 
 #TODO
 #search button should do "see" on the first element in suggest
+#don't display "click  for more" if you're at the last word
 #save, load game.  Save initial position and word list to reload for analysis later.
 
-#maybe stretch the board on resize somehow?  or just fix everything with no stretching anywhere...
 #progress bar dialog?
 
 #menu
@@ -30,10 +31,10 @@ from string import ascii_uppercase
 from random import choice
 import arena
 
-class concentrateGUI(ttk.Frame):
+class concentrateGUI(Tk):
 
-    def __init__(self, master):
-        ttk.Frame.__init__(self, master, padding=(3,3,3,3))
+    def __init__(self, *args, **kwargs):
+        Tk.__init__(self, *args, **kwargs)
 
         self.boardstuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
         self.boardsize = 250
@@ -41,12 +42,17 @@ class concentrateGUI(ttk.Frame):
         self.blue = ('light sky blue','RoyalBlue2')
         self.red = ('salmon','red')
         self.initialhist= '[Initial Position]'
+        self.moretxt = 'Click for More...'
+        self.notxt = 'No Results'
 
-        master.title("Concentrate")
-        master.columnconfigure(0, weight=1)
-        master.rowconfigure(0, weight=1)
-        self.master = master
-        self.grid(column=0, row=0, sticky=(N, S, E, W))
+        self.title("Concentrate")
+        #self.columnconfigure(0, weight=1)
+        #self.rowconfigure(0, weight=0)
+        self.resizable(0,0)
+
+        #self.master = master
+        #frame = Frame(self)
+        #frame.grid(column=0, row=0, sticky=(N, S, E, W))
         self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=0) #scroll bar shouldn't stretch
@@ -58,12 +64,10 @@ class concentrateGUI(ttk.Frame):
 
         ttk.Label(self, text='Board').grid(column=0,row=0)
         ttk.Label(self, text='History').grid(column=1,row=0,columnspan=2)
-        #btnclear = ttk.Button(self, text='Clear',command=self.canvasdraw)
-        #btnclear.grid(column=0,row=0,sticky='NW')
-        #btnrandom = ttk.Button(self, text='Random',command=self.randomboard)
-        #btnrandom.grid(column=0,row=0,sticky='NE')
+        self.need = ttk.Entry(self)
+        self.need.grid(column=3,row=0,padx=10,sticky=(W))
         btnsearch = ttk.Button(self, text='Search',command=self.dosearch)
-        btnsearch.grid(column=3,row=0,columnspan=2)
+        btnsearch.grid(column=3,row=0,padx=10,sticky=(E))
         btnsearch['default'] = 'active'
 
         self.history = ttk.Treeview(self,columns=('Word','Score','Board','Letters'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
@@ -99,7 +103,7 @@ class concentrateGUI(ttk.Frame):
         self.btnsuggestselect.grid(row=2,column=3,columnspan=2)
         self.btnsuggestselect.state(['disabled'])
 
-        self.sys = master.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+        self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
         self.move = IntVar()
         self.canvasdraw()
 
@@ -118,28 +122,28 @@ class concentrateGUI(ttk.Frame):
             self.boardmenu = Menu(self.menubar, tearoff=0)
 
             self.boardmenu.add_command(label="Empty Board",  command=self.canvasdraw, accelerator='Command-E')
-            master.bind('<Command-e>',self.canvasdraw)
+            self.bind('<Command-e>',self.canvasdraw)
             self.boardmenu.add_command(label="White Board", command=self.whiteboard, accelerator='Command-W')
-            master.bind('<Command-w>',self.whiteboard)
+            self.bind('<Command-w>',self.whiteboard)
             self.boardmenu.add_command(label="Random Letters", command=self.randomboard, accelerator='Command-R')
-            master.bind('<Command-r>',self.randomboard)
+            self.bind('<Command-r>',self.randomboard)
             self.boardmenu.add_command(label="Random Colors", underline=7, command=self.randomcolors, accelerator='Command-C')
-            master.bind('<Command-c>',self.randomcolors)
+            self.bind('<Command-c>',self.randomcolors)
             self.boardmenu.add_separator()
             self.boardmenu.add_command(label="Search", command=self.dosearch, accelerator='Command-S')
-            master.bind('<Command-s>',self.dosearch)
+            self.bind('<Command-s>',self.dosearch)
             self.menubar.add_cascade(label="Board", menu=self.boardmenu)
 
             self.optionsmenu = Menu(self.menubar, tearoff=0)
             self.difficulty = StringVar()
             self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty, accelerator='Command-1')
-            master.bind('<Command-Key-1>',self.easydifficulty)
+            self.bind('<Command-Key-1>',self.easydifficulty)
             self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty, accelerator='Command-2')
-            master.bind('<Command-Key-2>',self.mediumdifficulty)
+            self.bind('<Command-Key-2>',self.mediumdifficulty)
             self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty, accelerator='Command-3')
-            master.bind('<Command-Key-3>',self.harddifficulty)
+            sefl.bind('<Command-Key-3>',self.harddifficulty)
             self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Command-4')
-            master.bind('<Command-Key-4>',self.extremedifficulty)
+            self.bind('<Command-Key-4>',self.extremedifficulty)
             self.difficulty.set('H')
             self.optionsmenu.add_separator()
             self.optionsmenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blueturn)
@@ -157,26 +161,26 @@ class concentrateGUI(ttk.Frame):
             self.menubar.add_cascade(label="File", underline=0, menu=self.filemenu)
             self.boardmenu = Menu(self.menubar, tearoff=0)
             self.boardmenu.add_command(label="Empty Board", underline=6, command=self.canvasdraw, accelerator='Ctrl+E')
-            master.bind('<Control-e>',self.canvasdraw)
+            self.bind('<Control-e>',self.canvasdraw)
             self.boardmenu.add_command(label="White Board", underline=6, command=self.whiteboard, accelerator='Ctrl+W')
-            master.bind('<Control-w>',self.whiteboard)
+            self.bind('<Control-w>',self.whiteboard)
             self.boardmenu.add_command(label="Random Letters", underline=0, command=self.randomboard, accelerator='Ctrl+R')
-            master.bind('<Control-r>',self.randomboard)
+            self.bind('<Control-r>',self.randomboard)
             self.boardmenu.add_command(label="Random Colors", underline=7, command=self.randomcolors, accelerator='Ctrl+C')
-            master.bind('<Control-c>',self.randomcolors)
+            self.bind('<Control-c>',self.randomcolors)
             self.boardmenu.add_separator()
             self.boardmenu.add_command(label="Search", underline=0, command=self.dosearch, accelerator='Enter')
             self.menubar.add_cascade(label="Board", underline=0, menu=self.boardmenu)
             self.optionsmenu = Menu(self.menubar, tearoff=0)
             self.difficulty = StringVar()
             self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty, accelerator='Ctrl+1')
-            master.bind('<Control-Key-1>',self.easydifficulty)
+            self.bind('<Control-Key-1>',self.easydifficulty)
             self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty, accelerator='Ctrl+2')
-            master.bind('<Control-Key-2>',self.mediumdifficulty)
+            self.bind('<Control-Key-2>',self.mediumdifficulty)
             self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty, accelerator='Ctrl+3')
-            master.bind('<Control-Key-3>',self.harddifficulty)
+            self.bind('<Control-Key-3>',self.harddifficulty)
             self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Ctrl+4')
-            master.bind('<Control-Key-4>',self.extremedifficulty)
+            self.bind('<Control-Key-4>',self.extremedifficulty)
             self.difficulty.set('H')
             self.optionsmenu.add_separator()
             self.optionsmenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blueturn)
@@ -185,12 +189,12 @@ class concentrateGUI(ttk.Frame):
             self.menubar.add_cascade(label="Options", underline=0, menu=self.optionsmenu)
 
             #temp
-            master.bind('<Control-t>', self.loophist)
+            self.bind('<Control-t>', self.loophist)
 
-        master.bind('<Return>',self.dosearch)
+        self.bind('<Return>',self.dosearch)
 
         # display the menu
-        master.config(menu=self.menubar)
+        self.config(menu=self.menubar)
 
         self.boardcolors = 'w'*25
 
@@ -254,7 +258,7 @@ class concentrateGUI(ttk.Frame):
     def canvasdraw(self, event=1):
         self.clearsearch()
         self.clearhistory()
-        self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=0, bg='white')
+        self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=1, bg='white')
         self.board.grid(row=1,column=0,rowspan=2)
         self.move.set(1)
 
@@ -272,10 +276,10 @@ class concentrateGUI(ttk.Frame):
 
         for row in range(5):
             for col in range(5):
-                top = row * self.sqsize
-                left = col * self.sqsize
-                bottom = row * self.sqsize + self.sqsize -1
-                right = col * self.sqsize + self.sqsize -1
+                top = row * self.sqsize + 1
+                left = col * self.sqsize + 1
+                bottom = row * self.sqsize + self.sqsize
+                right = col * self.sqsize + self.sqsize
                 rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
                 text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text='',font='Helvetica 20')
                 self.boardstuff[row][col] = (rect,text)
@@ -343,7 +347,6 @@ class concentrateGUI(ttk.Frame):
         (row,col) = self.selected
         self.board.focus_set()
         self.board.focus()
-        print(event.char,event.state)
         if self.sys == 'aqua':
             nomodifier = 0
         else:
@@ -596,28 +599,24 @@ class concentrateGUI(ttk.Frame):
                 self.suggestselection = clickediid
                 txt = self.suggest.set(clickediid,'Word')
                 board = self.suggest.set(clickediid,'Board')
-                if txt == "click for more...":
-                    #delete the last entry (click for more...)
-                    last = ''
-                    #get number of words in suggest
-                    amt = 0
-                    for iid in self.suggest.get_children():
-                        last = iid
-                        amt += 1
-                    self.suggest.delete(last)
-                    #call do search with lastdisplayed
-                    self.dosearch(lastdisplayed=amt-1)
+                if txt != self.notxt:
+                    if txt == self.moretxt:
+                        #delete the last entry (click for more...)
+                        last = ''
+                        #get number of words in suggest
+                        amt = 0
+                        for iid in self.suggest.get_children():
+                            last = iid
+                            amt += 1
+                        self.suggest.delete(last)
+                        #call do search with lastdisplayed
+                        self.dosearch(lastdisplayed=amt-1)
 
-                else:
-                    #update colors on the board to match the board of the word suggested
-                    self.updateboard(board)
-                    self.btnsuggestselect.state(['!disabled'])
-                    #remove selection from history
-##                    clickediid = self.history.focus()
-##                    self.historyignore = True
-##                    self.history.selection_remove(clickediid)
-##                    self.historyselection = -1
-##                    self.suggest.focus_set()
+                    else:
+                        #update colors on the board to match the board of the word suggested
+                        self.updateboard(board)
+                        self.btnsuggestselect.state(['!disabled'])
+                        #remove selection from history
             else:
                 self.suggestignore = True
                 self.suggest.selection_remove(clickediid)
@@ -661,6 +660,7 @@ class concentrateGUI(ttk.Frame):
         #change whose turn it is
         self.move.set(-self.move.get())
         self.clearsearch()
+        self.need.delete(0,len(self.need.get()))
 
     def dosearch(self, x=1, lastdisplayed=-1):
         self.busy()
@@ -686,16 +686,21 @@ class concentrateGUI(ttk.Frame):
                 words.append(txt)
             if iid == self.historyselection:
                 break
-        print(words)
+        needletters = self.need.get().upper()
         self.player.possible(self.letters)
         self.player.resetplayed(self.letters,words)
-        wordlist = self.player.search(self.letters,score,self.move.get(),lastdisplayed)
+        wordlist,more = self.player.search(self.letters,score,needletters,self.move.get(),lastdisplayed)
         for i,word in enumerate(wordlist):
             if word[1][0] not in ascii_uppercase:
                 self.suggest.insert('','end',tag=word[1][0],values=(word[1][1:],word[0],word[2]))
             else:
                 self.suggest.insert('','end',values=(word[1],word[0],word[2]))
-        self.suggest.insert('','end',values=('click for more...',))
+        if more:
+            self.suggest.insert('','end',values=(self.moretxt,))
+        else:
+            self.suggest.insert('','end',values=(self.notxt,))
+        if lastdisplayed == -1:
+            self.suggest.see(self.suggest.get_children()[0])
         self.notbusy()
 
 
@@ -703,23 +708,23 @@ class GUIplayer(player0):
     def __init__(self, difficulty=['R',5,25]):
         player0.__init__(self, difficulty)
 
-    def search(self, allletters, score, move, lastdisplayed):
+    def search(self, allletters, score, needletters, move, lastdisplayed):
         '''returns a list for the GUI to display'''
         if lastdisplayed == -1:
             start = time()
-            self.wordscores = self.decide(allletters,score,move)
+            self.wordscores = self.decide(allletters,score,needletters,move)
             if move == 1:
                 self.wordscores.sort(reverse=True)
             else:
                 self.wordscores.sort()
-            decidetime = round(time() - start,2)
+            decidetime = time() - start
             plays = len(self.wordscores)
             rate = int(plays/decidetime)
-            print(decidetime,'seconds to decide',allletters,score)
+            print(round(decidetime,2),'seconds to decide',allletters,score)
             print(plays,'plays found,',rate,'per second')
         start = time()
         results = list()
-        amounttodisplay = 50
+        amounttodisplay = 200
         displayed = 0
         for wordnum,(score,word,groupsize,blue,red,bluedef,reddef) in enumerate(self.wordscores):
             if wordnum > lastdisplayed and displayed < amounttodisplay:
@@ -734,13 +739,10 @@ class GUIplayer(player0):
                     results.append((score,word,self.displayscore(blue,red,bluedef,reddef)))
                     displayed += 1
             elif displayed >= amounttodisplay:
-                break
+                print(round(time()-start,2),'seconds to endgame check')
+                return results,True
         print(round(time()-start,2),'seconds to endgame check')
-        return results
-
+        return results,False
 
 if __name__ == '__main__':
-    tk = Tk()
-    gui = concentrateGUI(tk)
-    tk.mainloop()
-
+    concentrateGUI().mainloop()
