@@ -23,6 +23,7 @@
 
 from tkinter import *
 from tkinter import messagebox
+from tkinter import filedialog
 from tkinter import ttk
 from player import player0
 from time import time
@@ -49,28 +50,32 @@ class concentrateGUI(Tk):
         #self.rowconfigure(0, weight=0)
         self.resizable(0,0)
 
+        self.topframe = ttk.Frame(self)
+        self.topframe.grid(row=0,column=0)
+        
+
         #self.master = master
         #frame = Frame(self)
         #frame.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.columnconfigure(0, weight=0)
-        self.columnconfigure(1, weight=1)
-        self.columnconfigure(2, weight=0) #scroll bar shouldn't stretch
-        self.columnconfigure(3, weight=1)
-        self.columnconfigure(4, weight=0) #scroll bar shouldn't stretch
-        self.rowconfigure(0, weight=0)
-        self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=0)
+        self.topframe.columnconfigure(0, weight=0)
+        self.topframe.columnconfigure(1, weight=0)
+        self.topframe.columnconfigure(2, weight=0) #scroll bar 
+        self.topframe.columnconfigure(3, weight=0)
+        self.topframe.columnconfigure(4, weight=0) #scroll bar
+        self.topframe.rowconfigure(0, weight=0)
+        self.topframe.rowconfigure(1, weight=1)
+        self.topframe.rowconfigure(2, weight=0)
 
-        ttk.Label(self, text='Board').grid(column=0,row=0)
-        ttk.Label(self, text='History').grid(column=1,row=0,columnspan=2)
-        self.need = ttk.Entry(self)
+        ttk.Label(self.topframe, text='Board').grid(column=0,row=0)
+        ttk.Label(self.topframe, text='History').grid(column=1,row=0,columnspan=2)
+        self.need = ttk.Entry(self.topframe)
         self.need.grid(column=3,row=0,padx=10,sticky=(W))
-        btnsearch = ttk.Button(self, text='Search',command=self.dosearch)
+        btnsearch = ttk.Button(self.topframe, text='Search',command=self.dosearch)
         btnsearch.grid(column=3,row=0,padx=10,sticky=(E))
         btnsearch['default'] = 'active'
 
-        self.history = ttk.Treeview(self,columns=('Word','Score','Board','Letters'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
-        historyscroll = ttk.Scrollbar(self,orient=VERTICAL,command=self.history.yview)
+        self.history = ttk.Treeview(self.topframe,columns=('Word','Score','Board','Letters'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
+        historyscroll = ttk.Scrollbar(self.topframe,orient=VERTICAL,command=self.history.yview)
         historyscroll.grid(row=1,column=2,rowspan=2,sticky=(N,S,E))
         self.history['yscrollcommand'] = historyscroll.set
         self.history.grid(row=1,column=1,rowspan=2,sticky=(N,S,W,E))
@@ -83,8 +88,8 @@ class concentrateGUI(Tk):
         self.historyselection = -1
         self.historyignore= False
 
-        self.suggest = ttk.Treeview(self,columns=('Word','Score','Board'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
-        suggestscroll = ttk.Scrollbar(self,orient=VERTICAL,command=self.suggest.yview)
+        self.suggest = ttk.Treeview(self.topframe,columns=('Word','Score','Board'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
+        suggestscroll = ttk.Scrollbar(self.topframe,orient=VERTICAL,command=self.suggest.yview)
         suggestscroll.grid(row=1,column=4,sticky=(N,S,E))
         self.suggest['yscrollcommand'] = suggestscroll.set
 
@@ -98,8 +103,8 @@ class concentrateGUI(Tk):
         self.suggestselection = -1
         self.suggestignore = False
 
-        self.btnsuggestselect = ttk.Button(self, text='Select',command=self.suggestselect)
-        self.btnsuggestselect.grid(row=2,column=3,columnspan=2)
+        self.btnsuggestselect = ttk.Button(self.topframe, text='Select',command=self.suggestselect)
+        self.btnsuggestselect.grid(row=2,column=3,columnspan=2,pady=0,sticky=(N,S))
         self.btnsuggestselect.state(['disabled'])
 
         self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
@@ -115,9 +120,13 @@ class concentrateGUI(Tk):
         if self.sys == 'aqua': #mac os x
             self.filemenu= Menu(self.menubar, tearoff=0)
             self.filemenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
+            self.bind('<Command-n>',self.new)
             self.filemenu.add_command(label="Open...", underline=0, command=self.open, accelerator='Command-O')
+            self.bind('<Command-o>',self.open)
             self.filemenu.add_command(label="Save",underline=0, command=self.save, accelerator='Command-S')
+            self.bind('<Command-s>',self.save)
             self.filemenu.add_command(label="Save As...", underline=5, command=self.saveas, accelerator='Command+A')
+            self.bind('<Command-a>',self.saveas)
             self.menubar.add_cascade(label="Concentrate", underline=0, menu=self.filemenu)
 
             self.boardmenu = Menu(self.menubar, tearoff=0)
@@ -131,8 +140,7 @@ class concentrateGUI(Tk):
             self.boardmenu.add_command(label="Random Colors", underline=7, command=self.randomcolors, accelerator='Command-C')
             self.bind('<Command-c>',self.randomcolors)
             self.boardmenu.add_separator()
-            self.boardmenu.add_command(label="Search", command=self.dosearch, accelerator='Command-S')
-            self.bind('<Command-s>',self.dosearch)
+            self.boardmenu.add_command(label="Search", command=self.dosearch, accelerator='Return')
             self.menubar.add_cascade(label="Board", menu=self.boardmenu)
 
             self.optionsmenu = Menu(self.menubar, tearoff=0)
@@ -142,7 +150,7 @@ class concentrateGUI(Tk):
             self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty, accelerator='Command-2')
             self.bind('<Command-Key-2>',self.mediumdifficulty)
             self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty, accelerator='Command-3')
-            sefl.bind('<Command-Key-3>',self.harddifficulty)
+            self.bind('<Command-Key-3>',self.harddifficulty)
             self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Command-4')
             self.bind('<Command-Key-4>',self.extremedifficulty)
             self.difficulty.set('H')
@@ -206,26 +214,40 @@ class concentrateGUI(Tk):
             else:
                 print(iid)
 
-    def new(self):
+    def new(self,event):
         '''closes any previously open file, erases board, history, search'''
         if self.file != None:
             self.file.close()
             self.file = None
         self.canvasdraw()
 
-    def open(self):
+    def open(self,event):
         '''presents file dialog box for selecting one file.  loads data to the board and history'''
         self.canvasdraw()
-        print('filename',['HELLO',23,'BBBBBWWWWWWWWWWWWWWWWWWWW','HELLOXXXXXXXXXXXXXXX'])
+        if self.file != None:
+            self.file.close()
+        fstr = filedialog.askopenfilename(filetypes=[('Concentrate Game Document','(*.cdf)')])
+        if fstr != '':
+            print(fstr)
+            self.file = open(fstr,'rw')
+        
 
-    def save(self):
+    def save(self,event):
         '''loops over the history and saves to the current open file'''
         print('save')
-        pass
+        if self.file == None:
+            print(filedialog.asksaveasfilename(defaultextension='.cgd'))
+        else:
+            #create list of tuples to write file
+            #pickle the list
+            #write the pickle to the file
+            pass
 
-    def saveas(self):
+    def saveas(self,event):
         '''loops over the history and presents the file save dialog box'''
         print('save as')
+        self.file = open(filedialog.asksaveasfilename(defaultextension='.cgd'),'wb')
+        self.save()
         pass
 
     def blueturn(self):
@@ -273,7 +295,7 @@ class concentrateGUI(Tk):
     def canvasdraw(self, event=1):
         self.clearsearch()
         self.clearhistory()
-        self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=1, bg='white')
+        self.board = Canvas(self.topframe, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=1, bg='white')
         self.board.grid(row=1,column=0,rowspan=2)
         self.move.set(1)
 
