@@ -9,8 +9,6 @@
 
 #TODO
 
-#save, load game.  Save initial position and word list to reload for analysis later.
-
 #progress bar dialog?
 
 #menu
@@ -23,12 +21,15 @@
 
 from tkinter import *
 from tkinter import messagebox
+from tkinter import filedialog
 from tkinter import ttk
 from player import player0
 from time import time
 from string import ascii_uppercase
 from random import choice
+from os import path
 import arena
+import pickle
 
 class concentrateGUI(Tk):
 
@@ -43,6 +44,8 @@ class concentrateGUI(Tk):
         self.initialhist= '[Initial Position]'
         self.moretxt = 'Click for More...'
         self.notxt = 'No Results'
+        self.titletx = 'Concentrate'
+        self.titlesp = ' - '
 
         self.title("Concentrate")
         #self.columnconfigure(0, weight=1)
@@ -156,9 +159,13 @@ class concentrateGUI(Tk):
         else: #windows
             self.filemenu= Menu(self.menubar, tearoff=0)
             self.filemenu.add_command(label="New", underline=0, command=self.new, accelerator='Ctrl+N')
+            self.bind('<Control-n>',self.new)
             self.filemenu.add_command(label="Open...", underline=0, command=self.open, accelerator='Ctrl+O')
+            self.bind('<Control-o>',self.open)
             self.filemenu.add_command(label="Save",underline=0, command=self.save, accelerator='Ctrl+S')
+            self.bind('<Control-s>',self.save)
             self.filemenu.add_command(label="Save As...", underline=5, command=self.saveas, accelerator='Ctrl+A')
+            self.bind('<Control-a>',self.saveas)
             self.menubar.add_cascade(label="File", underline=0, menu=self.filemenu)
             self.boardmenu = Menu(self.menubar, tearoff=0)
             self.boardmenu.add_command(label="Empty Board", underline=6, command=self.canvasdraw, accelerator='Ctrl+E')
@@ -206,50 +213,90 @@ class concentrateGUI(Tk):
             else:
                 print(iid)
 
-    def new(self):
-        '''closes any previously open file, erases board, history, search'''
+    def new(self,event=None):
         if self.file != None:
-            self.file.close()
             self.file = None
+        self.title(self.titletx)
         self.canvasdraw()
 
-    def open(self):
+    def open(self,event=None):
         '''presents file dialog box for selecting one file.  loads data to the board and history'''
         self.canvasdraw()
-        print('filename',['HELLO',23,'BBBBBWWWWWWWWWWWWWWWWWWWW','HELLOXXXXXXXXXXXXXXX'])
+        fn = filedialog.askopenfilename(filetypes=[('Concentrate Game Document', '.cgd')])
+        print(fn)
+        if fn != '':
+            self.file = fn
+            f = open(self.file,'rb')
+            lst = pickle.load(f)
+            f.close()
+            for iidr,word,score,board,letters,color in lst:
+                insertid = self.history.insert('','end',iid=iidr,tag=color,values=(word,score,board,letters))
+            if len(lst) > 0: #file could be an empty list
+                for i,l in enumerate(letters):
+                    row = i//5
+                    col = i%5
+                    self.board.itemconfig(self.boardstuff[row][col][1],text=l)
+                #self.historyignore=True
+                self.history.focus(iidr)
+                self.history.selection_set(iidr)
+                self.historyselection = iidr
+                self.history.see(iidr)
+                self.title(self.titletx+self.titlesp+path.basename(self.file))
 
-    def save(self):
+    def save(self,event=None):
         '''loops over the history and saves to the current open file'''
-        print('save')
-        pass
+        savelst = []
 
-    def saveas(self):
+        if self.file == None:
+            self.file = filedialog.asksaveasfilename(filetypes=[('Concentrate Game Document', '.cgd')])
+            print(self.file[-4:])
+            self.title(self.titletx+self.titlesp+path.basename(self.file))
+        f = open(self.file,'wb')
+        for iid in self.history.get_children():
+            word = self.history.set(iid,'Word')
+            score = self.history.set(iid,'Score')
+            board = self.history.set(iid,'Board')
+            letters = self.history.set(iid,'Letters')
+            if self.history.tag_has('blue', item=iid):
+                savelst.append((iid,word,score,board,letters,'blue'))
+            elif self.history.tag_has('red', item=iid):
+                savelst.append((iid,word,score,board,letters,'red'))
+            else:
+                savelst.append((iid,word,score,board,letters,''))
+        pickle.dump(savelst,f)
+        self.title(self.titletx+self.titlesp+path.basename(self.file))
+        f.close()
+
+    def saveas(self,event=None):
         '''loops over the history and presents the file save dialog box'''
-        print('save as')
-        pass
+        fn = filedialog.asksaveasfilename(filetypes=[('Concentrate Game Document', '.cgd')])
+        if fn != '':
+            self.file = fn
+            self.save()
+            self.title(self.titletx+self.titlesp+path.basename(self.file))
 
-    def blueturn(self):
+    def blueturn(self,event=None):
         self.move.set(1)
 
-    def redturn(self):
+    def redturn(self,event=None):
         self.move.set(-1)
 
-    def whiteboard(self, event=0):
+    def whiteboard(self, event=None):
          self.updateboard('w'*25)
 
-    def easydifficulty(self,event=0):
+    def easydifficulty(self,event=None):
         self.difficulty.set('E')
         self.chgdifficulty()
 
-    def mediumdifficulty(self,event=0):
+    def mediumdifficulty(self,event=None):
         self.difficulty.set('M')
         self.chgdifficulty()
 
-    def harddifficulty(self,event=0):
+    def harddifficulty(self,event=None):
         self.difficulty.set('H')
         self.chgdifficulty()
 
-    def extremedifficulty(self,event=0):
+    def extremedifficulty(self,event=None):
         self.difficulty.set('X')
         self.chgdifficulty()
 
@@ -270,7 +317,7 @@ class concentrateGUI(Tk):
         else:
             self.player.changedifficulty(['A',5,25])
 
-    def canvasdraw(self, event=1):
+    def canvasdraw(self, event=None):
         self.clearsearch()
         self.clearhistory()
         self.board = Canvas(self, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=1, bg='white')
@@ -300,7 +347,7 @@ class concentrateGUI(Tk):
         self.board.focus_set()
         self.selectsquare(0,0)
 
-    def randomboard(self, event=0):
+    def randomboard(self, event=None):
         go = True
         if len(self.history.get_children()) > 0:
             if messagebox.askyesno('Are you sure?','Editing the letters on the board will clear the history and search box.  Proceed?'):
@@ -316,7 +363,7 @@ class concentrateGUI(Tk):
                 self.board.itemconfig(self.boardstuff[row][col][1],text=c)
             self.board.focus_set()
 
-    def randomcolors(self, event=0):
+    def randomcolors(self, event=None):
         self.whiteboard()
         colors = [choice(['','blue','red']) for x in range(25)]
         for x,c in enumerate(colors):
@@ -538,6 +585,7 @@ class concentrateGUI(Tk):
     def clearhistory(self):
         for iid in self.history.get_children():
             self.history.delete(iid)
+        self.historyselection=-1
 
     def clearsearch(self):
         for iid in self.suggest.get_children():
@@ -650,19 +698,23 @@ class concentrateGUI(Tk):
     def suggestselect(self):
         item = self.suggest.focus()
         #print ("you selected", self.suggest.set(item,'Word'))
-        #check if the history treeview is empty
-        cnt = len(self.history.get_children())
-        if cnt == 0:
-            self.history.insert('','end',values=(self.initialhist,'' ,self.boardcolors,self.letters))
-        else:
-            #clear history past the current selection
-            iid = self.history.next(self.historyselection)
+        #clear history past the current selection
+        txt = ''
+        if self.historyselection != -1:
+            txt = self.history.set(self.historyselection,'Word')
             todelete = []
+            if txt == self.initialhist:
+                todelete.append(self.historyselection)
+            iid = self.history.next(self.historyselection)
             while iid != '':
                 todelete.append(iid)
                 iid = self.history.next(iid)
             for iid in todelete:
                 self.history.delete(iid)
+        #check if the history treeview is empty
+        cnt = len(self.history.get_children())
+        if cnt == 0:
+            self.history.insert('','end',values=(self.initialhist,'' ,self.boardcolors,self.letters))
         #copy the word, board, and score to the end of the history treeview
         txt = self.suggest.set(item,'Word')
         score = self.suggest.set(item,'Score')
@@ -682,6 +734,8 @@ class concentrateGUI(Tk):
         self.move.set(-self.move.get())
         self.clearsearch()
         self.need.delete(0,len(self.need.get()))
+        if self.title()[-1] != '*':
+            self.title(self.title()+'*')
 
     def dosearch(self, x=1, lastdisplayed=-1):
         self.busy()
