@@ -40,14 +40,13 @@ for letter in letterhist:
     newletterlist += [letter]*letterhist[letter]
 
 def genletters():
-
     while True:
         board = ''.join([choice(newletterlist) for x in range(25)])
         if 'Q' in board:
             if 'I' not in board:
                 continue
         vowelcount = sum([board.count(v) for v in vowels])
-        if vowelcount < 3 or vowelcount > 7:
+        if vowelcount < 3 or vowelcount > 8:
             continue
         break
     return board
