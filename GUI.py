@@ -9,6 +9,22 @@
 
 #TODO
 
+#in options menu, make an item for switching the mode (analysis vs play against)
+    #put this in both menus
+    #in the method, close the current window and open the other window with the current board and history
+#init method should accept history
+#make the logic in save for packing up the history into a list its own function
+#make tte logic in open for reading a list and putting it in history its own function
+#use these functions when switching modes
+#create a label to hold the letters clicked on
+#click the label to clear the selection and make all the letters appear again on the board
+#clicking an already-clicked square should do nothing
+#create a button for passing
+#create a button for playing the word made by clicking
+    #should check against word list somehow
+#board menu should be removed in play against
+
+
 #progress bar dialog?
 
 #menu
@@ -31,10 +47,12 @@ from os import path
 import arena
 import pickle
 
-class concentrateGUI(Tk):
+class analysisGUI(Tk):
 
     def __init__(self, *args, **kwargs):
-        Tk.__init__(self, *args, **kwargs)
+        Tk.__init__(self)
+
+        self.letters = kwargs.get('letters','')
 
         self.boardstuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
         self.boardsize = 250
@@ -43,8 +61,8 @@ class concentrateGUI(Tk):
         self.red = ('salmon','red')
         self.initialhist= '[Initial Position]'
         self.moretxt = 'Click for More...'
-        self.notxt = 'No Results'
         self.titletx = 'Concentrate'
+        self.notxt= 'No Results'
         self.titlesp = ' - '
 
         self.title("Concentrate")
@@ -54,14 +72,14 @@ class concentrateGUI(Tk):
 
         self.topframe = ttk.Frame(self)
         self.topframe.grid(row=0,column=0)
-        
+
 
         #self.master = master
         #frame = Frame(self)
         #frame.grid(column=0, row=0, sticky=(N, S, E, W))
         self.topframe.columnconfigure(0, weight=0)
         self.topframe.columnconfigure(1, weight=0)
-        self.topframe.columnconfigure(2, weight=0) #scroll bar 
+        self.topframe.columnconfigure(2, weight=0) #scroll bar
         self.topframe.columnconfigure(3, weight=0)
         self.topframe.columnconfigure(4, weight=0) #scroll bar
         self.topframe.rowconfigure(0, weight=0)
@@ -109,11 +127,13 @@ class concentrateGUI(Tk):
         self.btnsuggestselect.grid(row=2,column=3,columnspan=2,pady=0,sticky=(N,S))
         self.btnsuggestselect.state(['disabled'])
 
+
+
         self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
         self.move = IntVar()
-        self.canvasdraw()
 
-        self.player = GUIplayer()
+
+        self.player = analysisplayer()
 
         self.menubar = Menu(self, tearoff=0)
 
@@ -186,7 +206,11 @@ class concentrateGUI(Tk):
             self.boardmenu.add_separator()
             self.boardmenu.add_command(label="Search", underline=0, command=self.dosearch, accelerator='Enter')
             self.menubar.add_cascade(label="Board", underline=0, menu=self.boardmenu)
+
             self.optionsmenu = Menu(self.menubar, tearoff=0)
+            self.optionsmenu.add_command(label="Play Against Concentrate", underline=0, command=self.playagainst, accelerator='Tab')
+            self.bind('<Tab>',self.playagainst)
+            self.optionsmenu.add_separator()
             self.difficulty = StringVar()
             self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty, accelerator='Ctrl+1')
             self.bind('<Control-Key-1>',self.easydifficulty)
@@ -207,18 +231,29 @@ class concentrateGUI(Tk):
 
         # display the menu
         self.config(menu=self.menubar)
-
+        self.canvasdraw()
         self.boardcolors = 'w'*25
-
+        if self.letters != '':
+            for i,l in enumerate(self.letters):
+                row = i//5
+                col = i%5
+                self.board.itemconfig(self.boardstuff[row][col][1],text=l)
         self.notbusywidgetcursors = dict() #for busy and notbusy
         self.board.focus_set()
 
-    def loophist(self,event):
-        for iid in self.history.get_children():
-            if iid == self.historyselection:
-                print(iid,'<- selected')
-            else:
-                print(iid)
+##        w = self.winfo_screenwidth()
+##        h = self.winfo_screenheight()
+##        rootsize = tuple(int(_) for _ in self.geometry().split('+')[0].split('x'))
+##        x = w/2 - rootsize[0]/2
+##        y = h/2 - rootsize[1]/2
+##        self.geometry("%dx%d+%d+%d" % (rootsize + (x, y)))
+
+    def playagainst(self,event=None):
+        print('play against')
+        #get the list in history
+        #get the letters
+        #close me
+        #call playGUI with history and letters
 
     def new(self,event=None):
         '''closes any previously open file, erases board, history, search'''
@@ -229,10 +264,11 @@ class concentrateGUI(Tk):
 
     def open(self,event=None):
         '''presents file dialog box for selecting one file.  loads data to the board and history'''
-        self.canvasdraw()
+
         fn = filedialog.askopenfilename(filetypes=[('Concentrate Game Document', '.cgd')])
         print(fn)
         if fn != '':
+            self.canvasdraw()
             self.file = fn
             f = open(self.file,'rb')
             lst = pickle.load(f)
@@ -742,10 +778,10 @@ class concentrateGUI(Tk):
         self.move.set(-self.move.get())
         self.clearsearch()
         self.need.delete(0,len(self.need.get()))
-        if self.title()[-1] != '*':
+        if self.title()[-1] != '*' and self.file != None:
             self.title(self.title()+'*')
 
-    def dosearch(self, x=1, lastdisplayed=-1):
+    def dosearch(self, event=None, lastdisplayed=-1):
         self.busy()
         self.saveboard() #to restore back to when the user un-selects a word
         if lastdisplayed == -1:
@@ -787,7 +823,7 @@ class concentrateGUI(Tk):
         self.notbusy()
 
 
-class GUIplayer(player0):
+class analysisplayer(player0):
     def __init__(self, difficulty=['R',5,25]):
         player0.__init__(self, difficulty)
 
@@ -827,5 +863,346 @@ class GUIplayer(player0):
         print(round(time()-start,2),'seconds to endgame check')
         return results,False
 
+class playGUI(analysisGUI):
+
+    def __init__(self, *args, **kwargs):
+        Tk.__init__(self)
+
+        self.letters = kwargs.get('letters','')
+        self.boardstuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
+        self.boardsize = 250
+        self.sqsize = self.boardsize//5
+        self.blue = ('light sky blue','RoyalBlue2')
+        self.red = ('salmon','red')
+        self.initialhist= '[Initial Position]'
+        self.titletx = 'Concentrate'
+        self.titlesp = ' - '
+
+        self.title("Concentrate")
+        #self.columnconfigure(0, weight=1)
+        #self.rowconfigure(0, weight=0)
+        self.resizable(0,0)
+
+        self.topframe = ttk.Frame(self)
+        self.topframe.grid(row=0,column=0)
+
+
+        #self.master = master
+        #frame = Frame(self)
+        #frame.grid(column=0, row=0, sticky=(N, S, E, W))
+        self.topframe.columnconfigure(0, weight=0)
+        self.topframe.columnconfigure(1, weight=0)
+        self.topframe.columnconfigure(2, weight=0) #scroll bar
+        self.topframe.rowconfigure(0, weight=0)
+        self.topframe.rowconfigure(1, weight=1)
+        self.topframe.rowconfigure(2, weight=0)
+
+        ttk.Label(self.topframe, text='Board').grid(column=0,row=0)
+        ttk.Label(self.topframe, text='History').grid(column=1,row=0,columnspan=2)
+
+        self.history = ttk.Treeview(self.topframe,columns=('Word','Score','Board','Letters'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
+        historyscroll = ttk.Scrollbar(self.topframe,orient=VERTICAL,command=self.history.yview)
+        historyscroll.grid(row=1,column=2,sticky=(N,S,E))
+        self.history['yscrollcommand'] = historyscroll.set
+        self.history.grid(row=1,column=1,sticky=(N,S,W,E))
+        self.history.column('#0',width=1)
+        self.history.column(0,width=150)
+        self.history.column(1,width=75)
+        self.history.bind('<<TreeviewSelect>>',self.historyclick)
+        self.history.tag_configure('red',foreground='red')
+        self.history.tag_configure('blue',foreground='RoyalBlue2')
+        self.historyselection = -1
+        self.historyignore= False
+
+        self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+        self.move = IntVar()
+        self.canvasdraw()
+        if self.letters == '':
+            self.randomboard()
+        else:
+            for i,l in enumerate(self.letters):
+                row = i//5
+                col = i%5
+                self.board.itemconfig(self.boardstuff[row][col][1],text=l)
+
+        self.player = analysisplayer()
+
+        self.menubar = Menu(self, tearoff=0)
+
+        self.file = None
+
+        if self.sys == 'aqua': #mac os x
+            self.filemenu= Menu(self.menubar, tearoff=0)
+            self.filemenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
+            self.bind('<Command-n>',self.new)
+            self.filemenu.add_command(label="Open...", underline=0, command=self.open, accelerator='Command-O')
+            self.bind('<Command-o>',self.open)
+            self.filemenu.add_command(label="Save",underline=0, command=self.save, accelerator='Command-S')
+            self.bind('<Command-s>',self.save)
+            self.filemenu.add_command(label="Save As...", underline=5, command=self.saveas, accelerator='Command+A')
+            self.bind('<Command-a>',self.saveas)
+            self.menubar.add_cascade(label="Concentrate", underline=0, menu=self.filemenu)
+
+            self.boardmenu = Menu(self.menubar, tearoff=0)
+
+            self.boardmenu.add_command(label="Empty Board",  command=self.canvasdraw, accelerator='Command-E')
+            self.bind('<Command-e>',self.canvasdraw)
+            self.boardmenu.add_command(label="White Board", command=self.whiteboard, accelerator='Command-W')
+            self.bind('<Command-w>',self.whiteboard)
+            self.boardmenu.add_command(label="Random Letters", command=self.randomboard, accelerator='Command-R')
+            self.bind('<Command-r>',self.randomboard)
+            self.boardmenu.add_command(label="Random Colors", underline=7, command=self.randomcolors, accelerator='Command-C')
+            self.bind('<Command-c>',self.randomcolors)
+            self.boardmenu.add_separator()
+            self.boardmenu.add_command(label="Search", command=self.dosearch, accelerator='Return')
+            self.menubar.add_cascade(label="Board", menu=self.boardmenu)
+
+            self.optionsmenu = Menu(self.menubar, tearoff=0)
+            self.difficulty = StringVar()
+            self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty, accelerator='Command-1')
+            self.bind('<Command-Key-1>',self.easydifficulty)
+            self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty, accelerator='Command-2')
+            self.bind('<Command-Key-2>',self.mediumdifficulty)
+            self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty, accelerator='Command-3')
+            self.bind('<Command-Key-3>',self.harddifficulty)
+            self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Command-4')
+            self.bind('<Command-Key-4>',self.extremedifficulty)
+            self.difficulty.set('H')
+            self.optionsmenu.add_separator()
+            self.optionsmenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blueturn)
+            self.optionsmenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.redturn)
+            self.move.set(1)
+            self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
+
+
+        else: #windows
+            self.filemenu= Menu(self.menubar, tearoff=0)
+            self.filemenu.add_command(label="New", underline=0, command=self.new, accelerator='Ctrl+N')
+            self.bind('<Control-n>',self.new)
+            self.filemenu.add_command(label="Open...", underline=0, command=self.open, accelerator='Ctrl+O')
+            self.bind('<Control-o>',self.open)
+            self.filemenu.add_command(label="Save",underline=0, command=self.save, accelerator='Ctrl+S')
+            self.bind('<Control-s>',self.save)
+            self.filemenu.add_command(label="Save As...", underline=5, command=self.saveas, accelerator='Ctrl+A')
+            self.bind('<Control-a>',self.saveas)
+            self.menubar.add_cascade(label="File", underline=0, menu=self.filemenu)
+            self.boardmenu = Menu(self.menubar, tearoff=0)
+            self.boardmenu.add_command(label="Empty Board", underline=6, command=self.canvasdraw, accelerator='Ctrl+E')
+            self.bind('<Control-e>',self.canvasdraw)
+            self.boardmenu.add_command(label="White Board", underline=6, command=self.whiteboard, accelerator='Ctrl+W')
+            self.bind('<Control-w>',self.whiteboard)
+            self.boardmenu.add_command(label="Random Letters", underline=0, command=self.randomboard, accelerator='Ctrl+R')
+            self.bind('<Control-r>',self.randomboard)
+            self.boardmenu.add_command(label="Random Colors", underline=7, command=self.randomcolors, accelerator='Ctrl+C')
+            self.bind('<Control-c>',self.randomcolors)
+            self.boardmenu.add_separator()
+            self.boardmenu.add_command(label="Search", underline=0, command=self.dosearch, accelerator='Enter')
+            self.menubar.add_cascade(label="Board", underline=0, menu=self.boardmenu)
+            self.optionsmenu = Menu(self.menubar, tearoff=0)
+            self.optionsmenu.add_command(label="Analyze Game", underline=0, command=self.playagainst, accelerator='Tab')
+            self.bind('<Tab>',self.analyze)
+            self.optionsmenu.add_separator()
+            self.difficulty = StringVar()
+            self.optionsmenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.chgdifficulty, accelerator='Ctrl+1')
+            self.bind('<Control-Key-1>',self.easydifficulty)
+            self.optionsmenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.chgdifficulty, accelerator='Ctrl+2')
+            self.bind('<Control-Key-2>',self.mediumdifficulty)
+            self.optionsmenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.chgdifficulty, accelerator='Ctrl+3')
+            self.bind('<Control-Key-3>',self.harddifficulty)
+            self.optionsmenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.chgdifficulty, accelerator='Ctrl+4')
+            self.bind('<Control-Key-4>',self.extremedifficulty)
+            self.difficulty.set('H')
+            self.optionsmenu.add_separator()
+            self.optionsmenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blueturn)
+            self.optionsmenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.redturn)
+            self.move.set(1)
+            self.menubar.add_cascade(label="Options", underline=0, menu=self.optionsmenu)
+
+        self.bind('<Return>',self.dosearch)
+
+        # display the menu
+        self.config(menu=self.menubar)
+
+        self.boardcolors = 'w'*25
+
+        self.notbusywidgetcursors = dict() #for busy and notbusy
+        self.board.focus_set()
+
+    def analyze(self,event=None):
+        print('analyze')
+
+    def canvasdraw(self, event=None):
+        self.clearhistory()
+        self.board = Canvas(self.topframe, width=self.boardsize, height=self.boardsize, borderwidth=0, highlightthickness=1, bg='white')
+        self.board.grid(row=1,column=0)
+        self.move.set(1)
+
+        self.board.bind('<Button-1>',self.selectletter)
+
+        for row in range(5):
+            for col in range(5):
+                top = row * self.sqsize + 1
+                left = col * self.sqsize + 1
+                bottom = row * self.sqsize + self.sqsize
+                right = col * self.sqsize + self.sqsize
+                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
+                text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text='',font='Helvetica 20')
+                self.boardstuff[row][col] = (rect,text)
+        self.board.focus_set()
+
+    def randomcolors(self, event=None):
+        pass
+
+    def selectletter(self,event):
+        self.board.focus_set()
+        (row,col) = self.getrowcol(event.x,event.y)
+        #TODO
+        #make text color the same as its current background
+        #add the letter to the label below the board
+
+    def busy(self, widget=None):
+        if widget == None:
+            w = self
+        else:
+            w = widget
+        if not str(w) in self.notbusywidgetcursors:
+            try:
+                # attach cursor to this widget
+                cursor = w.cget("cursor")
+                if cursor != "watch":
+                    self.notbusywidgetcursors[str(w)] = (w, cursor)
+                    w.config(cursor="watch")
+            except TclError:
+                pass
+
+        for w in w.children.values():
+            self.busy(w)
+
+    def notbusy(self):
+        for w, cursor in self.notbusywidgetcursors.values():
+            try:
+                w.config(cursor=cursor)
+            except TclError:
+                pass
+        self.notbusywidgetcursors = dict()
+
+    def clearhistory(self):
+        for iid in self.history.get_children():
+            self.history.delete(iid)
+        self.historyselection=-1
+
+    def clearsearch(self):
+        for iid in self.suggest.get_children():
+            self.suggest.delete(iid)
+
+    def saveboard(self):
+        '''saves the state of the board for later retrieval'''
+        board = ''
+        for row in range(5):
+            for col in range(5):
+                board += self.getdefendedcolor(row,col)
+        self.boardcolors = board
+
+    def restoreboard(self):
+        '''restores the state of the board saved by saveboard'''
+        self.updateboard(self.boardcolors)
+        pass
+
+    def updateboard(self, newboard):
+        '''changes the colors of the board'''
+        newboard = newboard.replace(' ','')
+        #self.board.itemconfig(self.boardstuff[row][col][0],fill=self.blue[1])
+        for row in range(5):
+            for col in range(5):
+                i = row*5+col
+                l = newboard[i]
+                color = ''
+                if l == 'b':
+                    color = self.blue[0]
+                elif l == 'B':
+                    color = self.blue[1]
+                elif l == 'r':
+                    color = self.red[0]
+                elif l == 'R':
+                    color = self.red[1]
+                self.board.itemconfig(self.boardstuff[row][col][0],fill=color)
+
+    def historyclick(self, event):
+        '''bound to history.<<TreeviewSelect>>'''
+
+        if not self.historyignore:
+            #get item id clicked on
+            clickediid = self.history.focus()
+            self.historyselection = clickediid
+            txt = self.history.set(clickediid,'Word')
+            board = self.history.set(clickediid,'Board')
+            #update colors on the board to match the board of the word suggested
+            self.updateboard(board)
+            self.history.focus_set()
+            #unselect suggest selection, if any
+            sugselect = self.suggest.focus()
+            self.suggestignore = True
+            self.suggest.selection_remove(sugselect)
+            self.btnsuggestselect.state(['disabled'])
+            self.suggestselection = -1
+            #set whose turn it is based on the selection
+            if self.history.tag_has('red',clickediid):
+                self.move.set(1)
+            elif self.history.tag_has('blue',clickediid):
+                self.move.set(-1)
+            else:
+                #untagged first id, look at next id
+                nextid = self.history.next(clickediid)
+                if self.history.tag_has('red',nextid):
+                    self.move.set(-1)
+                else:
+                    self.move.set(1)
+
+        else:
+            self.historyignore = False
+
+    def dosearch(self, event=None):
+        self.busy()
+        self.saveboard() #to restore back to when the user un-selects a word
+        if lastdisplayed == -1:
+            self.clearsearch()
+        #self.letters is used by suggestselect to save the board letters to history
+        self.letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
+        if not(all([x in ascii_uppercase for x in self.letters]) and len(self.letters) == 25):
+            self.notbusy()
+            messagebox.showwarning("Concentrate","The board must be completely filled with letters.")
+            return
+        score = ''.join(self.getcolor(row,col) for row in range(5) for col in range(5))
+        if 'W' not in score:
+            self.notbusy()
+            messagebox.showwarning("Concentrate","Game Over.")
+            return
+        #make the engine aware of which words are in the history
+        words = list()
+        for iid in self.history.get_children():
+            txt = self.history.set(iid,'Word')
+            if txt != self.initialhist:
+                words.append(txt)
+            if iid == self.historyselection:
+                break
+        needletters = self.need.get().upper()
+        self.player.possible(self.letters)
+        self.player.resetplayed(self.letters,words)
+        wordlist,more = self.player.search(self.letters,score,needletters,self.move.get(),lastdisplayed)
+        for i,word in enumerate(wordlist):
+            if word[1][0] not in ascii_uppercase:
+                self.suggest.insert('','end',tag=word[1][0],values=(word[1][1:],word[0],word[2]))
+            else:
+                self.suggest.insert('','end',values=(word[1],word[0],word[2]))
+        if more:
+            self.suggest.insert('','end',values=(self.moretxt,))
+        elif len(self.suggest.get_children()) == 0:
+            self.suggest.insert('','end',values=(self.notxt,))
+        if lastdisplayed == -1:
+            self.suggest.see(self.suggest.get_children()[0])
+        self.notbusy()
+
+
 if __name__ == '__main__':
-    concentrateGUI().mainloop()
+    analysisGUI().mainloop()
+    playGUI().mainloop()
