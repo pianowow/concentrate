@@ -9,13 +9,10 @@
 
 #TODO
 
-#in options menu, make an item for switching the mode (analysis vs play against)
-    #put this in both menus
-    #in the method, close the current window and open the other window with the current board and history
-#init method should accept history
-#make the logic in save for packing up the history into a list its own function
-#make tte logic in open for reading a list and putting it in history its own function
-#use these functions when switching modes
+#handle shift and capslock on mac when entering boards in analysis mode
+#random difficulty setting
+#file state when changing modes (* or not)
+
 #create a label to hold the letters clicked on
 #click the label to clear the selection and make all the letters appear again on the board
 #clicking an already-clicked square should do nothing
@@ -24,8 +21,8 @@
     #should check against word list somehow
 #board menu should be removed in play against
 
-
 #progress bar dialog?
+    #could be tied to the number of groups found, every so many groups, update progress
 
 #menu
     #Options
@@ -52,7 +49,10 @@ class analysisGUI(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self)
 
-        self.letters = kwargs.get('letters','')
+        dct = kwargs.get('dct',dict())
+
+        self.file = kwargs.get('file','')
+        title = kwargs.get('title','')
 
         self.boardstuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
         self.boardsize = 250
@@ -65,7 +65,11 @@ class analysisGUI(Tk):
         self.notxt= 'No Results'
         self.titlesp = ' - '
 
-        self.title("Concentrate")
+        if title == '':
+            self.title(self.titletx)
+        else:
+            self.title(title)
+
         #self.columnconfigure(0, weight=1)
         #self.rowconfigure(0, weight=0)
         self.resizable(0,0)
@@ -136,8 +140,6 @@ class analysisGUI(Tk):
         self.player = analysisplayer()
 
         self.menubar = Menu(self, tearoff=0)
-
-        self.file = None
 
         if self.sys == 'aqua': #mac os x
             self.filemenu= Menu(self.menubar, tearoff=0)
@@ -233,13 +235,16 @@ class analysisGUI(Tk):
         self.config(menu=self.menubar)
         self.canvasdraw()
         self.boardcolors = 'w'*25
-        if self.letters != '':
-            for i,l in enumerate(self.letters):
-                row = i//5
-                col = i%5
-                self.board.itemconfig(self.boardstuff[row][col][1],text=l)
+
+        #restore from dct passed in
+        if dct != dict():
+            self.restorefromdict(dct)
+
+
         self.notbusywidgetcursors = dict() #for busy and notbusy
         self.board.focus_set()
+
+
 
 ##        w = self.winfo_screenwidth()
 ##        h = self.winfo_screenheight()
@@ -249,53 +254,58 @@ class analysisGUI(Tk):
 ##        self.geometry("%dx%d+%d+%d" % (rootsize + (x, y)))
 
     def playagainst(self,event=None):
-        print('play against')
-        #get the list in history
-        #get the letters
+        #get the board and history data
+        boarddct = self.makesavedict()
+        ttl = self.title()
         #close me
-        #call playGUI with history and letters
+        self.destroy()
+        #call playGUI with data
+        playGUI(dct=boarddct,file=self.file,title=ttl).mainloop()
+
 
     def new(self,event=None):
         '''closes any previously open file, erases board, history, search'''
-        if self.file != None:
-            self.file = None
+        if self.file != '':
+            self.file = ''
         self.title(self.titletx)
         self.canvasdraw()
 
+    def restorefromdict(self,dct):
+        letters = dct['letters']
+        for i,l in enumerate(letters):
+            row = i//5
+            col = i%5
+            self.board.itemconfig(self.boardstuff[row][col][1],text=l)
+        lst = dct['history']
+        for iidr,word,score,board,letters,color in lst:
+            insertid = self.history.insert('','end',iid=iidr,tag=color,values=(word,score,board,letters))
+        selected = dct['selected']
+        if len(lst) > 0: #there could be no history
+            self.historyignore = True
+            self.history.focus(selected)
+            self.history.selection_set(selected)
+            self.historyselection = selected
+            self.history.see(selected)
+        colors = dct['colors']
+        self.updateboard(colors)
+
     def open(self,event=None):
         '''presents file dialog box for selecting one file.  loads data to the board and history'''
-
         fn = filedialog.askopenfilename(filetypes=[('Concentrate Game Document', '.cgd')])
-        print(fn)
         if fn != '':
             self.canvasdraw()
             self.file = fn
             f = open(self.file,'rb')
-            lst = pickle.load(f)
+            #lst = pickle.load(f)
+            dct = pickle.load(f)
             f.close()
-            for iidr,word,score,board,letters,color in lst:
-                insertid = self.history.insert('','end',iid=iidr,tag=color,values=(word,score,board,letters))
-            if len(lst) > 0: #file could be an empty list
-                for i,l in enumerate(letters):
-                    row = i//5
-                    col = i%5
-                    self.board.itemconfig(self.boardstuff[row][col][1],text=l)
-                #self.historyignore=True
-                self.history.focus(iidr)
-                self.history.selection_set(iidr)
-                self.historyselection = iidr
-                self.history.see(iidr)
-                self.title(self.titletx+self.titlesp+path.basename(self.file))
-
-
-    def save(self,event=None):
-        '''loops over the history and saves to the current open file'''
-        savelst = []
-        if self.file == None:
-            self.file = filedialog.asksaveasfilename(filetypes=[('Concentrate Game Document', '.cgd')])
-            print(self.file[-4:])
+            #self.restorehistfromlist(lst)
+            self.restorefromdict(dct)
             self.title(self.titletx+self.titlesp+path.basename(self.file))
-        f = open(self.file,'wb')
+
+    def makesavedict(self):
+        savedct = dict()
+        savelst = []
         for iid in self.history.get_children():
             word = self.history.set(iid,'Word')
             score = self.history.set(iid,'Score')
@@ -307,15 +317,43 @@ class analysisGUI(Tk):
                 savelst.append((iid,word,score,board,letters,'red'))
             else:
                 savelst.append((iid,word,score,board,letters,''))
-        pickle.dump(savelst,f)
-        self.title(self.titletx+self.titlesp+path.basename(self.file))
-        f.close()
+        savedct['history']=savelst
+        self.letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
+        savedct['letters']=self.letters
+        colors = ''.join(self.getdefendedcolor(row,col) for row in range(5) for col in range(5))
+        savedct['colors']=colors
+        iid = self.history.focus()
+        savedct['selected']=iid
+        return savedct
+
+    def fncheck(self,fn):
+        if fn.upper()[-4:] != '.CGD':
+            fn += '.cgd'
+        return fn
+
+    def save(self,event=None):
+        '''loops over the history and saves to the current open file'''
+        if self.file == '':
+            fn = filedialog.asksaveasfilename(filetypes=[('Concentrate Game Document', '.cgd')])
+            if fn != '': #pressed cancel on the dialog
+                self.file = fn
+                self.file = self.fncheck(self.file)
+                self.title(self.titletx+self.titlesp+path.basename(self.file))
+        else:
+            f = open(self.file,'wb')
+            #savelst = self.makelistfromhist()
+            savedict = self.makesavedict()
+            #pickle.dump(savelst,f)
+            pickle.dump(savedict,f)
+            self.title(self.titletx+self.titlesp+path.basename(self.file))
+            f.close()
 
     def saveas(self,event=None):
         '''loops over the history and presents the file save dialog box'''
         fn = filedialog.asksaveasfilename(filetypes=[('Concentrate Game Document', '.cgd')])
         if fn != '':
             self.file = fn
+            self.file = self.fncheck(self.file)
             self.save()
             self.title(self.titletx+self.titlesp+path.basename(self.file))
 
@@ -346,7 +384,6 @@ class analysisGUI(Tk):
 
     def chgdifficulty(self):
         self.clearsearch()
-        self.restoreboard()
         if self.difficulty.get() == 'E':
             self.player.changedifficulty(['R',5,5])
             self.player.difficulty = ['R',5,5]
@@ -386,7 +423,7 @@ class analysisGUI(Tk):
                 bottom = row * self.sqsize + self.sqsize
                 right = col * self.sqsize + self.sqsize
                 rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
-                text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text='',font='Helvetica 20')
+                text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text=' ',font='Helvetica 20')
                 self.boardstuff[row][col] = (rect,text)
         self.board.focus_set()
         self.selectsquare(0,0)
@@ -397,6 +434,8 @@ class analysisGUI(Tk):
             if messagebox.askyesno('Are you sure?','Editing the letters on the board will clear the history and search box.  Proceed?'):
                 self.clearhistory()
                 self.clearsearch()
+                if self.title()[-1] != '*' and self.file != '':
+                    self.title(self.title()+'*')
             else:
                 go = False
         if go:
@@ -460,17 +499,19 @@ class analysisGUI(Tk):
         self.board.focus_set()
         self.board.focus()
         if self.sys == 'aqua':
-            nomodifier = 0
+            nomodifier = {0}
         else:
-            nomodifier = 8
+            nomodifier = {8,9,10} #8 is none, 9 is shift, 10 is capslock
         char = event.char.upper()
-        if char in ascii_uppercase and len(char) > 0 and event.state == nomodifier: #len is used to avoid moving forward with Control/Command buttons alone
+        if char in ascii_uppercase and len(char) > 0 and event.state in nomodifier: #len is used to avoid moving forward with Control/Command buttons alone
                                                                                     #event.state is used to avoid doing the same for Command-key on the mac
             go = True
             if len(self.history.get_children()) > 0:
                 if messagebox.askyesno('Are you sure?','Editing the letters on the board will clear the history and search box.  Do you want to proceed?'):
                     self.clearhistory()
                     self.clearsearch()
+                    if self.title()[-1] != '*' and self.file != '':
+                        self.title(self.title()+'*')
                 else:
                     go = False
             if go:
@@ -772,13 +813,14 @@ class analysisGUI(Tk):
         #select the inserted item in history
         self.historyignore=True
         self.history.selection_set(insertid)
+        self.history.focus(insertid)
         self.historyselection = insertid
         self.history.see(insertid)
         #change whose turn it is
         self.move.set(-self.move.get())
         self.clearsearch()
         self.need.delete(0,len(self.need.get()))
-        if self.title()[-1] != '*' and self.file != None:
+        if self.title()[-1] != '*' and self.file != '':
             self.title(self.title()+'*')
 
     def dosearch(self, event=None, lastdisplayed=-1):
@@ -868,7 +910,11 @@ class playGUI(analysisGUI):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self)
 
-        self.letters = kwargs.get('letters','')
+        dct = kwargs.get('dct',dict())
+
+        self.file = kwargs.get('file','')
+        title = kwargs.get('title','')
+        print(self.file)
         self.boardstuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
         self.boardsize = 250
         self.sqsize = self.boardsize//5
@@ -878,7 +924,10 @@ class playGUI(analysisGUI):
         self.titletx = 'Concentrate'
         self.titlesp = ' - '
 
-        self.title("Concentrate")
+        if title == '':
+            self.title(self.titletx)
+        else:
+            self.title(title)
         #self.columnconfigure(0, weight=1)
         #self.rowconfigure(0, weight=0)
         self.resizable(0,0)
@@ -917,19 +966,12 @@ class playGUI(analysisGUI):
         self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
         self.move = IntVar()
         self.canvasdraw()
-        if self.letters == '':
-            self.randomboard()
-        else:
-            for i,l in enumerate(self.letters):
-                row = i//5
-                col = i%5
-                self.board.itemconfig(self.boardstuff[row][col][1],text=l)
+
+        self.play = ttk.Label()
 
         self.player = analysisplayer()
 
         self.menubar = Menu(self, tearoff=0)
-
-        self.file = None
 
         if self.sys == 'aqua': #mac os x
             self.filemenu= Menu(self.menubar, tearoff=0)
@@ -999,7 +1041,7 @@ class playGUI(analysisGUI):
             self.boardmenu.add_command(label="Search", underline=0, command=self.dosearch, accelerator='Enter')
             self.menubar.add_cascade(label="Board", underline=0, menu=self.boardmenu)
             self.optionsmenu = Menu(self.menubar, tearoff=0)
-            self.optionsmenu.add_command(label="Analyze Game", underline=0, command=self.playagainst, accelerator='Tab')
+            self.optionsmenu.add_command(label="Analyze Game", underline=0, command=self.analyze, accelerator='Tab')
             self.bind('<Tab>',self.analyze)
             self.optionsmenu.add_separator()
             self.difficulty = StringVar()
@@ -1023,13 +1065,24 @@ class playGUI(analysisGUI):
         # display the menu
         self.config(menu=self.menubar)
 
+        if 'letters' not in dct:
+            self.randomboard()
+        else:
+            self.restorefromdict(dct)
+
         self.boardcolors = 'w'*25
 
         self.notbusywidgetcursors = dict() #for busy and notbusy
         self.board.focus_set()
 
     def analyze(self,event=None):
-        print('analyze')
+        #get the board and history data
+        boarddct = self.makesavedict()
+        ttl = self.title()
+        #close me
+        self.destroy()
+        #call analysisGUI with data
+        analysisGUI(dct=boarddct,file=self.file,title=ttl).mainloop()
 
     def canvasdraw(self, event=None):
         self.clearhistory()
@@ -1139,12 +1192,6 @@ class playGUI(analysisGUI):
             #update colors on the board to match the board of the word suggested
             self.updateboard(board)
             self.history.focus_set()
-            #unselect suggest selection, if any
-            sugselect = self.suggest.focus()
-            self.suggestignore = True
-            self.suggest.selection_remove(sugselect)
-            self.btnsuggestselect.state(['disabled'])
-            self.suggestselection = -1
             #set whose turn it is based on the selection
             if self.history.tag_has('red',clickediid):
                 self.move.set(1)
@@ -1157,7 +1204,6 @@ class playGUI(analysisGUI):
                     self.move.set(-1)
                 else:
                     self.move.set(1)
-
         else:
             self.historyignore = False
 
@@ -1205,4 +1251,3 @@ class playGUI(analysisGUI):
 
 if __name__ == '__main__':
     analysisGUI().mainloop()
-    playGUI().mainloop()
