@@ -9,28 +9,24 @@
 
 #TODO
 
-#handle shift and capslock on mac when entering boards in analysis mode
-#random difficulty setting
-#file state when changing modes (* or not)
+#both GUIs:
+    #random difficulty setting
+    #menu
+        #Options
+            #theme
+                #light
+                #dark
+                #pop, etc
+    #progress bar dialog?
+        #could be tied to the number of groups found, every so many groups, update progress
 
-#create a label to hold the letters clicked on
-#click the label to clear the selection and make all the letters appear again on the board
-#clicking an already-clicked square should do nothing
-#create a button for passing
-#create a button for playing the word made by clicking
-    #should check against word list somehow
-#board menu should be removed in play against
+#playGUI:
 
-#progress bar dialog?
-    #could be tied to the number of groups found, every so many groups, update progress
-
-#menu
-    #Options
-        #theme
-            #light
-            #dark
-            #pop, etc
-
+    #initialize the word set in canvasdraw()
+    #enable play button in selectletter() if the label after that letter makes a word in the word set
+    #play method
+    #passturn method
+    #override dosearch() to directly write to history the word it picks first
 
 from tkinter import *
 from tkinter import messagebox
@@ -77,7 +73,6 @@ class analysisGUI(Tk):
         self.topframe = ttk.Frame(self)
         self.topframe.grid(row=0,column=0)
 
-
         #self.master = master
         #frame = Frame(self)
         #frame.grid(column=0, row=0, sticky=(N, S, E, W))
@@ -110,7 +105,7 @@ class analysisGUI(Tk):
         self.history.tag_configure('red',foreground='red')
         self.history.tag_configure('blue',foreground='RoyalBlue2')
         self.historyselection = -1
-        self.historyignore= False
+        self.historyignore = False
 
         self.suggest = ttk.Treeview(self.topframe,columns=('Word','Score','Board'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
         suggestscroll = ttk.Scrollbar(self.topframe,orient=VERTICAL,command=self.suggest.yview)
@@ -131,14 +126,9 @@ class analysisGUI(Tk):
         self.btnsuggestselect.grid(row=2,column=3,columnspan=2,pady=0,sticky=(N,S))
         self.btnsuggestselect.state(['disabled'])
 
-
-
         self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
         self.move = IntVar()
-
-
         self.player = analysisplayer()
-
         self.menubar = Menu(self, tearoff=0)
 
         if self.sys == 'aqua': #mac os x
@@ -183,7 +173,6 @@ class analysisGUI(Tk):
             self.optionsmenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.redturn)
             self.move.set(1)
             self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
-
 
         else: #windows
             self.filemenu= Menu(self.menubar, tearoff=0)
@@ -244,8 +233,6 @@ class analysisGUI(Tk):
         self.notbusywidgetcursors = dict() #for busy and notbusy
         self.board.focus_set()
 
-
-
 ##        w = self.winfo_screenwidth()
 ##        h = self.winfo_screenheight()
 ##        rootsize = tuple(int(_) for _ in self.geometry().split('+')[0].split('x'))
@@ -281,7 +268,7 @@ class analysisGUI(Tk):
             insertid = self.history.insert('','end',iid=iidr,tag=color,values=(word,score,board,letters))
         selected = dct['selected']
         if len(lst) > 0: #there could be no history
-            self.historyignore = True
+            #self.historyignore = True
             self.history.focus(selected)
             self.history.selection_set(selected)
             self.historyselection = selected
@@ -822,6 +809,7 @@ class analysisGUI(Tk):
         self.need.delete(0,len(self.need.get()))
         if self.title()[-1] != '*' and self.file != '':
             self.title(self.title()+'*')
+        self.btnsuggestselect.state(['disabled'])
 
     def dosearch(self, event=None, lastdisplayed=-1):
         self.busy()
@@ -935,13 +923,13 @@ class playGUI(analysisGUI):
         self.topframe = ttk.Frame(self)
         self.topframe.grid(row=0,column=0)
 
-
         #self.master = master
         #frame = Frame(self)
         #frame.grid(column=0, row=0, sticky=(N, S, E, W))
         self.topframe.columnconfigure(0, weight=0)
         self.topframe.columnconfigure(1, weight=0)
-        self.topframe.columnconfigure(2, weight=0) #scroll bar
+        self.topframe.columnconfigure(2, weight=0)
+        self.topframe.columnconfigure(3, weight=0) #scroll bar
         self.topframe.rowconfigure(0, weight=0)
         self.topframe.rowconfigure(1, weight=1)
         self.topframe.rowconfigure(2, weight=0)
@@ -951,9 +939,9 @@ class playGUI(analysisGUI):
 
         self.history = ttk.Treeview(self.topframe,columns=('Word','Score','Board','Letters'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
         historyscroll = ttk.Scrollbar(self.topframe,orient=VERTICAL,command=self.history.yview)
-        historyscroll.grid(row=1,column=2,sticky=(N,S,E))
+        historyscroll.grid(row=1,column=3,sticky=(N,S,E))
         self.history['yscrollcommand'] = historyscroll.set
-        self.history.grid(row=1,column=1,sticky=(N,S,W,E))
+        self.history.grid(row=1,column=1,columnspan=2,sticky=(N,S,W,E))
         self.history.column('#0',width=1)
         self.history.column(0,width=150)
         self.history.column(1,width=75)
@@ -967,9 +955,20 @@ class playGUI(analysisGUI):
         self.move = IntVar()
         self.canvasdraw()
 
-        self.play = ttk.Label()
+        self.play = ttk.Label(self.topframe,text='',font='Helvetica 11')
+        self.play.grid(row=2,column=0)
+        self.play.bind('<1>',self.clearplay)
+
+        self.btnplay = ttk.Button(self.topframe, text='Play',command=self.play)
+        self.btnplay.grid(row=2,column=1)
+        self.btnplay['default'] = 'active'
+        self.btnplay.state(['disabled'])
+
+        btnpass = ttk.Button(self.topframe, text='Pass',command=self.passturn)
+        btnpass.grid(row=2,column=2)
 
         self.player = analysisplayer()
+        self.refplayer = analysisplayer(difficulty=['A',5,25])
 
         self.menubar = Menu(self, tearoff=0)
 
@@ -984,20 +983,6 @@ class playGUI(analysisGUI):
             self.filemenu.add_command(label="Save As...", underline=5, command=self.saveas, accelerator='Command+A')
             self.bind('<Command-a>',self.saveas)
             self.menubar.add_cascade(label="Concentrate", underline=0, menu=self.filemenu)
-
-            self.boardmenu = Menu(self.menubar, tearoff=0)
-
-            self.boardmenu.add_command(label="Empty Board",  command=self.canvasdraw, accelerator='Command-E')
-            self.bind('<Command-e>',self.canvasdraw)
-            self.boardmenu.add_command(label="White Board", command=self.whiteboard, accelerator='Command-W')
-            self.bind('<Command-w>',self.whiteboard)
-            self.boardmenu.add_command(label="Random Letters", command=self.randomboard, accelerator='Command-R')
-            self.bind('<Command-r>',self.randomboard)
-            self.boardmenu.add_command(label="Random Colors", underline=7, command=self.randomcolors, accelerator='Command-C')
-            self.bind('<Command-c>',self.randomcolors)
-            self.boardmenu.add_separator()
-            self.boardmenu.add_command(label="Search", command=self.dosearch, accelerator='Return')
-            self.menubar.add_cascade(label="Board", menu=self.boardmenu)
 
             self.optionsmenu = Menu(self.menubar, tearoff=0)
             self.difficulty = StringVar()
@@ -1016,7 +1001,6 @@ class playGUI(analysisGUI):
             self.move.set(1)
             self.menubar.add_cascade(label="Options", menu=self.optionsmenu)
 
-
         else: #windows
             self.filemenu= Menu(self.menubar, tearoff=0)
             self.filemenu.add_command(label="New", underline=0, command=self.new, accelerator='Ctrl+N')
@@ -1028,18 +1012,7 @@ class playGUI(analysisGUI):
             self.filemenu.add_command(label="Save As...", underline=5, command=self.saveas, accelerator='Ctrl+A')
             self.bind('<Control-a>',self.saveas)
             self.menubar.add_cascade(label="File", underline=0, menu=self.filemenu)
-            self.boardmenu = Menu(self.menubar, tearoff=0)
-            self.boardmenu.add_command(label="Empty Board", underline=6, command=self.canvasdraw, accelerator='Ctrl+E')
-            self.bind('<Control-e>',self.canvasdraw)
-            self.boardmenu.add_command(label="White Board", underline=6, command=self.whiteboard, accelerator='Ctrl+W')
-            self.bind('<Control-w>',self.whiteboard)
-            self.boardmenu.add_command(label="Random Letters", underline=0, command=self.randomboard, accelerator='Ctrl+R')
-            self.bind('<Control-r>',self.randomboard)
-            self.boardmenu.add_command(label="Random Colors", underline=7, command=self.randomcolors, accelerator='Ctrl+C')
-            self.bind('<Control-c>',self.randomcolors)
-            self.boardmenu.add_separator()
-            self.boardmenu.add_command(label="Search", underline=0, command=self.dosearch, accelerator='Enter')
-            self.menubar.add_cascade(label="Board", underline=0, menu=self.boardmenu)
+
             self.optionsmenu = Menu(self.menubar, tearoff=0)
             self.optionsmenu.add_command(label="Analyze Game", underline=0, command=self.analyze, accelerator='Tab')
             self.bind('<Tab>',self.analyze)
@@ -1069,6 +1042,8 @@ class playGUI(analysisGUI):
             self.randomboard()
         else:
             self.restorefromdict(dct)
+
+        self.makewordset()
 
         self.boardcolors = 'w'*25
 
@@ -1101,84 +1076,43 @@ class playGUI(analysisGUI):
                 rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
                 text = self.board.create_text(left+self.sqsize/2, top+self.sqsize/2,text='',font='Helvetica 20')
                 self.boardstuff[row][col] = (rect,text)
-        self.board.focus_set()
 
-    def randomcolors(self, event=None):
-        pass
+    def makewordset(self):
+        self.refplayer = analysisplayer(difficulty=['A',5,25])
+        self.letters = ''.join([self.board.itemcget(self.boardstuff[row][col][1], 'text') for row in range(5) for col in range(5)])
+        print(self.letters)
+        self.wordset = set(self.refplayer.possible(self.letters))
+        print('len set',len(self.wordset))
+        print(self.wordset)
 
     def selectletter(self,event):
         self.board.focus_set()
         (row,col) = self.getrowcol(event.x,event.y)
-        #TODO
-        #make text color the same as its current background
-        #add the letter to the label below the board
 
-    def busy(self, widget=None):
-        if widget == None:
-            w = self
-        else:
-            w = widget
-        if not str(w) in self.notbusywidgetcursors:
-            try:
-                # attach cursor to this widget
-                cursor = w.cget("cursor")
-                if cursor != "watch":
-                    self.notbusywidgetcursors[str(w)] = (w, cursor)
-                    w.config(cursor="watch")
-            except TclError:
-                pass
+        bgcolor = self.board.itemcget(self.boardstuff[row][col][0],'fill')
+        letter = self.board.itemcget(self.boardstuff[row][col][1],'text')
+        fgcolor = self.board.itemcget(self.boardstuff[row][col][1],'fill')
+        if bgcolor != fgcolor:
+            #make text color the same as its current background
+            self.board.itemconfigure(self.boardstuff[row][col][1],fill=bgcolor)
+            #add the letter to the label below the board
+            playwd = self.play.config()['text'][-1] + letter
+            self.play.config(text=playwd)
+            #check if a valid play, if so enable play button
+            if playwd in self.wordset:
+                print('good',playwd)
+                self.btnplay.state(['!disabled'])
+            else:
+                print('bad',playwd)
+                self.btnplay.state(['disabled'])
 
-        for w in w.children.values():
-            self.busy(w)
 
-    def notbusy(self):
-        for w, cursor in self.notbusywidgetcursors.values():
-            try:
-                w.config(cursor=cursor)
-            except TclError:
-                pass
-        self.notbusywidgetcursors = dict()
-
-    def clearhistory(self):
-        for iid in self.history.get_children():
-            self.history.delete(iid)
-        self.historyselection=-1
-
-    def clearsearch(self):
-        for iid in self.suggest.get_children():
-            self.suggest.delete(iid)
-
-    def saveboard(self):
-        '''saves the state of the board for later retrieval'''
-        board = ''
+    def clearplay(self,event=None):
+        self.play.config(text='')
         for row in range(5):
             for col in range(5):
-                board += self.getdefendedcolor(row,col)
-        self.boardcolors = board
-
-    def restoreboard(self):
-        '''restores the state of the board saved by saveboard'''
-        self.updateboard(self.boardcolors)
-        pass
-
-    def updateboard(self, newboard):
-        '''changes the colors of the board'''
-        newboard = newboard.replace(' ','')
-        #self.board.itemconfig(self.boardstuff[row][col][0],fill=self.blue[1])
-        for row in range(5):
-            for col in range(5):
-                i = row*5+col
-                l = newboard[i]
-                color = ''
-                if l == 'b':
-                    color = self.blue[0]
-                elif l == 'B':
-                    color = self.blue[1]
-                elif l == 'r':
-                    color = self.red[0]
-                elif l == 'R':
-                    color = self.red[1]
-                self.board.itemconfig(self.boardstuff[row][col][0],fill=color)
+                self.board.itemconfigure(self.boardstuff[row][col][1],fill='black')
+        self.btnplay.state(['disabled'])
 
     def historyclick(self, event):
         '''bound to history.<<TreeviewSelect>>'''
@@ -1206,6 +1140,13 @@ class playGUI(analysisGUI):
                     self.move.set(1)
         else:
             self.historyignore = False
+
+
+    def play(self):
+        pass
+
+    def passturn(self):
+        pass
 
     def dosearch(self, event=None):
         self.busy()
