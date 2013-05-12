@@ -427,9 +427,10 @@ class player0:
                         break
         word = wordscores[play][1]
         board = self.displayscore(wordscores[play][3],wordscores[play][4],wordscores[play][5],wordscores[play][6])
+        score = wordscores[play][0]
         self.playword(allletters,word)
 
-        return word,board
+        return word,board,score
 
 
 class player1(player0):
