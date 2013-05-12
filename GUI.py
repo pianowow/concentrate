@@ -877,11 +877,11 @@ class AnalysisPlayer(player0):
             if wordNum > lastDisplayed and displayed < amountToDisplay:
                 zeroLetters,endingSoon, losing, newScore = self.endgamecheck(allLetters, blue, red, blueDef, redDef, move)
                 if losing:  # endgame check found a way for opponent to win
-                   results.append((score,'-'+word,self.displayscore(blue, red, blueDef, redDef)))
-                   displayed += 1
+                    results.append((score,'-'+word,self.displayscore(blue, red, blueDef, redDef)))
+                    displayed += 1
                 elif endingSoon:  # endgame check only found way for opponent to end game, but not win
-                   results.append((score,'*'+word,self.displayscore(blue, red, blueDef, redDef)))
-                   displayed += 1
+                    results.append((score,'*'+word,self.displayscore(blue, red, blueDef, redDef)))
+                    displayed += 1
                 else:
                     results.append((score,word,self.displayscore(blue, red, blueDef, redDef)))
                     displayed += 1
@@ -955,7 +955,7 @@ class PlayGUI(AnalysisGUI):
 
         self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
         self.move = IntVar()
-        self.canvasdraw()
+        self.canvas_draw()
 
         self.play = ttk.Label(self.topFrame,text='',font='Helvetica 11')
         self.play.grid(row=2,column=0)
@@ -1038,8 +1038,6 @@ class PlayGUI(AnalysisGUI):
             self.move.set(1)
             self.menuBar.add_cascade(label="Options", underline=0, menu=self.optionsMenu)
 
-        self.bind('<Return>',self.do_search)
-
         # display the menu
         self.config(menu=self.menuBar)
 
@@ -1053,8 +1051,6 @@ class PlayGUI(AnalysisGUI):
         #get valid plays
         self.make_word_set()
 
-        self.boardColors = 'w'*25
-
         self.notBusyWidgetCursors = dict() #for busy and notbusy
         self.board.focus_set()
 
@@ -1066,6 +1062,17 @@ class PlayGUI(AnalysisGUI):
         self.destroy()
         #call analysisGUI with data
         AnalysisGUI(dct=boardDict, file=self.file, title=ttl).mainloop()
+
+    def new(self,event=None):
+        """closes any previously open file, erases board, history"""
+        if self.file != '':
+            self.file = ''
+        self.title(self.titleText)
+        self.clear_play()
+        self.canvas_draw()
+        self.random_board()
+        self.make_word_set()
+        self.save_board_colors()
 
     def canvas_draw(self, event=None):
         self.clear_history()
@@ -1083,7 +1090,7 @@ class PlayGUI(AnalysisGUI):
                 right = col * self.squareSize + self.squareSize
                 rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
                 text = self.board.create_text(left+self.squareSize/2, top+self.squareSize/2,text='',font='Helvetica 20')
-                self.boardStuff[row][col] = (rect,text)
+                self.boardStuff[row][col] = (rect, text)
 
     def make_word_set(self):
         self.refPlayer = AnalysisPlayer(difficulty=['A',5,25])
@@ -1092,34 +1099,79 @@ class PlayGUI(AnalysisGUI):
         self.wordSet = set(self.refPlayer.possible(self.letters))
         print('len set', len(self.wordSet))
 
-    def change_color(self, event):
-        self.board.focus_set()
-        (row,col) = self.get_row_col(event.x,event.y)
-        self.select_square(row,col)
-        color = self.board.itemcget(self.boardStuff[row][col][0],'fill')
-        if color == '':
-            self.update_colors(row,col,'blue')
-        elif color in self.blue:
-            self.update_colors(row,col,'red')
-        elif color in self.red:
-            self.update_colors(row,col,'')
+    def check_defended(self, row, col):
+        nColors = set()
+        if row in range(5) and col in range(5):
+            myColor = self.get_color(row, col)
+            nColors.add(myColor)
+            nRow, nCol = row, col-1
+            if nRow in range(5) and nCol in range(5):
+                nColors.add(self.get_color(nRow, nCol))
+            nRow, nCol = row-1, col
+            if nRow in range(5) and nCol in range(5):
+                nColors.add(self.get_color(nRow, nCol))
+            nRow, nCol = row, col+1
+            if nRow in range(5) and nCol in range(5):
+                nColors.add(self.get_color(nRow, nCol))
+            nRow, nCol = row+1, col
+            if nRow in range(5) and nCol in range(5):
+                nColors.add(self.get_color(nRow, nCol))
+            if 'B' not in nColors and 'W' not in nColors:
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[1])
+                fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
+                if fgColor != 'black':
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.selectedRed[1])
+            elif 'R' not in nColors and 'W' not in nColors:
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[1])
+                fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
+                if fgColor != 'black':
+                    self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedBlue[1])
+            else:
+                if myColor == 'B':
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
+                    fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
+                    if fgColor != 'black':
+                        self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedBlue[0])
+                elif myColor == 'R':
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
+                    fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
+                    if fgColor != 'black':
+                        self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedRed[0])
+
+
+    def update_colors(self, row, col, color):
+        if color == 'blue':
+            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
+        elif color == 'red':
+            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
+        else:
+            self.board.itemconfig(self.boardStuff[row][col][0], fill='')
+        #check if I am defended
+        self.check_defended(row,col)
+        #check if neighbors are defended
+        self.check_defended(row,col-1)
+        self.check_defended(row-1,col)
+        self.check_defended(row,col+1)
+        self.check_defended(row+1,col)
+
 
     def select_letter(self, event):
         self.board.focus_set()
-        (row,col) = self.get_row_col(event.x,event.y)
+        (row, col) = self.get_row_col(event.x, event.y)
 
         letter = self.board.itemcget(self.boardStuff[row][col][1], 'text')
         fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
         bgColor = self.board.itemcget(self.boardStuff[row][col][0], 'fill')
 
-        #if (row,col) not in self.redDefended
-            #change color of (row,col) (either blue or dark blue)
-            #test whether neighbors should be changed also
-            #(code will be very similar to chgcolor() in analysisGUI)
-            #the change color method should also change the text color
         selectedColors = set(self.selectedBlue + self.selectedRed)
         selectedColors.add(self.selectedWhite)
         if fgColor not in selectedColors:
+            i = row * 5 + col
+            #if the square isn't defended by red
+            c = self.boardColors[i]
+            if c != 'R':
+                self.update_colors(row, col, 'blue')
+                bgColor = self.board.itemcget(self.boardStuff[row][col][0], 'fill')
             #make text color almost the same as its current background
             newColor = self.selectedWhite
             if bgColor in self.blue:
@@ -1128,7 +1180,7 @@ class PlayGUI(AnalysisGUI):
             elif bgColor in self.red:
                 i = self.red.index(bgColor)
                 newColor = self.selectedRed[i]
-            self.board.itemconfigure(self.boardStuff[row][col][1],fill=newColor)
+            self.board.itemconfigure(self.boardStuff[row][col][1], fill=newColor)
             #add the letter to the label below the board
             playWord = self.play.config()['text'][-1] + letter
             self.play.config(text=playWord)
@@ -1151,24 +1203,25 @@ class PlayGUI(AnalysisGUI):
 
     def history_click(self, event):
         """bound to history.<<TreeviewSelect>>"""
-        #TODO need to clear self.play and update the canvas text colors
         if not self.historyIgnore:
+            self.clear_play()
             #get item id clicked on
-            clickediid = self.history.focus()
-            self.historySelection = clickediid
-            txt = self.history.set(clickediid,'Word')
-            board = self.history.set(clickediid,'Board')
+            clickedIID = self.history.focus()
+            self.historySelection = clickedIID
+            txt = self.history.set(clickedIID,'Word')
+            board = self.history.set(clickedIID,'Board')
             #update colors on the board to match the board of the word suggested
             self.update_board_colors(board)
             self.history.focus_set()
+            self.save_board_colors()
             #set whose turn it is based on the selection
-            if self.history.tag_has('red', clickediid):
+            if self.history.tag_has('red', clickedIID):
                 self.move.set(1)
-            elif self.history.tag_has('blue', clickediid):
+            elif self.history.tag_has('blue', clickedIID):
                 self.move.set(-1)
             else:
                 #untagged first id, look at next id
-                nextid = self.history.next(clickediid)
+                nextid = self.history.next(clickedIID)
                 if self.history.tag_has('red',nextid):
                     self.move.set(-1)
                 else:
@@ -1176,6 +1229,20 @@ class PlayGUI(AnalysisGUI):
         else:
             self.historyIgnore = False
 
+    def change_difficulty(self):
+        if self.difficulty.get() == 'E':
+            self.player.changedifficulty(['R',5,5])
+            self.player.difficulty = ['R',5,5]
+            self.player.cache = dict()
+
+        elif self.difficulty.get() == 'M':
+            self.player.changedifficulty(['R',5,8])
+
+        elif self.difficulty.get() == 'H':
+            self.player.changedifficulty(['R',5,25])
+
+        else:
+            self.player.changedifficulty(['A',5,25])
 
     def play(self):
         #change all foreground colors to black
@@ -1185,9 +1252,9 @@ class PlayGUI(AnalysisGUI):
         self.save_board_colors()
 
     def pass_turn(self):
-        pass
+        self.move.set(-1)
         self.clear_play()
-        self.make_move()
+        self.do_search()
         self.save_board_colors()
 
     def make_move(self):
@@ -1198,17 +1265,16 @@ class PlayGUI(AnalysisGUI):
         pass
 
     def do_search(self, event=None):
-        #TODO change it to just return the result of self.player.turn()
+        #TODO: clear history like do_search in analysis player
         self.busy()
-        self.save_board_colors() #to restore back to when the user un-selects a word
-        #self.letters is used by suggestselect to save the board letters to history
         self.letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
         if not(all([x in ascii_uppercase for x in self.letters]) and len(self.letters) == 25):
             self.not_busy()
             messagebox.showwarning("Concentrate","The board must be completely filled with letters.")
             return
-        score = ''.join(self.get_color(row,col) for row in range(5) for col in range(5))
-        if 'W' not in score:
+        boardColors = ''.join(self.get_color(row, col) for row in range(5) for col in range(5))
+        print(boardColors)
+        if 'W' not in boardColors:
             self.not_busy()
             messagebox.showwarning("Concentrate","Game Over.")
             return
@@ -1220,21 +1286,20 @@ class PlayGUI(AnalysisGUI):
                 words.append(txt)
             if iid == self.historySelection:
                 break
-        needLetters = self.need.get().upper()
         self.player.possible(self.letters)
-        self.player.resetplayed(self.letters,words)
-        wordList, more = self.player.search(self.letters, score, needLetters, self.move.get(), -1) #TODO
-        for i, word in enumerate(wordList):
-            if word[1][0] not in ascii_uppercase:
-                self.suggest.insert('','end',tag=word[1][0],values=(word[1][1:],word[0],word[2]))
-            else:
-                self.suggest.insert('','end',values=(word[1],word[0],word[2]))
-        if more:
-            self.suggest.insert('','end',values=(self.moreText,))
-        elif len(self.suggest.get_children()) == 0:
-            self.suggest.insert('','end',values=(self.noText,))
-        if lastdisplayed == -1:
-            self.suggest.see(self.suggest.get_children()[0])
+        self.player.resetplayed(self.letters, words)
+        start = time()
+        word, board, score = self.player.turn(self.letters, boardColors, self.move.get())
+        totalTime = round(time()-start,2)
+        print(totalTime,'seconds',self.letters,board)
+        insertID = self.history.insert('','end',tag='red',values=(word, score, board))
+        self.update_board_colors(board)
+        #select the inserted item in history
+        self.historyIgnore=True
+        self.history.selection_set(insertID)
+        self.history.focus(insertID)
+        self.historySelection = insertID
+        self.history.see(insertID)
         self.not_busy()
 
 
