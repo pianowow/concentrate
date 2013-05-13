@@ -21,11 +21,9 @@
         #could be tied to the number of groups found, every so many groups, update progress
 
 #playGUI:
-
-    #change color intelligently when choosing letters
+    #initial position
     #play method
-    #passturn method
-    #override dosearch() to write the word it picks directly to history
+
 
 
 from tkinter import *
@@ -954,7 +952,6 @@ class PlayGUI(AnalysisGUI):
         self.historyIgnore= False
 
         self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
-        self.move = IntVar()
         self.canvas_draw()
 
         self.play = ttk.Label(self.topFrame,text='',font='Helvetica 11')
@@ -1000,10 +997,6 @@ class PlayGUI(AnalysisGUI):
             self.optionsMenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.change_difficulty, accelerator='Command-4')
             self.bind('<Command-Key-4>',self.extreme_difficulty)
             self.difficulty.set('H')
-            self.optionsMenu.add_separator()
-            self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blue_turn)
-            self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.red_turn)
-            self.move.set(1)
             self.menuBar.add_cascade(label="Options", menu=self.optionsMenu)
 
         else: #windows
@@ -1032,10 +1025,6 @@ class PlayGUI(AnalysisGUI):
             self.optionsMenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.change_difficulty, accelerator='Ctrl+4')
             self.bind('<Control-Key-4>',self.extreme_difficulty)
             self.difficulty.set('H')
-            self.optionsMenu.add_separator()
-            self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blue_turn)
-            self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.red_turn)
-            self.move.set(1)
             self.menuBar.add_cascade(label="Options", underline=0, menu=self.optionsMenu)
 
         # display the menu
@@ -1056,6 +1045,7 @@ class PlayGUI(AnalysisGUI):
 
     def analyze(self,event=None):
         #get the board and history data
+        self.restore_board_colors()
         boardDict = self.make_save_dict()
         ttl = self.title()
         #close me
@@ -1078,7 +1068,6 @@ class PlayGUI(AnalysisGUI):
         self.clear_history()
         self.board = Canvas(self.topFrame, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
         self.board.grid(row=1,column=0)
-        self.move.set(1)
 
         self.board.bind('<Button-1>',self.select_letter)
 
@@ -1214,18 +1203,6 @@ class PlayGUI(AnalysisGUI):
             self.update_board_colors(board)
             self.history.focus_set()
             self.save_board_colors()
-            #set whose turn it is based on the selection
-            if self.history.tag_has('red', clickedIID):
-                self.move.set(1)
-            elif self.history.tag_has('blue', clickedIID):
-                self.move.set(-1)
-            else:
-                #untagged first id, look at next id
-                nextid = self.history.next(clickedIID)
-                if self.history.tag_has('red',nextid):
-                    self.move.set(-1)
-                else:
-                    self.move.set(1)
         else:
             self.historyIgnore = False
 
@@ -1244,28 +1221,51 @@ class PlayGUI(AnalysisGUI):
         else:
             self.player.changedifficulty(['A',5,25])
 
+    def add_to_hist(self, word, score, board, turn):
+        #delete the history past the current selection
+        txt = ''
+        if self.historySelection != -1:
+            txt = self.history.set(self.historySelection,'Word')
+            toDelete = []
+            if txt == self.initialHist:
+                toDelete.append(self.historySelection)
+            iid = self.history.next(self.historySelection)
+            while iid != '':
+                toDelete.append(iid)
+                iid = self.history.next(iid)
+            for iid in toDelete:
+                self.history.delete(iid)
+        #check if the history treeview is empty
+        cnt = len(self.history.get_children())
+        if cnt == 0:
+            self.history.insert('','end',values=(self.initialHist,'' ,self.boardColors,self.letters))
+        #copy the word, board, and score to the end of the history treeview
+        if turn == 1:
+            insertID = self.history.insert('','end',tag='blue',values=(word, score, board))
+        else:
+            insertID = self.history.insert('','end',tag='red',values=(word, score, board))
+        self.update_board_colors(board)
+        #select the inserted item in history
+        self.historyIgnore=True
+        self.history.selection_set(insertID)
+        self.history.focus(insertID)
+        self.historySelection = insertID
+        self.history.see(insertID)
+
     def play(self):
+        """tied to self.btnPlay"""
         #change all foreground colors to black
         self.set_text_black()
         #add word made to history with current colors of the board
-
+        word = self.play.config()['text'][-1]
         self.save_board_colors()
 
     def pass_turn(self):
-        self.move.set(-1)
         self.clear_play()
         self.do_search()
         self.save_board_colors()
 
-    def make_move(self):
-        #play = do_search
-        #update history with word and board from do_search
-        #update board with board from play
-        #select the inserted row in history
-        pass
-
     def do_search(self, event=None):
-        #TODO: clear history like do_search in analysis player
         self.busy()
         self.letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
         if not(all([x in ascii_uppercase for x in self.letters]) and len(self.letters) == 25):
@@ -1289,19 +1289,12 @@ class PlayGUI(AnalysisGUI):
         self.player.possible(self.letters)
         self.player.resetplayed(self.letters, words)
         start = time()
-        word, board, score = self.player.turn(self.letters, boardColors, self.move.get())
+        word, board, score = self.player.turn(self.letters, boardColors, -1)
         totalTime = round(time()-start,2)
         print(totalTime,'seconds',self.letters,board)
-        insertID = self.history.insert('','end',tag='red',values=(word, score, board))
-        self.update_board_colors(board)
-        #select the inserted item in history
-        self.historyIgnore=True
-        self.history.selection_set(insertID)
-        self.history.focus(insertID)
-        self.historySelection = insertID
-        self.history.see(insertID)
+        self.add_to_hist(word, score, board, -1)
         self.not_busy()
 
 
 if __name__ == '__main__':
-    AnalysisGUI().mainloop()
+    PlayGUI().mainloop()
