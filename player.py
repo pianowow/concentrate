@@ -183,7 +183,7 @@ class player0:
                 goodlist.append(word1)
         return tuple(sorted(goodlist,key=lambda x:(len(x),x)))
 
-    def evaluatepos(self, allletters,blue,red):
+    def evaluatepos(self, allletters, blue, red):
         '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
         bluedef = reddef = 0
         ending = (bin(blue|red).count('1') == 25)
