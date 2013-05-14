@@ -20,11 +20,6 @@
     #progress bar dialog?
         #could be tied to the number of groups found, every so many groups, update progress
 
-#playGUI:
-    #initial position
-    #play method
-
-
 
 from tkinter import *
 from tkinter import messagebox
@@ -327,6 +322,11 @@ class AnalysisGUI(Tk):
             if fn != '': #pressed cancel on the dialog
                 self.file = fn
                 self.file = self.file_name_check(self.file)
+                f = open(self.file,'wb')
+                saveDict = self.make_save_dict()
+                pickle.dump(saveDict,f)
+                self.title(self.titleText+self.titleSeparator+path.basename(self.file))
+                f.close()
                 self.title(self.titleText+self.titleSeparator+path.basename(self.file))
         else:
             f = open(self.file,'wb')
@@ -958,12 +958,11 @@ class PlayGUI(AnalysisGUI):
         self.play.grid(row=2,column=0)
         self.play.bind('<1>',self.clear_play)
 
-        self.btnPlay = ttk.Button(self.topFrame, text='Play',command=self.play)
+        self.btnPlay = ttk.Button(self.topFrame, text='Play', command=self.play_word)
         self.btnPlay.grid(row=2,column=1)
-        self.btnPlay['default'] = 'active'
         self.btnPlay.state(['disabled'])
 
-        btnPass = ttk.Button(self.topFrame, text='Pass',command=self.pass_turn)
+        btnPass = ttk.Button(self.topFrame, text='Pass', command=self.pass_turn)
         btnPass.grid(row=2,column=2)
 
         self.player = AnalysisPlayer()
@@ -1082,10 +1081,8 @@ class PlayGUI(AnalysisGUI):
                 self.boardStuff[row][col] = (rect, text)
 
     def make_word_set(self):
-        self.refPlayer = AnalysisPlayer(difficulty=['A',5,25])
         self.letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
-        print(self.letters)
-        self.wordSet = set(self.refPlayer.possible(self.letters))
+        self.wordSet = set(self.refPlayer.concentrate(self.letters))
         print('len set', len(self.wordSet))
 
     def check_defended(self, row, col):
@@ -1221,7 +1218,7 @@ class PlayGUI(AnalysisGUI):
         else:
             self.player.changedifficulty(['A',5,25])
 
-    def add_to_hist(self, word, score, board, turn):
+    def add_to_hist(self, word, score, board, letters, turn):
         #delete the history past the current selection
         txt = ''
         if self.historySelection != -1:
@@ -1238,12 +1235,12 @@ class PlayGUI(AnalysisGUI):
         #check if the history treeview is empty
         cnt = len(self.history.get_children())
         if cnt == 0:
-            self.history.insert('','end',values=(self.initialHist,'' ,self.boardColors,self.letters))
+            self.history.insert('','end',values=(self.initialHist, '', self.boardColors, self.letters))
         #copy the word, board, and score to the end of the history treeview
         if turn == 1:
-            insertID = self.history.insert('','end',tag='blue',values=(word, score, board))
+            insertID = self.history.insert('','end',tag='blue',values=(word, score, board, letters))
         else:
-            insertID = self.history.insert('','end',tag='red',values=(word, score, board))
+            insertID = self.history.insert('','end',tag='red',values=(word, score, board, letters))
         self.update_board_colors(board)
         #select the inserted item in history
         self.historyIgnore=True
@@ -1251,14 +1248,36 @@ class PlayGUI(AnalysisGUI):
         self.history.focus(insertID)
         self.historySelection = insertID
         self.history.see(insertID)
+        #make the referee aware of which words are in the history
+        words = list()
+        for iid in self.history.get_children():
+            txt = self.history.set(iid,'Word')
+            if txt != self.initialHist:
+                words.append(txt)
+            if iid == self.historySelection:
+                break
+        print(words)
+        self.refPlayer.resetplayed(self.letters, words)
+        self.make_word_set()
 
-    def play(self):
+
+    def play_word(self):
         """tied to self.btnPlay"""
         #change all foreground colors to black
         self.set_text_black()
         #add word made to history with current colors of the board
         word = self.play.config()['text'][-1]
+        board = ''.join(self.get_defended_color(row, col) for row in range(5) for col in range(5))
+        letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
+        blue, red, bluedef, reddef = self.refPlayer.convertboardscore(board.upper())
+        score, bluedef, reddef = self.refPlayer.evaluatepos(letters, blue, red)
+        self.add_to_hist(word, score, board, letters, 1)
+        self.btnPlay.state(['disabled'])
         self.save_board_colors()
+        self.clear_play()
+        if '-' in board:
+            self.do_search()
+
 
     def pass_turn(self):
         self.clear_play()
@@ -1273,7 +1292,6 @@ class PlayGUI(AnalysisGUI):
             messagebox.showwarning("Concentrate","The board must be completely filled with letters.")
             return
         boardColors = ''.join(self.get_color(row, col) for row in range(5) for col in range(5))
-        print(boardColors)
         if 'W' not in boardColors:
             self.not_busy()
             messagebox.showwarning("Concentrate","Game Over.")
@@ -1291,8 +1309,8 @@ class PlayGUI(AnalysisGUI):
         start = time()
         word, board, score = self.player.turn(self.letters, boardColors, -1)
         totalTime = round(time()-start,2)
-        print(totalTime,'seconds',self.letters,board)
-        self.add_to_hist(word, score, board, -1)
+        print(totalTime,'seconds')
+        self.add_to_hist(word, score, board, self.letters, -1)
         self.not_busy()
 
 
