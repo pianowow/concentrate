@@ -10,9 +10,9 @@
 
 #simulate from the middle of the game, have score be an input (need a way to force the engine to choose different words first though)
 
-from player import player0,player1
+from player import player0, player1
 from time import time
-from random import choice
+from random import choice, shuffle
 
 
 listfile = open('en14.txt','r')
@@ -26,7 +26,7 @@ listfile.close()
 vowels = ('A','E','I','O','U')
 
 letterhist = dict()
-for letter in letterlist:
+for letter in [x for x in letterlist if x not in vowels]:
     if letter in letterhist:
         letterhist[letter] += 1
     else:
@@ -41,15 +41,19 @@ for letter in letterhist:
 
 def genletters():
     while True:
-        board = ''.join([choice(newletterlist) for x in range(25)])
-        if 'Q' in board:
-            if 'I' not in board:
+        vowels = ('A','E','I','O','U')
+        tot = 25
+        vowelCount = choice(range(3,9))
+        tot -= vowelCount
+        vowels = [choice(vowels) for x in range(vowelCount)]
+        cons = [choice(newletterlist) for x in range(tot)]
+        if 'Q' in cons:
+            if 'I' not in vowels:
                 continue
-        vowelcount = sum([board.count(v) for v in vowels])
-        if vowelcount < 3 or vowelcount > 8:
-            continue
+        board = vowels+cons
+        shuffle(board)
         break
-    return board
+    return ''.join(board)
 
 ##def reverseboard(board):
 ##    out = ''
@@ -102,29 +106,43 @@ def game(allletters='',player0blue=False):
     board = '----- ----- ----- ----- -----'
     print(allletters,board)
     playedwords = list()
+    bluePassed = redPassed = False
     while board.find('-') != -1:
         if turn == 'blue':
             start = time()
-            word,board = b.turn(allletters,board,1)
+            word,board,score = b.turn(allletters,board,1)
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             r.playword(allletters,word)
-            print('blue plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',round(time()-start,2),'seconds')
+            print('blue plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',round(time()-start,2),'seconds',score)
+            if word == '':
+                bluePassed = True
+            else:
+                bluePassed = False
             turn = 'red'
         else:
             start = time()
-            word,board = r.turn(allletters,board,-1)
+            word,board,score = r.turn(allletters,board,-1)
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             b.playword(allletters,word)
-            print(' red plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',round(time()-start,2),'seconds')
+            print(' red plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',round(time()-start,2),'seconds',score)
+            if word == '':
+                redPassed = True
+            else:
+                redPassed = False
             turn = 'blue'
-    if int(blue) > int(red):
+        if bluePassed and redPassed:
+            break
+    if blue > red:
         print('Blue wins!')
         return ('blue',len(playedwords))
-    else:
+    elif red > blue:
         print('Red wins!')
         return ('red',len(playedwords))
+    else:
+        print('Tie')
+        return ('', len(playedwords))
 
 def both(allletters=''):
     if allletters == '':
@@ -138,15 +156,21 @@ def both(allletters=''):
     if g1res == 'blue':
         p0wins += 1
         p0len += g1len
-    else:
+    elif g1res == 'red':
         p1wins += 1
+        p1len += g1len
+    else:
+        p0len += g1len
         p1len += g1len
     if g2res == 'blue':
         p1wins += 1
         p1len += g2len
-    else:
+    elif g2res == 'red':
         p0wins += 1
         p0len += g2len
+    else:
+        p0len += g2len
+        p1len += g2len
     if p0wins > p1wins:
         print('player0 won both games')
         return (2,0,'player0')
