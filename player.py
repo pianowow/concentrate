@@ -394,7 +394,7 @@ class player0:
     def resetplayed(self, allletters, words):
         self.cache[allletters][1] = words
 
-    def turn(self, allletters,score='wwwwwwwwwwwwwwwwwwwwwwwww',move=1):
+    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww', move=1):
         '''displays results of decide'''
         allletters = allletters.upper()
         score = score.upper()
@@ -410,27 +410,31 @@ class player0:
         else:
             wordscores.sort()
         play = 0
-        for wordnum,(score,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
+        for wordnum,(numScore,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
             zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
             if not losing:
                 if move == 1:
-                    if score > -999:
+                    if numScore > -999:
                         play = wordnum
                         break
                     else:
                         break
                 else:
-                    if score < 999:
+                    if numScore < 999:
                         play = wordnum
                         break
                     else:
                         break
-        word = wordscores[play][1]
-        board = self.displayscore(wordscores[play][3],wordscores[play][4],wordscores[play][5],wordscores[play][6])
-        score = wordscores[play][0]
-        self.playword(allletters,word)
-
-        return word,board,score
+        if len(wordscores) > 0:
+            word = wordscores[play][1]
+            board = self.displayscore(wordscores[play][3],wordscores[play][4],wordscores[play][5],wordscores[play][6])
+            numScore = wordscores[play][0]
+            self.playword(allletters,word)
+            return word,board,numScore
+        else:
+            blue, red, bluedef, reddef = self.convertboardscore(score)
+            numScore, bluedef, reddef = self.evaluatepos(allletters, blue, red)
+            return '', self.displayscore(blue, red, bluedef, reddef), numScore
 
 
 class player1(player0):
