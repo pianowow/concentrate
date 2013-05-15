@@ -857,7 +857,7 @@ class AnalysisPlayer(player0):
         """returns a list for the GUI to display"""
         if lastDisplayed == -1:
             start = time()
-            self.wordScores = self.decide(allLetters,score,needLetters,move)
+            self.wordScores = self.decide(allLetters, score, needLetters, move)
             if move == 1:
                 self.wordScores.sort(reverse=True)
             else:
@@ -865,8 +865,8 @@ class AnalysisPlayer(player0):
             decideTime = time() - start
             plays = len(self.wordScores)
             rate = int(plays/decideTime)
-            print(round(decideTime,2),'seconds to decide',allLetters,score)
-            print(plays,'plays found,',rate,'per second')
+            print(round(decideTime,2), 'seconds to decide', allLetters, score)
+            print(plays, 'plays found,', rate, 'per second')
         start = time()
         results = list()
         amountToDisplay = 200
@@ -1062,6 +1062,19 @@ class PlayGUI(AnalysisGUI):
         self.random_board()
         self.make_word_set()
         self.save_board_colors()
+
+    def open(self,event=None):
+        """presents file dialog box for selecting one file.  loads data to the board and history"""
+        fn = filedialog.askopenfilename(filetypes=[('Concentrate Game Document', '.cgd')])
+        if fn != '':
+            self.canvas_draw()
+            self.file = fn
+            f = open(self.file,'rb')
+            dct = pickle.load(f)
+            f.close()
+            self.restore_from_dict(dct)
+            self.title(self.titleText+self.titleSeparator+path.basename(self.file))
+            self.make_word_set()
 
     def canvas_draw(self, event=None):
         self.clear_history()
