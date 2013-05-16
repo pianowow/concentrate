@@ -20,6 +20,9 @@
     #progress bar dialog?
         #could be tied to the number of groups found, every so many groups, update progress
 
+#for new themes:
+#mycolor = '#%02x%02x%02x' % (64, 204, 208)  # set your favourite rgb color
+#mycolor2 = '#40E0D0'  # or use hex if you prefer
 
 from tkinter import *
 from tkinter import messagebox
@@ -240,6 +243,9 @@ class AnalysisGUI(Tk):
 ##        x = w/2 - rootsize[0]/2
 ##        y = h/2 - rootsize[1]/2
 ##        self.geometry("%dx%d+%d+%d" % (rootsize + (x, y)))
+
+    def change_theme(self, theme):
+        pass
 
     def play_against(self,event=None):
         #get the board and history data
@@ -1096,7 +1102,6 @@ class PlayGUI(AnalysisGUI):
     def make_word_set(self):
         self.letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
         self.wordSet = set(self.refPlayer.concentrate(self.letters))
-        print('len set', len(self.wordSet))
 
     def check_defended(self, row, col):
         nColors = set()
@@ -1269,10 +1274,11 @@ class PlayGUI(AnalysisGUI):
                 words.append(txt)
             if iid == self.historySelection:
                 break
-        print(words)
         self.refPlayer.resetplayed(self.letters, words)
         self.make_word_set()
-
+        #add the "need save" marker
+        if self.title()[-1] != '*' and self.file != '':
+            self.title(self.title()+'*')
 
     def play_word(self):
         """tied to self.btnPlay"""
@@ -1290,7 +1296,6 @@ class PlayGUI(AnalysisGUI):
         self.clear_play()
         if '-' in board:
             self.do_search()
-
 
     def pass_turn(self):
         self.clear_play()
@@ -1322,7 +1327,6 @@ class PlayGUI(AnalysisGUI):
         start = time()
         word, board, score = self.player.turn(self.letters, boardColors, -1)
         totalTime = round(time()-start,2)
-        print(totalTime,'seconds')
         self.add_to_hist(word, score, board, self.letters, -1)
         self.not_busy()
 
