@@ -49,8 +49,10 @@ class AnalysisGUI(Tk):
         self.boardStuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
         self.boardSize = 250
         self.squareSize = self.boardSize//5
-        self.blue = ('light sky blue','RoyalBlue2')
-        self.red = ('salmon','red')
+        #self.blue = ('light sky blue','RoyalBlue2')
+        self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
+        #self.red = ('salmon','red')
+        self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
         self.initialHist= '[Initial Position]'
         self.moreText = 'Click for More...'
         self.titleText = 'Concentrate'
@@ -245,6 +247,11 @@ class AnalysisGUI(Tk):
 ##        self.geometry("%dx%d+%d+%d" % (rootsize + (x, y)))
 
     def change_theme(self, theme):
+        self.save_board_colors()
+        if theme == 'light':
+            self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
+            self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
+        self.restore_board_colors()
         pass
 
     def play_against(self,event=None):
