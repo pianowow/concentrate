@@ -11,18 +11,9 @@
 
 #both GUIs:
     #random difficulty setting
-    #menu
-        #Options
-            #theme
-                #light
-                #dark
-                #pop, etc
+
     #progress bar dialog?
         #could be tied to the number of groups found, every so many groups, update progress
-
-#for new themes:
-#mycolor = '#%02x%02x%02x' % (64, 204, 208)  # set your favourite rgb color
-#mycolor2 = '#40E0D0'  # or use hex if you prefer
 
 from tkinter import *
 from tkinter import messagebox
@@ -36,6 +27,7 @@ from os import path
 import arena
 import pickle
 
+
 class AnalysisGUI(Tk):
 
     def __init__(self, *args, **kwargs):
@@ -45,19 +37,30 @@ class AnalysisGUI(Tk):
 
         self.file = kwargs.get('file','')
         title = kwargs.get('title','')
+        self.themeName = kwargs.get('themeName','')
 
         self.boardStuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
         self.boardSize = 250
         self.squareSize = self.boardSize//5
-        #self.blue = ('light sky blue','RoyalBlue2')
-        self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
-        #self.red = ('salmon','red')
-        self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
+
         self.initialHist= '[Initial Position]'
         self.moreText = 'Click for More...'
         self.titleText = 'Concentrate'
         self.noText= 'No Results'
         self.titleSeparator = ' - '
+
+        #default theme is 'light'
+        self.defaultColor = '#%02x%02x%02x' % (240, 240, 240)  # different from iOS app
+        self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
+        self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
+        self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
+        self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
+        self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
+        #these are for PlayGUI, but wanted change_theme to be inherited, so defining in both places
+        self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
+        self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
+        self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
+
 
         if title == '':
             self.title(self.titleText)
@@ -100,8 +103,8 @@ class AnalysisGUI(Tk):
         self.history.column(0,width=150)
         self.history.column(1,width=75)
         self.history.bind('<<TreeviewSelect>>',self.history_click)
-        self.history.tag_configure('red',foreground='red')
-        self.history.tag_configure('blue',foreground='RoyalBlue2')
+        self.history.tag_configure('red', foreground=self.red[1])
+        self.history.tag_configure('blue', foreground=self.blue[1])
         self.historySelection = -1
         self.historyIgnore = False
 
@@ -126,6 +129,9 @@ class AnalysisGUI(Tk):
 
         self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
         self.move = IntVar()
+        self.move.set(1)
+        self.theme = IntVar()
+        self.theme.set(0)
         self.player = AnalysisPlayer()
         self.menuBar = Menu(self, tearoff=0)
 
@@ -177,7 +183,6 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1,
                                              command=self.blue_turn)
             self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.red_turn)
-            self.move.set(1)
             self.menuBar.add_cascade(label="Options", menu=self.optionsMenu)
 
         else:  #windows
@@ -208,20 +213,32 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_command(label="Play Against Concentrate", underline=0, command=self.play_against, accelerator='Tab')
             self.bind('<Tab>',self.play_against)
             self.optionsMenu.add_separator()
+
+            self.themeMenu= Menu(self.optionsMenu, tearoff=0)
+            self.themeMenu.add_radiobutton(label="Light", underline=0, variable=self.theme, value=0, command=lambda: self.change_theme('light'))
+            self.themeMenu.add_radiobutton(label="Pop", underline=0, variable=self.theme, value=1, command=lambda: self.change_theme('pop'))
+            self.themeMenu.add_radiobutton(label="Retro", underline=0, variable=self.theme, value=2, command=lambda: self.change_theme('retro'))
+            self.themeMenu.add_radiobutton(label="Dark", underline=0, variable=self.theme, value=3, command=lambda: self.change_theme('dark'))
+            self.themeMenu.add_radiobutton(label="Forest", underline=0, variable=self.theme, value=4, command=lambda: self.change_theme('forest'))
+            self.themeMenu.add_radiobutton(label="Glow", underline=0, variable=self.theme, value=5, command=lambda: self.change_theme('glow'))
+            self.themeMenu.add_radiobutton(label="Pink", underline=1, variable=self.theme, value=6, command=lambda: self.change_theme('pink'))
+            self.themeMenu.add_radiobutton(label="Contrast", underline=0, variable=self.theme, value=7, command=lambda: self.change_theme('contrast'))
+            self.optionsMenu.add_cascade(label="Theme", underline=0, menu=self.themeMenu)
+            self.optionsMenu.add_separator()
+
             self.difficulty = StringVar()
-            self.optionsMenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.change_difficulty, accelerator='Ctrl+1')
+            self.optionsMenu.add_radiobutton(label="Easy", variable=self.difficulty, value="E", command=self.change_difficulty, accelerator='Ctrl+1')
             self.bind('<Control-Key-1>',self.easy_difficulty)
-            self.optionsMenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.change_difficulty, accelerator='Ctrl+2')
+            self.optionsMenu.add_radiobutton(label="Medium", variable=self.difficulty, value="M", command=self.change_difficulty, accelerator='Ctrl+2')
             self.bind('<Control-Key-2>',self.medium_difficulty)
-            self.optionsMenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.change_difficulty, accelerator='Ctrl+3')
+            self.optionsMenu.add_radiobutton(label="Hard", variable=self.difficulty, value="H", command=self.change_difficulty, accelerator='Ctrl+3')
             self.bind('<Control-Key-3>',self.hard_difficulty)
-            self.optionsMenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.change_difficulty, accelerator='Ctrl+4')
+            self.optionsMenu.add_radiobutton(label="Extreme", variable=self.difficulty, value="X", command=self.change_difficulty, accelerator='Ctrl+4')
             self.bind('<Control-Key-4>',self.extreme_difficulty)
             self.difficulty.set('H')
             self.optionsMenu.add_separator()
             self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blue_turn)
             self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.red_turn)
-            self.move.set(1)
             self.menuBar.add_cascade(label="Options", underline=0, menu=self.optionsMenu)
 
         self.bind('<Return>',self.do_search)
@@ -231,10 +248,12 @@ class AnalysisGUI(Tk):
         self.canvas_draw()
         self.boardColors = 'w'*25
 
+        if self.themeName != '':
+            self.change_theme(self.themeName)
+
         #restore from dct passed in
         if dct != dict():
             self.restore_from_dict(dct)
-
 
         self.notBusyWidgetCursors = dict() #for busy and notbusy
         self.board.focus_set()
@@ -249,19 +268,107 @@ class AnalysisGUI(Tk):
     def change_theme(self, theme):
         self.save_board_colors()
         if theme == 'light':
+            self.theme.set(0)
+            self.defaultColor = '#%02x%02x%02x' % (240, 240, 240)  # different from iOS app
             self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
             self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
+            self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
+            self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
+            self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
+            self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
+            self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
+            self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
+        elif theme == 'dark':
+            self.theme.set(3)
+            self.defaultColor = '#%02x%02x%02x' % (57, 57, 57)
+            self.blue= ('#%02x%02x%02x' % (24, 117, 152), '#%02x%02x%02x' % (0, 186, 255))
+            self.red = ('#%02x%02x%02x' % (152, 58, 48), '#%02x%02x%02x' % (255, 67, 47))
+            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
+            self.blueText= ('#%02x%02x%02x' % (208, 227, 234), '#%02x%02x%02x' % (0, 37, 51))
+            self.redText = ('#%02x%02x%02x' % (234, 215, 213), '#%02x%02x%02x' % (51, 13, 9))
+            self.selectedBlue = ('#%02x%02x%02x' % (29, 138, 180), '#%02x%02x%02x' % (0, 162, 223))
+            self.selectedRed = ('#%02x%02x%02x' % (176, 67, 55), '#%02x%02x%02x' % (255, 39, 15))
+            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+        elif theme == 'contrast':
+            self.theme.set(7)
+            self.defaultColor = '#%02x%02x%02x' % (240, 240, 240)  # different from iOS app
+            self.blue= ('#%02x%02x%02x' % (143, 255, 127), '#%02x%02x%02x' % (32, 255, 0))
+            self.red = ('#%02x%02x%02x' % (127, 127, 127), '#%02x%02x%02x' % (0, 0, 0))
+            self.defaultText= '#%02x%02x%02x' % (48, 48, 48)
+            self.blueText= ('#%02x%02x%02x' % (28, 51, 25), '#%02x%02x%02x' % (6, 51, 0))
+            self.redText = ('#%02x%02x%02x' % (25, 25, 25), '#%02x%02x%02x' % (204, 204, 204))
+            self.selectedBlue = ('#%02x%02x%02x' % (116, 255, 96), '#%02x%02x%02x' % (28, 223, 0))
+            self.selectedRed = ('#%02x%02x%02x' % (111, 111, 111), '#%02x%02x%02x' % (35, 35, 35))
+            self.selectedDefault = '#%02x%02x%02x' % (228, 228, 228)
+        elif theme == 'forest':
+            self.theme.set(4)
+            self.defaultColor = '#%02x%02x%02x' % (215, 221, 207)
+            self.blue= ('#%02x%02x%02x' % (239, 193, 108), '#%02x%02x%02x' % (255, 156, 0))
+            self.red = ('#%02x%02x%02x' % (122, 164, 137), '#%02x%02x%02x' % (21, 99, 59))
+            self.defaultText= '#%02x%02x%02x' % (43, 44, 41)
+            self.blueText= ('#%02x%02x%02x' % (47, 38, 21), '#%02x%02x%02x' % (51, 31, 0))
+            self.redText = ('#%02x%02x%02x' % (24, 32, 27), '#%02x%02x%02x' % (208, 223, 215))
+            self.selectedBlue = ('#%02x%02x%02x' % (236, 181, 79), '#%02x%02x%02x' % (223, 134, 0))
+            self.selectedRed = ('#%02x%02x%02x' % (103, 152, 120), '#%02x%02x%02x' % (27, 124, 73))
+            self.selectedDefault = '#%02x%02x%02x' % (199, 207, 108)
+        elif theme == 'glow':
+            self.theme.set(5)
+            self.defaultColor = '#%02x%02x%02x' % (57, 57, 57)
+            self.blue= ('#%02x%02x%02x' % (73, 152, 119), '#%02x%02x%02x' % (97, 255, 190))
+            self.red = ('#%02x%02x%02x' % (141, 24, 77), '#%02x%02x%02x' % (234, 0, 105))
+            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
+            self.blueText= ('#%02x%02x%02x' % (14, 30, 23), '#%02x%02x%02x' % (19, 51, 38))
+            self.redText = ('#%02x%02x%02x' % (232, 208, 219), '#%02x%02x%02x' % (46, 0, 21))
+            self.selectedBlue = ('#%02x%02x%02x' % (63, 131, 102), '#%02x%02x%02x' % (45, 255, 171))
+            self.selectedRed = ('#%02x%02x%02x' % (115, 19, 63), '#%02x%02x%02x' % (202, 0, 91))
+            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+        elif theme == 'pink':
+            self.theme.set(6)
+            self.defaultColor = '#%02x%02x%02x' % (245, 215, 227)
+            self.blue= ('#%02x%02x%02x' % (255, 112, 232), '#%02x%02x%02x' % (255, 0, 228))
+            self.red = ('#%02x%02x%02x' % (171, 140, 142), '#%02x%02x%02x' % (87, 56, 47))
+            self.defaultText= '#%02x%02x%02x' % (48, 43, 45)
+            self.blueText= ('#%02x%02x%02x' % (51, 22, 46), '#%02x%02x%02x' % (51, 0, 45))
+            self.redText = ('#%02x%02x%02x' % (34, 28, 28), '#%02x%02x%02x' % (221, 215, 213))
+            self.selectedBlue = ('#%02x%02x%02x' % (255, 81, 228), '#%02x%02x%02x' % (223, 0, 201))
+            self.selectedRed = ('#%02x%02x%02x' % (157, 121, 124), '#%02x%02x%02x' % (107, 69, 58))
+            self.selectedDefault = '#%02x%02x%02x' % (238, 189, 208)
+        elif theme == 'pop':
+            self.theme.set(1)
+            self.defaultColor = '#%02x%02x%02x' % (57, 57, 57)
+            self.blue= ('#%02x%02x%02x' % (87, 152, 24), '#%02x%02x%02x' % (126, 255, 0))
+            self.red = ('#%02x%02x%02x' % (152, 24, 123), '#%02x%02x%02x' % (255, 0, 198))
+            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
+            self.blueText= ('#%02x%02x%02x' % (221, 234, 208), '#%02x%02x%02x' % (25, 51, 0))
+            self.redText = ('#%02x%02x%02x' % (234, 208, 228), '#%02x%02x%02x' % (51, 0, 39))
+            self.selectedBlue = ('#%02x%02x%02x' % (104, 180, 29), '#%02x%02x%02x' % (112, 223, 0))
+            self.selectedRed = ('#%02x%02x%02x' % (180, 29, 146), '#%02x%02x%02x' % (223, 0, 173))
+            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+        elif theme == 'retro':
+            self.theme.set(2)
+            self.defaultColor = '#%02x%02x%02x' % (241, 226, 189)
+            self.blue= ('#%02x%02x%02x' % (195, 136, 226), '#%02x%02x%02x' % (140, 37, 255))
+            self.red = ('#%02x%02x%02x' % (244, 166, 133), '#%02x%02x%02x' % (237, 97, 70))
+            self.defaultText= '#%02x%02x%02x' % (48, 45, 37)
+            self.blueText= ('#%02x%02x%02x' % (39, 27, 45), '#%02x%02x%02x' % (232, 211, 255))
+            self.redText = ('#%02x%02x%02x' % (48, 33, 26), '#%02x%02x%02x' % (47, 19, 14))
+            self.selectedBlue = ('#%02x%02x%02x' % (182, 109, 220), '#%02x%02x%02x' % (157, 68, 255))
+            self.selectedRed = ('#%02x%02x%02x' % (241, 145, 103), '#%02x%02x%02x' % (234, 69, 40))
+            self.selectedDefault = '#%02x%02x%02x' % (235, 214, 163)
+        self.history.tag_configure('red', foreground=self.red[1])
+        self.history.tag_configure('blue', foreground=self.blue[1])
         self.restore_board_colors()
-        pass
+        self.themeName = theme
 
     def play_against(self,event=None):
         #get the board and history data
         boarddct = self.make_save_dict()
         ttl = self.title()
+        thm = self.themeName
         #close me
         self.destroy()
         #call playGUI with data
-        PlayGUI(dct=boarddct,file=self.file,title=ttl).mainloop()
+        PlayGUI(dct=boarddct,file=self.file,title=ttl,themeName=thm).mainloop()
 
     def new(self,event=None):
         """closes any previously open file, erases board, history, search"""
@@ -422,8 +529,8 @@ class AnalysisGUI(Tk):
                 left = col * self.squareSize + 1
                 bottom = row * self.squareSize + self.squareSize
                 right = col * self.squareSize + self.squareSize
-                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
-                text = self.board.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20')
+                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill=self.defaultColor)
+                text = self.board.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
                 self.boardStuff[row][col] = (rect,text)
         self.board.focus_set()
         self.select_square(0,0)
@@ -597,22 +704,29 @@ class AnalysisGUI(Tk):
             if nRow in range(5) and nCol in range(5):
                 nColors.add(self.get_color(nRow, nCol))
             if 'B' not in nColors and 'W' not in nColors:
-                self.board.itemconfig(self.boardStuff[row][col][0],fill=self.red[1])
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[1])
+                self.board.itemconfig(self.boardStuff[row][col][1], fill=self.redText[1])
             elif 'R' not in nColors and 'W' not in nColors:
-                self.board.itemconfig(self.boardStuff[row][col][0],fill=self.blue[1])
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[1])
+                self.board.itemconfig(self.boardStuff[row][col][1], fill=self.blueText[1])
             else:
                 if myColor == 'B':
-                    self.board.itemconfig(self.boardStuff[row][col][0],fill=self.blue[0])
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
+                    self.board.itemconfig(self.boardStuff[row][col][1], fill=self.blueText[0])
                 elif myColor == 'R':
-                    self.board.itemconfig(self.boardStuff[row][col][0],fill=self.red[0])
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
+                    self.board.itemconfig(self.boardStuff[row][col][1], fill=self.redText[0])
 
     def update_colors(self, row, col, color):
         if color == 'blue':
             self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
+            self.board.itemconfig(self.boardStuff[row][col][1], fill=self.blueText[0])
         elif color == 'red':
             self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
+            self.board.itemconfig(self.boardStuff[row][col][1], fill=self.redText[0])
         else:
-            self.board.itemconfig(self.boardStuff[row][col][0], fill='')
+            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.defaultColor)
+            self.board.itemconfig(self.boardStuff[row][col][1], fill=self.defaultText)
 
         #check if I am defended
         self.check_defended(row,col)
@@ -627,7 +741,7 @@ class AnalysisGUI(Tk):
         (row, col) = self.get_row_col(event.x, event.y)
         self.select_square(row,col)
         color = self.board.itemcget(self.boardStuff[row][col][0], 'fill')
-        if color == '':
+        if color == self.defaultColor:
             self.update_colors(row,col,'blue')
         elif color in self.blue:
             self.update_colors(row,col,'red')
@@ -676,36 +790,68 @@ class AnalysisGUI(Tk):
         for iid in self.suggest.get_children():
             self.suggest.delete(iid)
 
+    def is_square_selected(self, row, col):
+        selectedColors = tuple(self.selectedDefault) + self.selectedBlue + self.selectedRed
+        color = self.board.itemcget(self.boardStuff[row][col][1],'fill')
+        return (color in selectedColors)
+
     def save_board_colors(self):
         """saves the state of the board colors for later retrieval"""
         board = ''
+        selected = ''
         for row in range(5):
             for col in range(5):
                 board += self.get_defended_color(row,col)
+                if self.is_square_selected(row, col):
+                    selected += 'Y'
+                else:
+                    selected += 'N'
+        self.boardSelected = selected
         self.boardColors = board
 
     def restore_board_colors(self):
         """restores the state of the board saved by save_board_colors"""
-        self.update_board_colors(self.boardColors)
-        pass
+        self.update_board_colors(self.boardColors, self.boardSelected)
 
-    def update_board_colors(self, newBoard):
+    def update_board_colors(self, newBoard, selected='N'*25):
         """changes the colors of the board"""
         newBoard = newBoard.replace(' ','')
         for row in range(5):
             for col in range(5):
                 i = row*5+col
                 l = newBoard[i]
-                color = ''
+                s = selected[i] == 'Y'
+                bgColor = self.defaultColor
+                if s:
+                    txtColor = self.selectedDefault
+                else:
+                    txtColor = self.defaultText
                 if l == 'b':
-                    color = self.blue[0]
+                    bgColor = self.blue[0]
+                    if s:
+                        txtColor = self.selectedBlue[0]
+                    else:
+                        txtColor = self.blueText[0]
                 elif l == 'B':
-                    color = self.blue[1]
+                    bgColor = self.blue[1]
+                    if s:
+                        txtColor = self.selectedBlue[1]
+                    else:
+                        txtColor = self.blueText[1]
                 elif l == 'r':
-                    color = self.red[0]
+                    bgColor = self.red[0]
+                    if s:
+                        txtColor = self.selectedRed[0]
+                    else:
+                        txtColor = self.redText[0]
                 elif l == 'R':
-                    color = self.red[1]
-                self.board.itemconfig(self.boardStuff[row][col][0],fill=color)
+                    bgColor = self.red[1]
+                    if s:
+                        txtColor = self.selectedRed[1]
+                    else:
+                        txtColor = self.redText[1]
+                self.board.itemconfig(self.boardStuff[row][col][0],fill=bgColor)
+                self.board.itemconfig(self.boardStuff[row][col][1],fill=txtColor)
 
     def history_click(self, event):
         """bound to history.<<TreeviewSelect>>"""
@@ -878,8 +1024,8 @@ class AnalysisPlayer(player0):
             decideTime = time() - start
             plays = len(self.wordScores)
             rate = int(plays/decideTime)
-            print(round(decideTime,2), 'seconds to decide', allLetters, score)
-            print(plays, 'plays found,', rate, 'per second')
+            #print(round(decideTime,2), 'seconds to decide', allLetters, score)
+            #print(plays, 'plays found,', rate, 'per second')
         start = time()
         results = list()
         amountToDisplay = 200
@@ -897,9 +1043,9 @@ class AnalysisPlayer(player0):
                     results.append((score,word,self.displayscore(blue, red, blueDef, redDef)))
                     displayed += 1
             elif displayed >= amountToDisplay:
-                print(round(time()-start,2),'seconds to endgame check')
+                #print(round(time()-start,2),'seconds to endgame check')
                 return results,True
-        print(round(time()-start,2),'seconds to endgame check')
+        #print(round(time()-start,2),'seconds to endgame check')
         return results,False
 
 
@@ -912,18 +1058,28 @@ class PlayGUI(AnalysisGUI):
 
         self.file = kwargs.get('file','')
         title = kwargs.get('title','')
-        print(self.file)
+        self.themeName = kwargs.get('themeName','')
+
         self.boardStuff = [[None for x in range(5)] for y in range(5)]  #holds rectangles and text on the board
         self.boardSize = 250
         self.squareSize = self.boardSize//5
-        self.blue = ('light sky blue','RoyalBlue2')
-        self.selectedBlue = ('SkyBlue2','RoyalBlue3')
-        self.red = ('salmon','red')
-        self.selectedRed = ('IndianRed2','IndianRed3')
+
         self.initialHist= '[Initial Position]'
         self.titleText = 'Concentrate'
         self.titleSeparator = ' - '
-        self.selectedWhite = 'gray90'
+
+        #default theme is 'light'
+        self.defaultColor = '#%02x%02x%02x' % (240, 240, 240)  # different from iOS app
+        self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
+        self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
+        self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
+        self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
+        self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
+        #self.selectedBlue = ('SkyBlue2','RoyalBlue3')
+        #self.selectedRed = ('IndianRed2','IndianRed3')
+        self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
+        self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
+        self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
 
         if title == '':
             self.title(self.titleText)
@@ -931,6 +1087,7 @@ class PlayGUI(AnalysisGUI):
             self.title(title)
         #self.columnconfigure(0, weight=1)
         #self.rowconfigure(0, weight=0)
+
         self.resizable(0,0)
 
         self.topFrame = ttk.Frame(self)
@@ -959,8 +1116,8 @@ class PlayGUI(AnalysisGUI):
         self.history.column(0,width=150)
         self.history.column(1,width=75)
         self.history.bind('<<TreeviewSelect>>',self.history_click)
-        self.history.tag_configure('red',foreground='red')
-        self.history.tag_configure('blue',foreground='RoyalBlue2')
+        self.history.tag_configure('red', foreground=self.red[1])
+        self.history.tag_configure('blue', foreground=self.blue[1])
         self.historySelection = -1
         self.historyIgnore= False
 
@@ -982,6 +1139,9 @@ class PlayGUI(AnalysisGUI):
         self.refPlayer = AnalysisPlayer(difficulty=['A',5,25])
 
         self.menuBar = Menu(self, tearoff=0)
+
+        self.theme = IntVar()
+        self.theme.set(0)
 
         if self.sys == 'aqua': #mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
@@ -1027,6 +1187,17 @@ class PlayGUI(AnalysisGUI):
             self.optionsMenu.add_command(label="Analyze Game", underline=0, command=self.analyze, accelerator='Tab')
             self.bind('<Tab>',self.analyze)
             self.optionsMenu.add_separator()
+            self.themeMenu= Menu(self.optionsMenu, tearoff=0)
+            self.themeMenu.add_radiobutton(label="Light", underline=0, variable=self.theme, value=0, command=lambda: self.change_theme('light'))
+            self.themeMenu.add_radiobutton(label="Pop", underline=0, variable=self.theme, value=1, command=lambda: self.change_theme('pop'))
+            self.themeMenu.add_radiobutton(label="Retro", underline=0, variable=self.theme, value=2, command=lambda: self.change_theme('retro'))
+            self.themeMenu.add_radiobutton(label="Dark", underline=0, variable=self.theme, value=3, command=lambda: self.change_theme('dark'))
+            self.themeMenu.add_radiobutton(label="Forest", underline=0, variable=self.theme, value=4, command=lambda: self.change_theme('forest'))
+            self.themeMenu.add_radiobutton(label="Glow", underline=0, variable=self.theme, value=5, command=lambda: self.change_theme('glow'))
+            self.themeMenu.add_radiobutton(label="Pink", underline=1, variable=self.theme, value=6, command=lambda: self.change_theme('pink'))
+            self.themeMenu.add_radiobutton(label="Contrast", underline=0, variable=self.theme, value=7, command=lambda: self.change_theme('contrast'))
+            self.optionsMenu.add_cascade(label="Theme", underline=0, menu=self.themeMenu)
+            self.optionsMenu.add_separator()
             self.difficulty = StringVar()
             self.optionsMenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.change_difficulty, accelerator='Ctrl+1')
             self.bind('<Control-Key-1>',self.easy_difficulty)
@@ -1041,6 +1212,9 @@ class PlayGUI(AnalysisGUI):
 
         # display the menu
         self.config(menu=self.menuBar)
+
+        if self.themeName != '':
+            self.change_theme(self.themeName)
 
         #random board or display passed in board
         if dct.get('letters','').strip() == '':
@@ -1060,10 +1234,11 @@ class PlayGUI(AnalysisGUI):
         self.restore_board_colors()
         boardDict = self.make_save_dict()
         ttl = self.title()
+        thm = self.themeName
         #close me
         self.destroy()
         #call analysisGUI with data
-        AnalysisGUI(dct=boardDict, file=self.file, title=ttl).mainloop()
+        AnalysisGUI(dct=boardDict, file=self.file, title=ttl, themeName=thm).mainloop()
 
     def new(self,event=None):
         """closes any previously open file, erases board, history"""
@@ -1102,7 +1277,7 @@ class PlayGUI(AnalysisGUI):
                 left = col * self.squareSize + 1
                 bottom = row * self.squareSize + self.squareSize
                 right = col * self.squareSize + self.squareSize
-                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill='')
+                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill=self.defaultColor)
                 text = self.board.create_text(left+self.squareSize/2, top+self.squareSize/2,text='',font='Helvetica 20')
                 self.boardStuff[row][col] = (rect, text)
 
@@ -1130,23 +1305,23 @@ class PlayGUI(AnalysisGUI):
             if 'B' not in nColors and 'W' not in nColors:
                 self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[1])
                 fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
-                if fgColor != 'black':
+                if fgColor not in (tuple(self.defaultText) + self.blueText + self.redText):
                     self.board.itemconfig(self.boardStuff[row][col][0], fill=self.selectedRed[1])
             elif 'R' not in nColors and 'W' not in nColors:
                 self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[1])
                 fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
-                if fgColor != 'black':
+                if fgColor not in (tuple(self.defaultText) + self.blueText + self.redText):
                     self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedBlue[1])
             else:
                 if myColor == 'B':
                     self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
                     fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
-                    if fgColor != 'black':
+                    if fgColor not in (tuple(self.defaultText) + self.blueText + self.redText):
                         self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedBlue[0])
                 elif myColor == 'R':
                     self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
                     fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
-                    if fgColor != 'black':
+                    if fgColor not in (tuple(self.defaultText) + self.blueText + self.redText):
                         self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedRed[0])
 
 
@@ -1175,7 +1350,7 @@ class PlayGUI(AnalysisGUI):
         bgColor = self.board.itemcget(self.boardStuff[row][col][0], 'fill')
 
         selectedColors = set(self.selectedBlue + self.selectedRed)
-        selectedColors.add(self.selectedWhite)
+        selectedColors.add(self.selectedDefault)
         if fgColor not in selectedColors:
             i = row * 5 + col
             #if the square isn't defended by red
@@ -1184,7 +1359,7 @@ class PlayGUI(AnalysisGUI):
                 self.update_colors(row, col, 'blue')
                 bgColor = self.board.itemcget(self.boardStuff[row][col][0], 'fill')
             #make text color almost the same as its current background
-            newColor = self.selectedWhite
+            newColor = self.selectedDefault
             if bgColor in self.blue:
                 i = self.blue.index(bgColor)
                 newColor = self.selectedBlue[i]
