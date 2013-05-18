@@ -7,13 +7,6 @@
 # Created:     31/03/2013
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
-#TODO
-
-#both GUIs:
-    #random difficulty setting
-
-    #progress bar dialog?
-        #could be tied to the number of groups found, every so many groups, update progress
 
 from tkinter import *
 from tkinter import messagebox
@@ -22,7 +15,7 @@ from tkinter import ttk
 from player import player0
 from time import time
 from string import ascii_uppercase
-from random import choice
+from random import choice, sample
 from os import path
 import arena
 import pickle
@@ -135,7 +128,7 @@ class AnalysisGUI(Tk):
         self.player = AnalysisPlayer()
         self.menuBar = Menu(self, tearoff=0)
 
-        if self.sys == 'aqua':  #mac os x
+        if self.sys == 'aqua':  # mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
             self.fileMenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
             self.bind('<Command-n>',self.new)
@@ -165,19 +158,30 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_command(label="Play Against Concentrate", underline=0, command=self.play_against, accelerator='Tab')
             self.bind('<Tab>',self.play_against)
             self.optionsMenu.add_separator()
+
+            self.themeMenu= Menu(self.optionsMenu, tearoff=0)
+            self.themeMenu.add_radiobutton(label="Light", underline=0, variable=self.theme, value=0, command=lambda: self.change_theme('light'))
+            self.themeMenu.add_radiobutton(label="Pop", underline=0, variable=self.theme, value=1, command=lambda: self.change_theme('pop'))
+            self.themeMenu.add_radiobutton(label="Retro", underline=0, variable=self.theme, value=2, command=lambda: self.change_theme('retro'))
+            self.themeMenu.add_radiobutton(label="Dark", underline=0, variable=self.theme, value=3, command=lambda: self.change_theme('dark'))
+            self.themeMenu.add_radiobutton(label="Forest", underline=0, variable=self.theme, value=4, command=lambda: self.change_theme('forest'))
+            self.themeMenu.add_radiobutton(label="Glow", underline=0, variable=self.theme, value=5, command=lambda: self.change_theme('glow'))
+            self.themeMenu.add_radiobutton(label="Pink", underline=1, variable=self.theme, value=6, command=lambda: self.change_theme('pink'))
+            self.themeMenu.add_radiobutton(label="Contrast", underline=0, variable=self.theme, value=7, command=lambda: self.change_theme('contrast'))
+            self.optionsMenu.add_cascade(label="Theme", underline=0, menu=self.themeMenu)
+            self.optionsMenu.add_separator()
+
             self.difficulty = StringVar()
-            self.optionsMenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E",
-                                             command=self.change_difficulty, accelerator='Command-1')
-            self.bind('<Command-Key-1>',self.easy_difficulty)
-            self.optionsMenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M",
-                                             command=self.change_difficulty, accelerator='Command-2')
-            self.bind('<Command-Key-2>',self.medium_difficulty)
-            self.optionsMenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H",
-                                             command=self.change_difficulty, accelerator='Command-3')
-            self.bind('<Command-Key-3>',self.hard_difficulty)
-            self.optionsMenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X",
-                                             command=self.change_difficulty, accelerator='Command-4')
-            self.bind('<Command-Key-4>',self.extreme_difficulty)
+            self.optionsMenu.add_radiobutton(label="Dunce", underline=0, variable=self.difficulty, value="R", command=self.change_difficulty, accelerator='Command-1')
+            self.bind('<Command-Key-1>', lambda x: self.change_difficulty('R'))
+            self.optionsMenu.add_radiobutton(label="Easy", underline=0, variable=self.difficulty, value="E", command=self.change_difficulty, accelerator='Command-2')
+            self.bind('<Command-Key-2>', lambda x: self.change_difficulty('E'))
+            self.optionsMenu.add_radiobutton(label="Medium", underline=0, variable=self.difficulty, value="M", command=self.change_difficulty, accelerator='Command-3')
+            self.bind('<Command-Key-3>', lambda x: self.change_difficulty('M'))
+            self.optionsMenu.add_radiobutton(label="Hard", underline=0, variable=self.difficulty, value="H", command=self.change_difficulty, accelerator='Command-4')
+            self.bind('<Command-Key-4>', lambda x: self.change_difficulty('H'))
+            self.optionsMenu.add_radiobutton(label="Extreme", underline=1, variable=self.difficulty, value="X", command=self.change_difficulty, accelerator='Command-5')
+            self.bind('<Command-Key-5>', lambda x: self.change_difficulty('X'))
             self.difficulty.set('H')
             self.optionsMenu.add_separator()
             self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1,
@@ -185,7 +189,7 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.red_turn)
             self.menuBar.add_cascade(label="Options", menu=self.optionsMenu)
 
-        else:  #windows
+        else:  # windows
             self.fileMenu= Menu(self.menuBar, tearoff=0)
             self.fileMenu.add_command(label="New", underline=0, command=self.new, accelerator='Ctrl+N')
             self.bind('<Control-n>',self.new)
@@ -227,18 +231,20 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_separator()
 
             self.difficulty = StringVar()
-            self.optionsMenu.add_radiobutton(label="Easy", variable=self.difficulty, value="E", command=self.change_difficulty, accelerator='Ctrl+1')
-            self.bind('<Control-Key-1>',self.easy_difficulty)
-            self.optionsMenu.add_radiobutton(label="Medium", variable=self.difficulty, value="M", command=self.change_difficulty, accelerator='Ctrl+2')
-            self.bind('<Control-Key-2>',self.medium_difficulty)
-            self.optionsMenu.add_radiobutton(label="Hard", variable=self.difficulty, value="H", command=self.change_difficulty, accelerator='Ctrl+3')
-            self.bind('<Control-Key-3>',self.hard_difficulty)
-            self.optionsMenu.add_radiobutton(label="Extreme", variable=self.difficulty, value="X", command=self.change_difficulty, accelerator='Ctrl+4')
-            self.bind('<Control-Key-4>',self.extreme_difficulty)
+            self.optionsMenu.add_radiobutton(label="Dunce", underline=0, variable=self.difficulty, value="R", command=self.change_difficulty, accelerator='Ctrl+1')
+            self.bind('<Control-Key-1>', lambda x: self.change_difficulty('R'))
+            self.optionsMenu.add_radiobutton(label="Easy", underline=0, variable=self.difficulty, value="E", command=self.change_difficulty, accelerator='Ctrl+2')
+            self.bind('<Control-Key-2>', lambda x: self.change_difficulty('E'))
+            self.optionsMenu.add_radiobutton(label="Medium", underline=0, variable=self.difficulty, value="M", command=self.change_difficulty, accelerator='Ctrl+3')
+            self.bind('<Control-Key-3>', lambda x: self.change_difficulty('M'))
+            self.optionsMenu.add_radiobutton(label="Hard", underline=0, variable=self.difficulty, value="H", command=self.change_difficulty, accelerator='Ctrl+4')
+            self.bind('<Control-Key-4>', lambda x: self.change_difficulty('H'))
+            self.optionsMenu.add_radiobutton(label="Extreme", underline=1, variable=self.difficulty, value="X", command=self.change_difficulty, accelerator='Ctrl+5')
+            self.bind('<Control-Key-5>', lambda x: self.change_difficulty('X'))
             self.difficulty.set('H')
             self.optionsMenu.add_separator()
-            self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1, command=self.blue_turn)
-            self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.red_turn)
+            self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value=1, command=self.blue_turn)
+            self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value=-1, command=self.red_turn)
             self.menuBar.add_cascade(label="Options", underline=0, menu=self.optionsMenu)
 
         self.bind('<Return>',self.do_search)
@@ -473,37 +479,20 @@ class AnalysisGUI(Tk):
     def white_board(self, event=None):
          self.update_board_colors('w'*25)
 
-    def easy_difficulty(self,event=None):
-        self.difficulty.set('E')
-        self.change_difficulty()
-
-    def medium_difficulty(self,event=None):
-        self.difficulty.set('M')
-        self.change_difficulty()
-
-    def hard_difficulty(self,event=None):
-        self.difficulty.set('H')
-        self.change_difficulty()
-
-    def extreme_difficulty(self,event=None):
-        self.difficulty.set('X')
-        self.change_difficulty()
-
-    def change_difficulty(self):
+    def change_difficulty(self, d=''):
+        if d != '':
+            self.difficulty.set(d)
         self.clear_search()
-        if self.difficulty.get() == 'E':
-            self.player.changedifficulty(['R',5,5])
-            self.player.difficulty = ['R',5,5]
-            self.player.cache = dict()
-
+        if self.difficulty.get() == 'R':
+            self.player.changedifficulty(['R', 5, 8, 'R'])
+        elif self.difficulty.get() == 'E':
+            self.player.changedifficulty(['R', 5, 5, 'S'])
         elif self.difficulty.get() == 'M':
-            self.player.changedifficulty(['R',5,8])
-
+            self.player.changedifficulty(['R', 5, 8, 'S'])
         elif self.difficulty.get() == 'H':
-            self.player.changedifficulty(['R',5,25])
-
+            self.player.changedifficulty(['R', 5, 25, 'S'])
         else:
-            self.player.changedifficulty(['A',5,25])
+            self.player.changedifficulty(['A', 5, 25, 'S'])
 
     def canvas_draw(self, event=None):
         self.clear_search()
@@ -969,7 +958,7 @@ class AnalysisGUI(Tk):
 
     def do_search(self, event=None, lastDisplayed=-1):
         self.busy()
-        self.save_board_colors() #to restore back to when the user un-selects a word
+        self.save_board_colors()  # to restore back to when the user un-selects a word
         if lastDisplayed == -1:
             self.clear_search()
         self.letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
@@ -994,15 +983,15 @@ class AnalysisGUI(Tk):
         self.player.possible(self.letters)
         self.player.resetplayed(self.letters, words)
         wordList, more = self.player.search(self.letters, score, needLetters, self.move.get(), lastDisplayed)
-        for i,word in enumerate(wordList):
+        for i, word in enumerate(wordList):
             if word[1][0] not in ascii_uppercase:
                 self.suggest.insert('', 'end', tag=word[1][0], values=(word[1][1:], word[0], word[2]))
             else:
-                self.suggest.insert('','end',values=(word[1], word[0], word[2]))
+                self.suggest.insert('', 'end',values=(word[1], word[0], word[2]))
         if more:
-            self.suggest.insert('','end',values=(self.moreText,))
+            self.suggest.insert('', 'end', values=(self.moreText,))
         elif len(self.suggest.get_children()) == 0:
-            self.suggest.insert('','end',values=(self.noText,))
+            self.suggest.insert('', 'end', values=(self.noText,))
         if lastDisplayed == -1:
             self.suggest.see(self.suggest.get_children()[0])
         self.not_busy()
@@ -1017,10 +1006,13 @@ class AnalysisPlayer(player0):
         if lastDisplayed == -1:
             start = time()
             self.wordScores = self.decide(allLetters, score, needLetters, move)
-            if move == 1:
-                self.wordScores.sort(reverse=True)
+            if self.difficulty[3] == 'S':
+                if move == 1:
+                    self.wordScores.sort(reverse=True)
+                else:
+                    self.wordScores.sort()
             else:
-                self.wordScores.sort()
+                self.displayed = list()
             decideTime = time() - start
             plays = len(self.wordScores)
             rate = int(plays/decideTime)
@@ -1030,23 +1022,42 @@ class AnalysisPlayer(player0):
         results = list()
         amountToDisplay = 200
         displayed = 0
-        for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
-            if wordNum > lastDisplayed and displayed < amountToDisplay:
-                zeroLetters,endingSoon, losing, newScore = self.endgamecheck(allLetters, blue, red, blueDef, redDef, move)
-                if losing:  # endgame check found a way for opponent to win
-                    results.append((score,'-'+word,self.displayscore(blue, red, blueDef, redDef)))
-                    displayed += 1
-                elif endingSoon:  # endgame check only found way for opponent to end game, but not win
-                    results.append((score,'*'+word,self.displayscore(blue, red, blueDef, redDef)))
-                    displayed += 1
-                else:
-                    results.append((score,word,self.displayscore(blue, red, blueDef, redDef)))
-                    displayed += 1
-            elif displayed >= amountToDisplay:
-                #print(round(time()-start,2),'seconds to endgame check')
-                return results,True
-        #print(round(time()-start,2),'seconds to endgame check')
-        return results,False
+        if self.difficulty[3] == 'S':
+            for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
+                if wordNum > lastDisplayed and displayed < amountToDisplay:
+                    zeroLetters,endingSoon, losing, newScore = self.endgamecheck(allLetters, blue, red, blueDef, redDef, move)
+                    if losing:  # endgame check found a way for opponent to win
+                        results.append((score, '-'+word, self.displayscore(blue, red, blueDef, redDef)))
+                        displayed += 1
+                    elif endingSoon:  # endgame check only found way for opponent to end game, but not win
+                        results.append((score, '*'+word, self.displayscore(blue, red, blueDef, redDef)))
+                        displayed += 1
+                    else:
+                        results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                        displayed += 1
+                elif displayed >= amountToDisplay:
+                    #print(round(time()-start,2),'seconds to endgame check')
+                    return results, True
+            #print(round(time()-start,2),'seconds to endgame check')
+            return results, False
+        else:
+            notDisplayed = [x for x in range(len(self.wordScores)) if x not in self.displayed]
+            if len(notDisplayed) > amountToDisplay:
+                lst = sample(notDisplayed, amountToDisplay)
+                for i in lst:
+                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                self.displayed += lst
+                return results, True
+            else:
+                lst = notDisplayed
+                for i in lst:
+                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                self.displayed += lst
+                return results, False
+
+
 
 
 class PlayGUI(AnalysisGUI):
@@ -1159,15 +1170,30 @@ class PlayGUI(AnalysisGUI):
             self.optionsMenu.add_command(label="Analyze Game", underline=0, command=self.analyze, accelerator='Tab')
             self.bind('<Tab>',self.analyze)
             self.optionsMenu.add_separator()
+
+            self.themeMenu= Menu(self.optionsMenu, tearoff=0)
+            self.themeMenu.add_radiobutton(label="Light", underline=0, variable=self.theme, value=0, command=lambda: self.change_theme('light'))
+            self.themeMenu.add_radiobutton(label="Pop", underline=0, variable=self.theme, value=1, command=lambda: self.change_theme('pop'))
+            self.themeMenu.add_radiobutton(label="Retro", underline=0, variable=self.theme, value=2, command=lambda: self.change_theme('retro'))
+            self.themeMenu.add_radiobutton(label="Dark", underline=0, variable=self.theme, value=3, command=lambda: self.change_theme('dark'))
+            self.themeMenu.add_radiobutton(label="Forest", underline=0, variable=self.theme, value=4, command=lambda: self.change_theme('forest'))
+            self.themeMenu.add_radiobutton(label="Glow", underline=0, variable=self.theme, value=5, command=lambda: self.change_theme('glow'))
+            self.themeMenu.add_radiobutton(label="Pink", underline=1, variable=self.theme, value=6, command=lambda: self.change_theme('pink'))
+            self.themeMenu.add_radiobutton(label="Contrast", underline=0, variable=self.theme, value=7, command=lambda: self.change_theme('contrast'))
+            self.optionsMenu.add_cascade(label="Theme", underline=0, menu=self.themeMenu)
+            self.optionsMenu.add_separator()
+
             self.difficulty = StringVar()
-            self.optionsMenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.change_difficulty, accelerator='Command-1')
-            self.bind('<Command-Key-1>',self.easy_difficulty)
-            self.optionsMenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.change_difficulty, accelerator='Command-2')
-            self.bind('<Command-Key-2>',self.medium_difficulty)
-            self.optionsMenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.change_difficulty, accelerator='Command-3')
-            self.bind('<Command-Key-3>',self.hard_difficulty)
-            self.optionsMenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.change_difficulty, accelerator='Command-4')
-            self.bind('<Command-Key-4>',self.extreme_difficulty)
+            self.optionsMenu.add_radiobutton(label="Dunce", underline=0, variable=self.difficulty, value = "R", command=self.change_difficulty, accelerator='Command-1')
+            self.bind('<Command-Key-1>', lambda x: self.change_difficulty('R'))
+            self.optionsMenu.add_radiobutton(label="Easy", underline=0, variable=self.difficulty, value = "E", command=self.change_difficulty, accelerator='Command-2')
+            self.bind('<Command-Key-2>', lambda x: self.change_difficulty('E'))
+            self.optionsMenu.add_radiobutton(label="Medium", underline=0, variable=self.difficulty, value = "M", command=self.change_difficulty, accelerator='Command-3')
+            self.bind('<Command-Key-3>', lambda x: self.change_difficulty('M'))
+            self.optionsMenu.add_radiobutton(label="Hard", underline=0, variable=self.difficulty, value = "H", command=self.change_difficulty, accelerator='Command-4')
+            self.bind('<Command-Key-4>', lambda x: self.change_difficulty('H'))
+            self.optionsMenu.add_radiobutton(label="Extreme", underline=1, variable=self.difficulty, value = "X", command=self.change_difficulty, accelerator='Command-5')
+            self.bind('<Command-Key-5>', lambda x: self.change_difficulty('X'))
             self.difficulty.set('H')
             self.menuBar.add_cascade(label="Options", menu=self.optionsMenu)
 
@@ -1199,14 +1225,16 @@ class PlayGUI(AnalysisGUI):
             self.optionsMenu.add_cascade(label="Theme", underline=0, menu=self.themeMenu)
             self.optionsMenu.add_separator()
             self.difficulty = StringVar()
-            self.optionsMenu.add_radiobutton(label="Easy", variable=self.difficulty, value = "E", command=self.change_difficulty, accelerator='Ctrl+1')
-            self.bind('<Control-Key-1>',self.easy_difficulty)
-            self.optionsMenu.add_radiobutton(label="Medium", variable=self.difficulty, value = "M", command=self.change_difficulty, accelerator='Ctrl+2')
-            self.bind('<Control-Key-2>',self.medium_difficulty)
-            self.optionsMenu.add_radiobutton(label="Hard", variable=self.difficulty, value = "H", command=self.change_difficulty, accelerator='Ctrl+3')
-            self.bind('<Control-Key-3>',self.hard_difficulty)
-            self.optionsMenu.add_radiobutton(label="Extreme", variable=self.difficulty, value = "X", command=self.change_difficulty, accelerator='Ctrl+4')
-            self.bind('<Control-Key-4>',self.extreme_difficulty)
+            self.optionsMenu.add_radiobutton(label="Dunce", underline=0, variable=self.difficulty, value = "R", command=self.change_difficulty, accelerator='Ctrl+1')
+            self.bind('<Control-Key-1>', lambda x: self.change_difficulty('R'))
+            self.optionsMenu.add_radiobutton(label="Easy", underline=0, variable=self.difficulty, value = "E", command=self.change_difficulty, accelerator='Ctrl+2')
+            self.bind('<Control-Key-2>', lambda x: self.change_difficulty('E'))
+            self.optionsMenu.add_radiobutton(label="Medium", underline=0, variable=self.difficulty, value = "M", command=self.change_difficulty, accelerator='Ctrl+3')
+            self.bind('<Control-Key-3>', lambda x: self.change_difficulty('M'))
+            self.optionsMenu.add_radiobutton(label="Hard", underline=0, variable=self.difficulty, value = "H", command=self.change_difficulty, accelerator='Ctrl+4')
+            self.bind('<Control-Key-4>', lambda x: self.change_difficulty('H'))
+            self.optionsMenu.add_radiobutton(label="Extreme", underline=1, variable=self.difficulty, value = "X", command=self.change_difficulty, accelerator='Ctrl+5')
+            self.bind('<Control-Key-5>', lambda x: self.change_difficulty('X'))
             self.difficulty.set('H')
             self.menuBar.add_cascade(label="Options", underline=0, menu=self.optionsMenu)
 
@@ -1403,20 +1431,19 @@ class PlayGUI(AnalysisGUI):
         else:
             self.historyIgnore = False
 
-    def change_difficulty(self):
-        if self.difficulty.get() == 'E':
-            self.player.changedifficulty(['R',5,5])
-            self.player.difficulty = ['R',5,5]
-            self.player.cache = dict()
-
+    def change_difficulty(self, d=''):
+        if d != '':
+            self.difficulty.set(d)
+        if self.difficulty.get() == 'R':
+            self.player.changedifficulty(['R', 5, 8, 'R'])
+        elif self.difficulty.get() == 'E':
+            self.player.changedifficulty(['R', 5, 5, 'S'])
         elif self.difficulty.get() == 'M':
-            self.player.changedifficulty(['R',5,8])
-
+            self.player.changedifficulty(['R', 5, 8, 'S'])
         elif self.difficulty.get() == 'H':
-            self.player.changedifficulty(['R',5,25])
-
+            self.player.changedifficulty(['R', 5, 25, 'S'])
         else:
-            self.player.changedifficulty(['A',5,25])
+            self.player.changedifficulty(['A', 5, 25, 'S'])
 
     def add_to_hist(self, word, score, board, letters, turn):
         #delete the history past the current selection

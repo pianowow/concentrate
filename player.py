@@ -12,10 +12,11 @@
 #limited minimax... pick 10 words that pass endgame check and run search on those
 
 from string import ascii_uppercase, digits
+from random import choice
 
 
 class player0:
-    def __init__(self, difficulty=['A',5,25]): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S']): #this represents maximum difficulty
         '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
         self.difficulty = difficulty
         listfile = open('en14.txt','r')
@@ -405,26 +406,29 @@ class player0:
         wordscores = self.decide(allletters,score,'',move)
 
         #look at the highest scores, return first word that doesn't lose
-        if move == 1:
-            wordscores.sort(reverse=True)
+        if self.difficulty[3] == 'S':  # this is how random difficulty is implemented
+            if move == 1:
+                wordscores.sort(reverse=True)
+            else:
+                wordscores.sort()
+            play = 0
+            for wordnum,(numScore,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
+                zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
+                if not losing:
+                    if move == 1:
+                        if numScore > -999:
+                            play = wordnum
+                            break
+                        else:
+                            break
+                    else:
+                        if numScore < 999:
+                            play = wordnum
+                            break
+                        else:
+                            break
         else:
-            wordscores.sort()
-        play = 0
-        for wordnum,(numScore,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
-            zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
-            if not losing:
-                if move == 1:
-                    if numScore > -999:
-                        play = wordnum
-                        break
-                    else:
-                        break
-                else:
-                    if numScore < 999:
-                        play = wordnum
-                        break
-                    else:
-                        break
+            play = choice(range(len(wordscores)))
         if len(wordscores) > 0:
             word = wordscores[play][1]
             board = self.displayscore(wordscores[play][3],wordscores[play][4],wordscores[play][5],wordscores[play][6])
