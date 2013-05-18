@@ -12,7 +12,7 @@
 
 from player import player0, player1
 from time import time
-from random import choice, shuffle
+from random import choice, shuffle, sample
 
 
 listfile = open('en14.txt','r')
@@ -43,10 +43,10 @@ def genletters():
     while True:
         vowels = ('A','E','I','O','U')
         tot = 25
-        vowelCount = choice(range(3,9))
+        vowelCount = choice(range(3, 9))
         tot -= vowelCount
         vowels = [choice(vowels) for x in range(vowelCount)]
-        cons = [choice(newletterlist) for x in range(tot)]
+        cons = sample(newletterlist, tot)
         if 'Q' in cons:
             if 'I' not in vowels:
                 continue
