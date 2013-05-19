@@ -17,4 +17,14 @@ This was created to test minor changes to Concentrate, whether they improve or r
 The simplest function is just game().  This creates a game between player0 and player1, both defined in player.py, where player0 is the one that search.py uses, and player1 is the modification.  Game can accept a board or generate one if none is passed in, another parameter controls whether player0 goes first or not.  It will display each move played, the board as it looks after that move is played, and the current score with the number of defended squares in parentheses. Match() builds on top of game() by calling game() twice with the same (optionally passed in) board so that both players go first once on the same board.  Finally tournament(n) calls match n times for n randomly generated boards and sums the results, displaying the grand total at the end to see who won.  
 
 - GUI.py  
-A work in progress, but this will end up being the front-facing side of the released application.  
+Press Tab or use the menu item in options to switch between two modes: playing against Concentrate, and analyzing a game with Concentrate.  
+The five difficulty settings: Dunce, Easy, Medium, Hard, Extreme.  Extreme always plays the best word according to the AI's evaluation from the complete letterpress word list.  The other difficulty settings use a reduced word list, meant to simulate a layman's vocabulary.  Hard chooses the best word it can find from the reduced word list.  Medium chooses the best word of 8 letters or fewer from the reduced word list.  Easy chooses the best word of 5 letters or fewer from the reduced word list.  Dunce chooses a random word 8 letters or less from the reduced word list.  
+  - Play Against mode  
+  You play blue, Concentrate plays red.  Click letters to form a word, and press the Play button.  Press the pass button to pass.  Select a word in the game history to continue from that point in the game (a way to take back a move).
+  - Analyze mode  
+  Typing when the board is selected allows you to change the board.  Clicking a square on the board changes the color of that board.  
+  Click the search button with the search box blank to show the best 200 words in the results box.  If you type letters in the search box and search, only words with those letters will appear in the search box.  
+  Note: only words which can change the score are shown.  And, if a word can be played multiple ways, only ways which change the score the most are displayed.  For example, if there are two Ts, but one is defended, TOP will be shown with only the T that is undefended.  
+
+
+  
