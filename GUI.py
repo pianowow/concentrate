@@ -26,8 +26,9 @@ class AnalysisGUI(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self)
 
-        img = PhotoImage('concentrate.gif')
-        self.tk.call('wm', 'iconphoto', self._w, img)
+        #not working correctly TODO
+##        img = PhotoImage('concentrate.gif')
+##        self.tk.call('wm', 'iconphoto', self._w, img)
 
         dct = kwargs.get('dct',dict())
 
@@ -1061,8 +1062,9 @@ class PlayGUI(AnalysisGUI):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self)
 
-        img = PhotoImage('concentrate.gif')
-        self.tk.call('wm', 'iconphoto', self._w, img)
+        #not working correctly TODO
+##        img = PhotoImage('concentrate2.gif')
+##        self.tk.call('wm', 'iconphoto', self._w, img)
 
         dct = kwargs.get('dct',dict())
 
