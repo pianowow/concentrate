@@ -1,4 +1,5 @@
 /__pycache__
 /build
 /.idea
-/.project
+.project
+.DS_Store
