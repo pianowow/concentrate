@@ -26,6 +26,9 @@ class AnalysisGUI(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self)
 
+        img = PhotoImage('concentrate.gif')
+        self.tk.call('wm', 'iconphoto', self._w, img)
+
         dct = kwargs.get('dct',dict())
 
         self.file = kwargs.get('file','')
@@ -263,13 +266,6 @@ class AnalysisGUI(Tk):
 
         self.notBusyWidgetCursors = dict() #for busy and notbusy
         self.board.focus_set()
-
-##        w = self.winfo_screenwidth()
-##        h = self.winfo_screenheight()
-##        rootsize = tuple(int(_) for _ in self.geometry().split('+')[0].split('x'))
-##        x = w/2 - rootsize[0]/2
-##        y = h/2 - rootsize[1]/2
-##        self.geometry("%dx%d+%d+%d" % (rootsize + (x, y)))
 
     def change_theme(self, theme):
         self.save_board_colors()
@@ -998,7 +994,7 @@ class AnalysisGUI(Tk):
 
 
 class AnalysisPlayer(player0):
-    def __init__(self, difficulty=['R', 5, 25]):
+    def __init__(self, difficulty=['R', 5, 25, 'S']):
         player0.__init__(self, difficulty)
 
     def search(self, allLetters, score, needLetters, move, lastDisplayed):
@@ -1064,6 +1060,9 @@ class PlayGUI(AnalysisGUI):
 
     def __init__(self, *args, **kwargs):
         Tk.__init__(self)
+
+        img = PhotoImage('concentrate.gif')
+        self.tk.call('wm', 'iconphoto', self._w, img)
 
         dct = kwargs.get('dct',dict())
 
