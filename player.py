@@ -83,29 +83,28 @@ class player0:
                 letterdict[l] = 0
         return letterdict
 
-    #usablility is a bonus for defended tiles based on letterpopularity
-    def usability(self, allletters,lp):
-        '''returns a 2D list based on how usable each letter is'''
+    def defended_score(self, allletters,lp):
         m = [0 for x in range(25)]
         for i,l in enumerate(allletters):
             m[i] = lp[l]
         return m
 
-    #defendability is the average usability of surrounding squares
-    def defendability(self, u):
-        '''returns a 2D list based on how defendable each letter is'''
+    def undefended_score(self, d):
         m = [0 for x in range(25)]
         for row in range(5):
             for col in range(5):
                 neighborlist = []
                 if row-1 in range(5):
-                    neighborlist.append(u[(row-1)*5+col])
+                    neighborlist.append(d[(row-1)*5+col])
                 if col+1 in range(5):
-                    neighborlist.append(u[row*5+col+1])
+                    neighborlist.append(d[row*5+col+1])
                 if row+1 in range(5):
-                    neighborlist.append(u[(row+1)*5+col])
+                    neighborlist.append(d[(row+1)*5+col])
                 if col-1 in range(5):
-                    neighborlist.append(u[row*5+col-1])
+                    neighborlist.append(d[row*5+col-1])
+                size = len(neighborlist)
+                for x in range(size):
+                    neighborlist.append(1-d[row*5+col])  #prefer non-usable undefended squares
                 m[row*5+col] = round(sum(neighborlist) / len(neighborlist),2)
         return m
 
@@ -136,9 +135,9 @@ class player0:
                     if good:
                         found.append(word)
             lp = self.letterpopularity(found)
-            u = self.usability(letters,lp)
-            d = self.defendability(u)
-            self.cache[letters] = [tuple(found),[],u,d]
+            d = self.defended_score(letters,lp)
+            u = self.undefended_score(d)
+            self.cache[letters] = [tuple(found),[],d,u]
             return found
 
     def concentrate(self, allletters,needletters='',anyletters=''):
@@ -189,22 +188,22 @@ class player0:
         bluedef = reddef = 0
         ending = (bin(blue|red).count('1') == 25)
         dw = 2
-        u = self.cache[allletters][2] #usability
-        d = self.cache[allletters][3] #defendability
+        d = self.cache[allletters][2] #defended
+        u = self.cache[allletters][3] #undefended
         bluescore = redscore = 0
         for i in range(25): #check defended
             if blue & (1<<i):
                 if (blue & self.neighbors[i]) == self.neighbors[i]:
-                    bluescore += (dw + u[i])
+                    bluescore += (dw + d[i])
                     bluedef = bluedef | (1<<i)
                 else:
-                    bluescore += d[i]
+                    bluescore += u[i]
             if red & (1<<i):
                 if (red & self.neighbors[i]) == self.neighbors[i]:
-                    redscore += (dw + u[i])
+                    redscore += (dw + d[i])
                     reddef = reddef | (1<<i)
                 else:
-                    redscore += d[i]
+                    redscore += u[i]
         total = bluescore - redscore
 
         if not ending:
@@ -443,3 +442,5 @@ class player0:
 
 class player1(player0):
     pass
+
+
