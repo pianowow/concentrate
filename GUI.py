@@ -83,7 +83,12 @@ class AnalysisGUI(Tk):
         self.topFrame.rowconfigure(1, weight=1)
         self.topFrame.rowconfigure(2, weight=0)
 
+        self.blueScore = ttk.Label(self.topFrame, text='0', foreground=self.blue[1])
+        self.blueScore.grid(column=0, row=0, padx=25, sticky=(W))
         ttk.Label(self.topFrame, text='Board').grid(column=0,row=0)
+        self.redScore = ttk.Label(self.topFrame, text='0', foreground=self.red[1])
+        self.redScore.grid(column=0, row=0, padx=25, sticky=(E))
+
         ttk.Label(self.topFrame, text='History').grid(column=1,row=0,columnspan=2)
         self.need = ttk.Entry(self.topFrame)
         self.need.grid(column=3,row=0,padx=10,sticky=(W))
@@ -268,6 +273,21 @@ class AnalysisGUI(Tk):
         self.notBusyWidgetCursors = dict() #for busy and notbusy
         self.board.focus_set()
 
+    def update_score_display(self):
+        bScore = 0
+        rScore = 0
+        for row in range(5):
+            for col in range(5):
+                color = self.get_color(row, col)
+                if color == 'B':
+                    bScore += 1
+                elif color == 'R':
+                    rScore += 1
+        self.blueScore.config(text=str(bScore))
+        self.redScore.config(text=str(rScore))
+
+
+
     def change_theme(self, theme):
         self.save_board_colors()
         if theme == 'light':
@@ -360,6 +380,8 @@ class AnalysisGUI(Tk):
             self.selectedDefault = '#%02x%02x%02x' % (235, 214, 163)
         self.history.tag_configure('red', foreground=self.red[1])
         self.history.tag_configure('blue', foreground=self.blue[1])
+        self.blueScore.config(foreground=self.blue[1])
+        self.redScore.config(foreground=self.red[1])
         self.restore_board_colors()
         self.themeName = theme
 
@@ -379,6 +401,7 @@ class AnalysisGUI(Tk):
             self.file = ''
         self.title(self.titleText)
         self.canvas_draw()
+        self.update_score_display()
 
     def restore_from_dict(self,dct):
         letters = dct['letters']
@@ -733,6 +756,7 @@ class AnalysisGUI(Tk):
             self.update_colors(row,col,'red')
         elif color in self.red:
             self.update_colors(row,col,'')
+        self.update_score_display()
 
     def select_square(self,selectRow, selectCol):
         self.selected = (selectRow,selectCol)
@@ -838,6 +862,7 @@ class AnalysisGUI(Tk):
                         txtColor = self.redText[1]
                 self.board.itemconfig(self.boardStuff[row][col][0],fill=bgColor)
                 self.board.itemconfig(self.boardStuff[row][col][1],fill=txtColor)
+        self.update_score_display()
 
     def history_click(self, event):
         """bound to history.<<TreeviewSelect>>"""
@@ -1116,7 +1141,12 @@ class PlayGUI(AnalysisGUI):
         self.topFrame.rowconfigure(1, weight=1)
         self.topFrame.rowconfigure(2, weight=0)
 
+        self.blueScore = ttk.Label(self.topFrame, text='0', foreground=self.blue[1])
+        self.blueScore.grid(column=0, row=0, padx=25, sticky=(W))
         ttk.Label(self.topFrame, text='Board').grid(column=0,row=0)
+        self.redScore = ttk.Label(self.topFrame, text='0', foreground=self.red[1])
+        self.redScore.grid(column=0, row=0, padx=25, sticky=(E))
+
         ttk.Label(self.topFrame, text='History').grid(column=1,row=0,columnspan=2)
 
         self.history = ttk.Treeview(self.topFrame,columns=('Word','Score','Board','Letters'), displaycolumns=('Word','Score'),selectmode='browse',show='tree')
@@ -1404,6 +1434,7 @@ class PlayGUI(AnalysisGUI):
                 self.btnPlay.state(['!disabled'])
             else:
                 self.btnPlay.state(['disabled'])
+        self.update_score_display()
 
     def set_text_black(self):
         for row in range(5):
