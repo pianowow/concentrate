@@ -1026,7 +1026,6 @@ class AnalysisPlayer(player0):
     def search(self, allLetters, score, needLetters, move, lastDisplayed):
         """returns a list for the GUI to display"""
         if lastDisplayed == -1:
-            start = time()
             self.wordScores = self.decide(allLetters, score, needLetters, move)
             if self.difficulty[3] == 'S':
                 if move == 1:
@@ -1035,11 +1034,6 @@ class AnalysisPlayer(player0):
                     self.wordScores.sort()
             else:
                 self.displayed = list()
-            decideTime = time() - start
-            plays = len(self.wordScores)
-            rate = int(plays/decideTime)
-            #print(round(decideTime,2), 'seconds to decide', allLetters, score)
-            #print(plays, 'plays found,', rate, 'per second')
         start = time()
         results = list()
         amountToDisplay = 200
@@ -1460,6 +1454,16 @@ class PlayGUI(AnalysisGUI):
             self.update_board_colors(board)
             self.history.focus_set()
             self.save_board_colors()
+            #make the referee aware of which words are in the history (before selection)
+            words = list()
+            for iid in self.history.get_children():
+                txt = self.history.set(iid,'Word')
+                if txt != self.initialHist:
+                    words.append(txt)
+                if iid == self.historySelection:
+                    break
+            self.refPlayer.resetplayed(self.letters, words)
+            self.make_word_set()
         else:
             self.historyIgnore = False
 
