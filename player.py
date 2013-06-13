@@ -13,14 +13,25 @@
 
 from string import ascii_uppercase, digits
 from random import choice
+import os
+import sys
 
+def find_data_file(filename):
+    if getattr(sys, 'frozen', False):
+        # The application is frozen
+        datadir = os.path.dirname(sys.executable)
+    else:
+        # The application is not frozen
+        datadir = os.path.dirname(__file__)
+
+    return os.path.join(datadir, filename)
 
 class player0:
     def __init__(self, difficulty=['A',5,25,'S']): #this represents maximum difficulty
         '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
         self.difficulty = difficulty
-        listfile = open('en14.txt','r')
-        reducedfile = open('reduced.txt','r')
+        listfile = open(find_data_file('en14.txt'),'r')
+        reducedfile = open(find_data_file('reduced.txt'),'r')
         wordset = set()
         reducedset = set()
         for word in [word.upper().strip() for word in listfile]:
@@ -188,24 +199,30 @@ class player0:
         bluedef = reddef = 0
         ending = (bin(blue|red).count('1') == 25)
         dw = 2
+        uw = 1
         d = self.cache[allletters][2] #defended
         u = self.cache[allletters][3] #undefended
         bluescore = redscore = 0
+        vulnerableRed = 0
+        vulnerableBlue = 0
         for i in range(25): #check defended
             if blue & (1<<i):
                 if (blue & self.neighbors[i]) == self.neighbors[i]:
                     bluescore += (dw + d[i])
                     bluedef = bluedef | (1<<i)
                 else:
-                    bluescore += u[i]
+                    bluescore += (uw + u[i])
+                    vulnerableBlue |= (self.neighbors[i] & ~blue)
             if red & (1<<i):
                 if (red & self.neighbors[i]) == self.neighbors[i]:
                     redscore += (dw + d[i])
                     reddef = reddef | (1<<i)
                 else:
-                    redscore += u[i]
-        total = bluescore - redscore
-
+                    redscore += (uw + u[i])
+                    vulnerableRed |= (self.neighbors[i] & ~red)
+        vulnerableBlue = bin(vulnerableBlue).count('1')
+        vulnerableRed = bin(vulnerableRed).count('1')
+        total = bluescore - redscore - vulnerableBlue/5 + vulnerableRed/5
         if not ending:
             return round(total,2),bluedef,reddef
         else: #game over
@@ -407,9 +424,9 @@ class player0:
         #look at the highest scores, return first word that doesn't lose
         if self.difficulty[3] == 'S':  # this is how random difficulty is implemented
             if move == 1:
-                wordscores.sort(reverse=True)
+                wordscores.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
             else:
-                wordscores.sort()
+                wordscores.sort(key=lambda x: (x[0],-len(x[1])))
             play = 0
             for wordnum,(numScore,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
                 zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
@@ -441,6 +458,37 @@ class player0:
 
 
 class player1(player0):
-    pass
-
-
+    def evaluatepos(self, allletters, blue, red):
+        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
+        bluedef = reddef = 0
+        ending = (bin(blue|red).count('1') == 25)
+        dw = 2
+        uw = 1
+        d = self.cache[allletters][2] #defended
+        u = self.cache[allletters][3] #undefended
+        bluescore = redscore = 0
+        vulnerableRed = 0
+        vulnerableBlue = 0
+        for i in range(25): #check defended
+            if blue & (1<<i):
+                if (blue & self.neighbors[i]) == self.neighbors[i]:
+                    bluescore += (dw + d[i])
+                    bluedef = bluedef | (1<<i)
+                else:
+                    bluescore += (uw + u[i])
+                    vulnerableBlue |= (self.neighbors[i] & ~blue)
+            if red & (1<<i):
+                if (red & self.neighbors[i]) == self.neighbors[i]:
+                    redscore += (dw + d[i])
+                    reddef = reddef | (1<<i)
+                else:
+                    redscore += (uw + u[i])
+                    vulnerableRed |= (self.neighbors[i] & ~red)
+        vulnerableBlue = bin(vulnerableBlue).count('1')
+        vulnerableRed = bin(vulnerableRed).count('1')
+        total = bluescore - redscore - vulnerableBlue/2 + vulnerableRed/2
+        if not ending:
+            return round(total,2),bluedef,reddef
+        else: #game over
+            total = bin(blue).count('1') - bin(red).count('1')
+            return total * 1000,bluedef,reddef
