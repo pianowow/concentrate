@@ -10,6 +10,7 @@
 
 #simulate from the middle of the game, have score be an input (need a way to force the engine to choose different words first though)
 import os
+import sys
 
 print(os.getcwd())
 
@@ -18,8 +19,18 @@ from player import player0, player1
 from time import time
 from random import choice, shuffle, sample
 
+def find_data_file(filename):
+    if getattr(sys, 'frozen', False):
+        # The application is frozen
+        datadir = os.path.dirname(sys.executable)
+    else:
+        # The application is not frozen
+        # Change this bit to match where you store your data files:
+        datadir = os.path.dirname(__file__)
 
-listfile = open('en14.txt','r')
+    return os.path.join(datadir, filename)
+
+listfile = open(find_data_file('en14.txt'),'r')
 letterlist = list()
 for word in listfile:
     word = word.upper().strip()
@@ -111,6 +122,7 @@ def game(allletters='',player0blue=False):
     print(allletters,board)
     playedwords = list()
     bluePassed = redPassed = False
+    btime = rtime = 0
     while board.find('-') != -1:
         if turn == 'blue':
             start = time()
@@ -118,7 +130,9 @@ def game(allletters='',player0blue=False):
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             r.playword(allletters,word)
-            print('blue plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',round(time()-start,2),'seconds',score)
+            t = round(time() - start,2)
+            btime += t
+            print('blue plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',t,'seconds',score)
             if word == '':
                 bluePassed = True
             else:
@@ -130,6 +144,8 @@ def game(allletters='',player0blue=False):
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             b.playword(allletters,word)
+            t = round(time() - start,2)
+            rtime += t
             print(' red plays',word.ljust(25),board,len(playedwords),'blue:',blue+'('+blued+')','red:',red+'('+redd+')','time:',round(time()-start,2),'seconds',score)
             if word == '':
                 redPassed = True
@@ -140,19 +156,21 @@ def game(allletters='',player0blue=False):
             break
     if blue > red:
         print('Blue wins!')
-        return ('blue',len(playedwords))
+        return ('blue', len(playedwords), btime, rtime)
     elif red > blue:
         print('Red wins!')
-        return ('red',len(playedwords))
+        return ('red', len(playedwords), btime, rtime)
     else:
         print('Tie')
-        return ('', len(playedwords))
+        return ('', len(playedwords), btime, rtime)
 
 def both(allletters=''):
     if allletters == '':
         allletters = genletters()
-    g1res,g1len = game(allletters,True)
-    g2res,g2len = game(allletters,False)
+    g1res,g1len,b1time,r1time = game(allletters,True)
+    g2res,g2len,b2time,r2time = game(allletters,False)
+    p0time = b1time+r2time
+    p1time = r1time+b2time
     p0wins = 0
     p1wins = 0
     p0len = 0
@@ -177,22 +195,22 @@ def both(allletters=''):
         p1len += g2len
     if p0wins > p1wins:
         print('player0 won both games')
-        return (2,0,'player0')
+        return (2,0,'player0',p0time,p1time)
     elif p1wins > p0wins:
         print('player1 won both games')
-        return (0,2,'player1')
+        return (0,2,'player1',p0time,p1time)
     else:
         print('players tied 1-1')
         if p0len < p1len:
             print('however player0 won faster')
-            return (1,1,'player0')
+            return (1,1,'player0',p0time,p1time)
 
         elif p1len < p0len:
             print('however player1 won faster')
-            return (1,1,'player1')
+            return (1,1,'player1',p0time,p1time)
         else:
             print('they both played the same amount of moves to win')
-            return (1,1,'tie')
+            return (1,1,'tie',p0time,p1time)
 
 def tournament(matchcount):
     p0tot = 0
@@ -202,14 +220,17 @@ def tournament(matchcount):
     win0 = 0
     win1 = 0
     times = []
+    p0tottime = p1tottime = 0
     for x in range(1,matchcount+1):
         print()
         print('***********************   GAME '+str(x).zfill(4)+'   ***********************')
         print('  score: player0:',p0tot,'player1:',p1tot)
         print()
         strt = time()
-        w0,w1,res = both()
+        w0,w1,res,p0time,p1time = both()
         times.append(time()-strt)
+        p0tottime += p0time
+        p1tottime += p1time
         p0tot += w0
         p1tot += w1
         if w0 > w1:
@@ -234,6 +255,11 @@ def tournament(matchcount):
     else:
         print('tie: ',str(p0tot)+'-'+str(p1tot))
     print('ties:',ties, ' equal games:',equal,'player0 wins:',win0,' player1 wins:',win1)
+    print('player0 time used:',round(p0tottime,2),'player1 time used:',round(p1tottime,2))
+    if p0tottime > p1tottime:
+        print('player0 was',round((p0tottime-p1tottime)/p1tottime*100),'percent slower')
+    elif p0tottime < p1tottime:
+        print('player1 was',round((p1tottime-p0tottime)/p0tottime*100),'percent slower')
     print('average seconds per game:',round(sum(times)/len(times),2))
 
 
