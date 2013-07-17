@@ -137,6 +137,15 @@ class AnalysisGUI(Tk):
         self.player = AnalysisPlayer()
         self.menuBar = Menu(self, tearoff=0)
 
+        self.difficulty = StringVar()
+        self.difficulty.set('H')
+        self.maxWordSize = StringVar()
+        self.maxWordSize.set('25')
+        self.wordList= StringVar()
+        self.wordList.set('Reduced')
+        self.randomized= StringVar()
+        self.randomized.set('No')
+
         if self.sys == 'aqua':  # mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
             self.fileMenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
@@ -180,7 +189,7 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_cascade(label="Theme", underline=0, menu=self.themeMenu)
             self.optionsMenu.add_separator()
 
-            self.difficulty = StringVar()
+
             self.optionsMenu.add_radiobutton(label="Dunce", underline=0, variable=self.difficulty, value="R", command=self.change_difficulty, accelerator='Command-1')
             self.bind('<Command-Key-1>', lambda x: self.change_difficulty('R'))
             self.optionsMenu.add_radiobutton(label="Easy", underline=0, variable=self.difficulty, value="E", command=self.change_difficulty, accelerator='Command-2')
@@ -191,7 +200,9 @@ class AnalysisGUI(Tk):
             self.bind('<Command-Key-4>', lambda x: self.change_difficulty('H'))
             self.optionsMenu.add_radiobutton(label="Extreme", underline=1, variable=self.difficulty, value="X", command=self.change_difficulty, accelerator='Command-5')
             self.bind('<Command-Key-5>', lambda x: self.change_difficulty('X'))
-            self.difficulty.set('H')
+            self.optionsMenu.add_radiobutton(label="Custom...", underline=1, variable=self.difficulty, value="C", command=self.ask_custom_difficulty, accelerator='Command-6')
+            self.bind('<Command-Key-6>', lambda x: self.ask_custom_difficulty())
+
             self.optionsMenu.add_separator()
             self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1,
                                              command=self.blue_turn)
@@ -239,7 +250,6 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_cascade(label="Theme", underline=0, menu=self.themeMenu)
             self.optionsMenu.add_separator()
 
-            self.difficulty = StringVar()
             self.optionsMenu.add_radiobutton(label="Dunce", underline=0, variable=self.difficulty, value="R", command=self.change_difficulty, accelerator='Ctrl+1')
             self.bind('<Control-Key-1>', lambda x: self.change_difficulty('R'))
             self.optionsMenu.add_radiobutton(label="Easy", underline=0, variable=self.difficulty, value="E", command=self.change_difficulty, accelerator='Ctrl+2')
@@ -250,7 +260,8 @@ class AnalysisGUI(Tk):
             self.bind('<Control-Key-4>', lambda x: self.change_difficulty('H'))
             self.optionsMenu.add_radiobutton(label="Extreme", underline=1, variable=self.difficulty, value="X", command=self.change_difficulty, accelerator='Ctrl+5')
             self.bind('<Control-Key-5>', lambda x: self.change_difficulty('X'))
-            self.difficulty.set('H')
+            self.optionsMenu.add_radiobutton(label="Custom...", underline=1, variable=self.difficulty, value="C", command=self.ask_custom_difficulty, accelerator='Ctrl+6')
+            self.bind('<Control-Key-6>', lambda x: self.ask_custom_difficulty())
             self.optionsMenu.add_separator()
             self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value=1, command=self.blue_turn)
             self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value=-1, command=self.red_turn)
@@ -505,14 +516,73 @@ class AnalysisGUI(Tk):
         self.clear_search()
         if self.difficulty.get() == 'R':
             self.player.changedifficulty(['R', 5, 8, 'R'])
+            self.wordList.set('Reduced')
+            self.maxWordSize.set('8')
+            self.randomized.set('Yes')
         elif self.difficulty.get() == 'E':
             self.player.changedifficulty(['R', 5, 5, 'S'])
+            self.wordList.set('Reduced')
+            self.maxWordSize.set('5')
+            self.randomized.set('No')
         elif self.difficulty.get() == 'M':
             self.player.changedifficulty(['R', 5, 8, 'S'])
+            self.wordList.set('Reduced')
+            self.maxWordSize.set('8')
+            self.randomized.set('No')
         elif self.difficulty.get() == 'H':
             self.player.changedifficulty(['R', 5, 25, 'S'])
+            self.wordList.set('Reduced')
+            self.maxWordSize.set('25')
+            self.randomized.set('No')
         else:
             self.player.changedifficulty(['A', 5, 25, 'S'])
+            self.wordList.set('Full')
+            self.maxWordSize.set('25')
+            self.randomized.set('No')
+
+
+
+    def ask_custom_difficulty(self):
+        ask = self.ask = Toplevel(self)
+        ask.grab_set()
+        optionsFrame = ttk.Frame(ask)
+        optionsFrame.grid(row=0,column=0)
+        ttk.Label(optionsFrame, text='Word Size Limit:').grid(row=0,column=0)
+        sizeSelector = ttk.Combobox(optionsFrame, textvariable=self.maxWordSize,
+                                    values=['2', '3', '4', '5', '6',
+                                            '7', '8', '9', '10', '11', '12',
+                                            '13', '14', '15', '16', '17', '18',
+                                            '19', '20', '21', '22', '23', '24', '25'])
+        ttk.Label(optionsFrame, text='Word List:').grid(row=1,column=0)
+        listSelector = ttk.Combobox(optionsFrame, textvariable=self.wordList,
+                                    values = ['Reduced','Full'])
+        ttk.Label(optionsFrame, text='Randomize:').grid(row=2,column=0)
+        randomSelector = ttk.Combobox(optionsFrame, textvariable=self.randomized,
+                                    values = ['Yes','No'])
+        sizeSelector.grid(row=0,column=1)
+        listSelector.grid(row=1,column=1)
+        randomSelector.grid(row=2,column=1)
+
+        buttonFrame = ttk.Frame(ask)
+        buttonFrame.grid(row=1,column=0)
+        btnOK = ttk.Button(buttonFrame, text='OK', command=self.set_custom_difficulty)
+        btnOK.grid(row=0,column=0)
+
+
+    def set_custom_difficulty(self):
+        self.difficulty.set('C')
+        if self.wordList == 'Full':
+            wl = 'A'
+        else:
+            wl = 'R'
+        span = 5
+        ws = int(self.maxWordSize.get())
+        if self.randomized == 'Yes':
+            r = 'R'
+        else:
+            r = 'S'
+        self.player.changedifficulty([wl,span,ws,r])
+        self.ask.destroy()
 
     def canvas_draw(self, event=None):
         self.clear_search()
@@ -1577,4 +1647,4 @@ class PlayGUI(AnalysisGUI):
 
 
 if __name__ == '__main__':
-    PlayGUI().mainloop()
+    AnalysisGUI().mainloop()
