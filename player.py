@@ -460,7 +460,7 @@ class player1(player0):
         '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
         bluedef = reddef = 0
         ending = (bin(blue|red).count('1') == 25)
-        dw = 2
+        dw = 1.5
         uw = 1
         d = self.cache[allletters][2] #defended
         u = self.cache[allletters][3] #undefended
@@ -484,7 +484,7 @@ class player1(player0):
                     vulnerableRed |= (self.neighbors[i] & ~red)
         vulnerableBlue = bin(vulnerableBlue).count('1')
         vulnerableRed = bin(vulnerableRed).count('1')
-        total = bluescore - redscore - vulnerableBlue/2 + vulnerableRed/2
+        total = bluescore - redscore - vulnerableBlue/5 + vulnerableRed/5
         if not ending:
             return round(total,2),bluedef,reddef
         else: #game over
