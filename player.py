@@ -14,22 +14,12 @@ from random import choice
 import os
 import sys
 
-def find_data_file(filename):
-    if getattr(sys, 'frozen', False):
-        # The application is frozen
-        datadir = os.path.dirname(sys.executable)
-    else:
-        # The application is not frozen
-        datadir = os.path.dirname(__file__)
-
-    return os.path.join(datadir, filename)
-
 class player0:
     def __init__(self, difficulty=['A',5,25,'S']): #this represents maximum difficulty
         '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
         self.difficulty = difficulty
-        listfile = open(find_data_file('en14.txt'),'r')
-        reducedfile = open(find_data_file('reduced.txt'),'r')
+        listfile = open('en14.txt','r')
+        reducedfile = open('reduced.txt','r')
         wordset = set()
         reducedset = set()
         for word in [word.upper().strip() for word in listfile]:
@@ -227,12 +217,12 @@ class player0:
             total = bin(blue).count('1') - bin(red).count('1')
             return total * 1000,bluedef,reddef
 
-    def arrange(self,allletters,word,blue,red,targets,scores=[],used=[],move=1):
+    def arrange(self,allletters,word,blue,red,targets,scores=dict(),used=[],move=1):
         '''recursive function to determine the best placement of word'''
         if len(word) == 0:
             score,bluedef,reddef = self.evaluatepos(allletters,blue,red)
-            if (blue,red) not in ((x[1],x[2]) for x in scores):
-                scores.append((score,blue,red,bluedef,reddef))
+            if (blue,red) not in scores:
+                scores[(blue,red)] = (score,bluedef,reddef)
         else:
             l = word[0]
             listindex = list()
@@ -353,16 +343,16 @@ class player0:
                 self.cache[allletters+zeroletters] = gameendingwords
             wordgroups = tuple(self.groupwords(gameendingwords,anyl))
             for gameendingword in wordgroups:
-                scores = []
+                scores = dict()
                 used = []
                 self.arrange(allletters,gameendingword,blue,red,targets,scores,used,-move)
                 if move == 1:
-                    newscore = min(scores)[0]
+                    newscore = min(x[0] for x in scores.values())
                     if newscore < -999:
                         losing = True
                         break
                 else:
-                    newscore = max(scores)[0]
+                    newscore = max(x[0] for x in scores.values())
                     if newscore > 999:
                         losing = True
                         break
@@ -371,6 +361,17 @@ class player0:
         else:
             endingsoon = False
         return (zeroletters,endingsoon,losing,newscore)
+
+
+    def ply2(self, allletters, blue, red, bluedef, reddef, move):
+        rbscore = self.displayscore(blue,red,bluedef,reddef)
+        oppscores = self.decide(allletters, rbscore, '', -move)
+        if move == 1:
+            newscore = min(x[0] for x in oppscores)
+        else:
+            newscore = max(x[0] for x in oppscores)
+        return newscore
+
 
     def decide(self, allletters,score,needletters,move):
         '''judges the merit of possible words for this board'''
@@ -390,14 +391,11 @@ class player0:
         wordscores = list()
         for x,group in enumerate(wordgroups.keys()):
             #wordscore = [row[:] for row in board] #much faster than deepcopy!
-            scores = list() #scores formed by different arrangements of the same group  #TODO make this a set
+            scores = dict() #scores formed by different arrangements of the same group
+                            #entries of the form (red,blue):(score,bluedef,reddef)
             self.arrange(allletters,group,blue,red,targets,scores,[],move)
-            for play in scores:
-                playscore = play[0]
-                playblue = play[1]
-                playred = play[2]
-                playbluedef = play[3]
-                playreddef = play[4]
+            for playblue,playred in scores:
+                playscore, playbluedef, playreddef = scores[(playblue,playred)]
                 groupsize = len(wordgroups[group])
                 for word in wordgroups[group]:
                     wordscores.append((playscore,word,groupsize,playblue,playred,playbluedef,playreddef))
