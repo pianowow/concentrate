@@ -139,6 +139,8 @@ class AnalysisGUI(Tk):
 
         self.difficulty = StringVar()
         self.difficulty.set('H')
+        self.endGame = StringVar()
+        self.endGame.set('L') #other value will be '2' for 2 ply search
         self.maxWordSize = StringVar()
         self.maxWordSize.set('25')
         self.wordList= StringVar()
@@ -262,6 +264,11 @@ class AnalysisGUI(Tk):
             self.bind('<Control-Key-5>', lambda x: self.change_difficulty('X'))
             self.optionsMenu.add_radiobutton(label="Custom...", underline=1, variable=self.difficulty, value="C", command=self.ask_custom_difficulty, accelerator='Ctrl+6')
             self.bind('<Control-Key-6>', lambda x: self.ask_custom_difficulty())
+            self.optionsMenu.add_separator()
+            self.optionsMenu.add_radiobutton(label="Losing/Ending Check", underline=0, variable=self.endGame, value="L", accelerator='Ctrl+L')
+            self.bind('<Control-l>', lambda x: self.endGame.set("L"))
+            self.optionsMenu.add_radiobutton(label="Full 2-Ply Search", underline=0, variable=self.endGame, value="2", accelerator='Ctrl+F')
+            self.bind('<Control-f>', lambda x: self.endGame.set("2"))
             self.optionsMenu.add_separator()
             self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value=1, command=self.blue_turn)
             self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value=-1, command=self.red_turn)
@@ -1028,7 +1035,8 @@ class AnalysisGUI(Tk):
         #copy the word, board, and score to the end of the history treeview
         txt = self.suggest.set(item,'Word')
         score = self.suggest.set(item,'Score')
-        board = self.suggest.set(item,'Board')
+        #board = self.suggest.set(item,'Board')  #I got rid of this because I want to be able to change the play if necessary
+        board = ''.join(self.get_defended_color(row,col) for row in range(5) for col in range(5))
         #print('saving move:',txt,score,board)
         if self.move.get() == 1:
             insertID = self.history.insert('', 'end', tag='blue', values=(txt, score, board, self.letters))
@@ -1074,7 +1082,10 @@ class AnalysisGUI(Tk):
         needLetters = self.need.get().upper()
         self.player.possible(self.letters)
         self.player.resetplayed(self.letters, words)
-        wordList, more = self.player.search(self.letters, score, needLetters, self.move.get(), lastDisplayed)
+        if self.endGame.get() == 'L':
+            wordList, more = self.player.search(self.letters, score, needLetters, self.move.get(), lastDisplayed)
+        else:
+            wordList, more = self.player.search2(self.letters, score, needLetters, self.move.get(), lastDisplayed)
         for i, word in enumerate(wordList):
             if word[1][0] not in ascii_uppercase:
                 self.suggest.insert('', 'end', tag=word[1][0], values=(word[1][1:], word[0], word[2]))
@@ -1121,6 +1132,49 @@ class AnalysisPlayer(player0):
                     else:
                         results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
                         displayed += 1
+                elif displayed >= amountToDisplay:
+                    #print(round(time()-start,2),'seconds to endgame check')
+                    return results, True
+            #print(round(time()-start,2),'seconds to endgame check')
+            return results, False
+        else:
+            notDisplayed = [x for x in range(len(self.wordScores)) if x not in self.displayed]
+            if len(notDisplayed) > amountToDisplay:
+                lst = sample(notDisplayed, amountToDisplay)
+                for i in lst:
+                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                self.displayed += lst
+                return results, True
+            else:
+                lst = notDisplayed
+                for i in lst:
+                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                self.displayed += lst
+                return results, False
+
+    def search2(self, allLetters, score, needLetters, move, lastDisplayed):
+        """returns a list for the GUI to display, searches 2 plies"""
+        if lastDisplayed == -1:
+            self.wordScores = self.decide(allLetters, score, needLetters, move)
+            if self.difficulty[3] == 'S':
+                if move == 1:
+                    self.wordScores.sort(reverse=True)
+                else:
+                    self.wordScores.sort()
+            else:
+                self.displayed = list()
+        start = time()
+        results = list()
+        amountToDisplay = 50
+        displayed = 0
+        if self.difficulty[3] == 'S':
+            for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
+                if wordNum > lastDisplayed and displayed < amountToDisplay:
+                    newScore = self.ply2(allLetters, blue, red, blueDef, redDef, move)
+                    results.append((newScore, word, self.displayscore(blue, red, blueDef, redDef)))
+                    displayed += 1
                 elif displayed >= amountToDisplay:
                     #print(round(time()-start,2),'seconds to endgame check')
                     return results, True
