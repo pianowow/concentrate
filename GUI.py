@@ -1172,13 +1172,26 @@ class AnalysisPlayer(player0):
         if self.difficulty[3] == 'S':
             for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
                 if wordNum > lastDisplayed and displayed < amountToDisplay:
-                    newScore = self.ply2(allLetters, blue, red, blueDef, redDef, move)
+                    if abs(score) < 1000:
+                        self.playword(allLetters,word)
+                        newScore = self.ply2(allLetters, blue, red, blueDef, redDef, move)
+                        self.unplayword(allLetters,word)
+                    else:
+                        newScore = score
                     results.append((newScore, word, self.displayscore(blue, red, blueDef, redDef)))
                     displayed += 1
                 elif displayed >= amountToDisplay:
                     #print(round(time()-start,2),'seconds to endgame check')
+                    if move == 1:
+                        results.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
+                    else:
+                        results.sort(key=lambda x: (x[0],-len(x[1])))
                     return results, True
             #print(round(time()-start,2),'seconds to endgame check')
+            if move == 1:
+                results.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
+            else:
+                results.sort(key=lambda x: (x[0],-len(x[1])))
             return results, False
         else:
             notDisplayed = [x for x in range(len(self.wordScores)) if x not in self.displayed]
