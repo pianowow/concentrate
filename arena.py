@@ -103,14 +103,14 @@ def game(allletters='',player0blue=False):
         allletters = genletters()
     allletters = allletters.upper()
     if player0blue:
-        b = player0(['R',5,25,'S'])
+        b = player0(['A',5,25,'S'])
         print('player0 plays blue')
-        r = player1(['R',5,25,'S'])
+        r = player1(['A',5,25,'S'])
         print('player1 plays red')
     else:
-        b = player1(['R',5,25,'S'])
+        b = player1(['A',5,25,'S'])
         print('player1 plays blue')
-        r = player0(['R',5,25,'S'])
+        r = player0(['A',5,25,'S'])
         print('player0 plays red')
 
     b.cache = dict()
