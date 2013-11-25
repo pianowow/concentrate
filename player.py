@@ -365,11 +365,13 @@ class player0:
 
     def ply2(self, allletters, blue, red, bluedef, reddef, move):
         rbscore = self.displayscore(blue,red,bluedef,reddef)
-        oppscores = self.decide(allletters, rbscore, '', -move)
+        newrbscore = rbscore.replace(' ','').upper()
+        oppscores = self.decide(allletters, newrbscore, '', -move)
         if move == 1:
             newscore = min(x[0] for x in oppscores)
         else:
             newscore = max(x[0] for x in oppscores)
+        #print(rbscore,newscore)
         return newscore
 
 
@@ -406,6 +408,10 @@ class player0:
 
     def resetplayed(self, allletters, words):
         self.cache[allletters][1] = words
+
+    def unplayword(self, allletters, word):
+        if word in self.cache[allletters][1]:
+            self.cache[allletters][1].remove(word)
 
     def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww', move=1):
         '''displays results of decide'''
@@ -454,37 +460,66 @@ class player0:
 
 
 class player1(player0):
-    def evaluatepos(self, allletters, blue, red):
-        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
-        bluedef = reddef = 0
-        ending = (bin(blue|red).count('1') == 25)
-        dw = 1.5
-        uw = 1
-        d = self.cache[allletters][2] #defended
-        u = self.cache[allletters][3] #undefended
-        bluescore = redscore = 0
-        vulnerableRed = 0
-        vulnerableBlue = 0
-        for i in range(25): #check defended
-            if blue & (1<<i):
-                if (blue & self.neighbors[i]) == self.neighbors[i]:
-                    bluescore += (dw + d[i])
-                    bluedef = bluedef | (1<<i)
-                else:
-                    bluescore += (uw + u[i])
-                    vulnerableBlue |= (self.neighbors[i] & ~blue)
-            if red & (1<<i):
-                if (red & self.neighbors[i]) == self.neighbors[i]:
-                    redscore += (dw + d[i])
-                    reddef = reddef | (1<<i)
-                else:
-                    redscore += (uw + u[i])
-                    vulnerableRed |= (self.neighbors[i] & ~red)
-        vulnerableBlue = bin(vulnerableBlue).count('1')
-        vulnerableRed = bin(vulnerableRed).count('1')
-        total = bluescore - redscore - vulnerableBlue/5 + vulnerableRed/5
-        if not ending:
-            return round(total,2),bluedef,reddef
-        else: #game over
-            total = bin(blue).count('1') - bin(red).count('1')
-            return total * 1000,bluedef,reddef
+    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww', move=1):
+        '''displays results of decide'''
+        allletters = allletters.upper()
+        score = score.upper()
+        score = score.replace(' ','')
+        if len(allletters) != 25:
+            raise ValueError('allletters must be 25 letters')
+
+        wordscores = self.decide(allletters,score,'',move)
+
+        #look at the highest 50 scores, return best one
+        if self.difficulty[3] == 'S':  # this is how random difficulty is implemented
+            maximum = 50
+            if move == 1:
+                wordscores.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
+                maxNewScore = -1000000
+                wordnum = play = 0
+                while wordnum < min(maximum,len(wordscores)):
+                    (numScore,word,groupsize,blue,red,bluedef,reddef) = wordscores[wordnum]
+                    if numScore >= 1000:
+                        play = wordnum
+                        break
+                    self.playword(allletters,word)
+                    newScore = self.ply2(allletters,blue,red,bluedef,reddef,move)
+                    self.unplayword(allletters,word)
+                    if newScore > maxNewScore:
+                        maxNewScore = newScore
+                        play = wordnum
+##                    if wordnum == maximum - 1:
+##                        if minNewScore <= -1000:
+##                            max += 50
+                    wordnum += 1
+                print(play+1)
+            else:
+                wordscores.sort(key=lambda x: (x[0],-len(x[1])))
+                minNewScore = 1000000
+                wordnum = play = 0
+                while wordnum < min(maximum,len(wordscores)):
+                    (numScore,word,groupsize,blue,red,bluedef,reddef) = wordscores[wordnum]
+                    if numScore <= -1000:
+                        play = wordnum
+                        break
+                    newScore = self.ply2(allletters,blue,red,bluedef,reddef,move)
+                    if newScore < minNewScore:
+                        minNewScore = newScore
+                        play = wordnum
+##                    if wordnum == maximum - 1:
+##                        if minNewScore >= 1000:
+##                            max += 50
+                    wordnum += 1
+                print(play+1)
+        else:
+            play = choice(range(len(wordscores)))
+        if len(wordscores) > 0:
+            word = wordscores[play][1]
+            board = self.displayscore(wordscores[play][3],wordscores[play][4],wordscores[play][5],wordscores[play][6])
+            numScore = wordscores[play][0]
+            self.playword(allletters,word)
+            return word,board,numScore
+        else:
+            blue, red, bluedef, reddef = self.convertboardscore(score)
+            numScore, bluedef, reddef = self.evaluatepos(allletters, blue, red)
+            return '', self.displayscore(blue, red, bluedef, reddef), numScore
