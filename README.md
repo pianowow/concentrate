@@ -23,7 +23,7 @@ The five difficulty settings: Dunce, Easy, Medium, Hard, Extreme.  Extreme alway
   You play blue, Concentrate plays red.  Click letters to form a word, and press the Play button.  Press the pass button to pass.  Select a word in the game history to continue from that point in the game (a way to take back a move).
   - Analyze mode  
   Typing when the board is selected allows you to change the board.  Clicking a square on the board changes the color of that board.  
-  Click the search button with the search box blank to show the best 200 words in the results box.  If you type letters in the search box and search, only words with those letters will appear in the search box.  
+  Click the search button with the search box blank to show the best 200 words in the results box.  If you type letters in the search box and search, only words with those letters will appear in the search box.  Typing "-" before a group of letters allows for the exclusion of those letters from the search.
   Note: only words which can change the score are shown.  And, if a word can be played multiple ways, only ways which change the score the most are displayed.  For example, if there are two Ts, but one is defended, TOP will be shown with only the T that is undefended.  
 
 
