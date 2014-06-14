@@ -7,28 +7,26 @@
 # Created:     31/03/2013
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
+#TODO
+#Under-the-hood view.  heat map of defended and undefended values
 
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import ttk
-from player import player0
-from time import time
+from player import player0, player1
 from string import ascii_uppercase
 from random import choice, sample
-from os import path
+from os import path, getcwd, sep
+from time import time
 import arena
 import pickle
-
+import logging
 
 class AnalysisGUI(Tk):
 
     def __init__(self, *args, **kwargs):
         Tk.__init__(self)
-
-        #not working correctly TODO
-##        img = PhotoImage('concentrate.gif')
-##        self.tk.call('wm', 'iconphoto', self._w, img)
 
         dct = kwargs.get('dct',dict())
 
@@ -47,7 +45,8 @@ class AnalysisGUI(Tk):
         self.titleSeparator = ' - '
 
         #default theme is 'light'
-        self.defaultColor = '#%02x%02x%02x' % (240, 240, 240)  # different from iOS app
+        self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
+        self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
         self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
         self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
         self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
@@ -135,7 +134,8 @@ class AnalysisGUI(Tk):
         self.theme = IntVar()
         self.theme.set(0)
         self.player = AnalysisPlayer()
-        self.menuBar = Menu(self, tearoff=0)
+        self.player_version = 0
+
 
         self.difficulty = StringVar()
         self.difficulty.set('H')
@@ -147,6 +147,30 @@ class AnalysisGUI(Tk):
         self.wordList.set('Reduced')
         self.randomized= StringVar()
         self.randomized.set('No')
+
+        mydir = getcwd()
+        iconfile = 'concentrate.ico'
+        self.iconbitmap(mydir+sep+iconfile)  #finally this works on windows!  #TODO: check mac
+
+        self.draw_menu()
+
+        self.bind('<Return>',self.do_search)
+        self.canvas_draw()
+        self.boardColors = 'w'*25
+
+        if self.themeName != '':
+            self.change_theme(self.themeName)
+
+        #restore from dct passed in
+        if dct != dict():
+            self.restore_from_dict(dct)
+
+        self.notBusyWidgetCursors = dict() #for busy and notbusy
+        self.board.focus_set()
+
+    def draw_menu(self):
+
+        self.menuBar = Menu(self, tearoff=0)
 
         if self.sys == 'aqua':  # mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
@@ -161,7 +185,6 @@ class AnalysisGUI(Tk):
             self.menuBar.add_cascade(label="Concentrate", underline=0, menu=self.fileMenu)
 
             self.boardMenu = Menu(self.menuBar, tearoff=0)
-
             self.boardMenu.add_command(label="Empty Board",  command=self.canvas_draw, accelerator='Command-E')
             self.bind('<Command-e>',self.canvas_draw)
             self.boardMenu.add_command(label="White Board", command=self.white_board, accelerator='Command-W')
@@ -217,6 +240,19 @@ class AnalysisGUI(Tk):
             self.bind('<Control-n>',self.new)
             self.fileMenu.add_command(label="Open...", underline=0, command=self.open, accelerator='Ctrl+O')
             self.bind('<Control-o>',self.open)
+
+            self.recentMenu= Menu(self.fileMenu, tearoff=0)
+
+            currentlyopen = self.file
+            f = open('recent.ccd','rb')
+            gqueue = pickle.load(f)
+            f.close()
+            while gqueue != []:
+                nextfile = gqueue.pop() #take from the end of the list and add to the top of the menu
+                self.recentMenu.add_command(label=nextfile, command=self.make_opener(nextfile))
+
+            self.fileMenu.add_cascade(label="Recent", underline=0, menu=self.recentMenu)
+
             self.fileMenu.add_command(label="Save",underline=0, command=self.save, accelerator='Ctrl+S')
             self.bind('<Control-s>',self.save)
             self.fileMenu.add_command(label="Save As...", underline=5, command=self.save_as, accelerator='Ctrl+A')
@@ -239,6 +275,8 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_command(label="Play Against Concentrate", underline=0, command=self.play_against, accelerator='Tab')
             self.bind('<Tab>',self.play_against)
             self.optionsMenu.add_separator()
+
+            self.bind('<Control-p>',self.change_player_version)
 
             self.themeMenu= Menu(self.optionsMenu, tearoff=0)
             self.themeMenu.add_radiobutton(label="Light", underline=0, variable=self.theme, value=0, command=lambda: self.change_theme('light'))
@@ -274,22 +312,8 @@ class AnalysisGUI(Tk):
             self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value=-1, command=self.red_turn)
             self.menuBar.add_cascade(label="Options", underline=0, menu=self.optionsMenu)
 
-        self.bind('<Return>',self.do_search)
-
         # display the menu
         self.config(menu=self.menuBar)
-        self.canvas_draw()
-        self.boardColors = 'w'*25
-
-        if self.themeName != '':
-            self.change_theme(self.themeName)
-
-        #restore from dct passed in
-        if dct != dict():
-            self.restore_from_dict(dct)
-
-        self.notBusyWidgetCursors = dict() #for busy and notbusy
-        self.board.focus_set()
 
     def update_score_display(self):
         bScore = 0
@@ -305,12 +329,12 @@ class AnalysisGUI(Tk):
         self.redScore.config(text=str(rScore))
 
 
-
     def change_theme(self, theme):
         self.save_board_colors()
         if theme == 'light':
             self.theme.set(0)
-            self.defaultColor = '#%02x%02x%02x' % (240, 240, 240)  # different from iOS app
+            self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
+            self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
             self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
             self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
             self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
@@ -321,7 +345,8 @@ class AnalysisGUI(Tk):
             self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
         elif theme == 'dark':
             self.theme.set(3)
-            self.defaultColor = '#%02x%02x%02x' % (57, 57, 57)
+            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
+            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
             self.blue= ('#%02x%02x%02x' % (24, 117, 152), '#%02x%02x%02x' % (0, 186, 255))
             self.red = ('#%02x%02x%02x' % (152, 58, 48), '#%02x%02x%02x' % (255, 67, 47))
             self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
@@ -332,7 +357,8 @@ class AnalysisGUI(Tk):
             self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
         elif theme == 'contrast':
             self.theme.set(7)
-            self.defaultColor = '#%02x%02x%02x' % (240, 240, 240)  # different from iOS app
+            self.defaultColor = '#%02x%02x%02x' % (247, 247, 247)
+            self.defaultColor2 = '#%02x%02x%02x' % (244, 244, 244)
             self.blue= ('#%02x%02x%02x' % (143, 255, 127), '#%02x%02x%02x' % (32, 255, 0))
             self.red = ('#%02x%02x%02x' % (127, 127, 127), '#%02x%02x%02x' % (0, 0, 0))
             self.defaultText= '#%02x%02x%02x' % (48, 48, 48)
@@ -343,7 +369,8 @@ class AnalysisGUI(Tk):
             self.selectedDefault = '#%02x%02x%02x' % (228, 228, 228)
         elif theme == 'forest':
             self.theme.set(4)
-            self.defaultColor = '#%02x%02x%02x' % (215, 221, 207)
+            self.defaultColor = '#%02x%02x%02x' % (217, 223, 209)
+            self.defaultColor2 = '#%02x%02x%02x' % (215, 221, 207)
             self.blue= ('#%02x%02x%02x' % (239, 193, 108), '#%02x%02x%02x' % (255, 156, 0))
             self.red = ('#%02x%02x%02x' % (122, 164, 137), '#%02x%02x%02x' % (21, 99, 59))
             self.defaultText= '#%02x%02x%02x' % (43, 44, 41)
@@ -354,7 +381,8 @@ class AnalysisGUI(Tk):
             self.selectedDefault = '#%02x%02x%02x' % (199, 207, 108)
         elif theme == 'glow':
             self.theme.set(5)
-            self.defaultColor = '#%02x%02x%02x' % (57, 57, 57)
+            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
+            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
             self.blue= ('#%02x%02x%02x' % (73, 152, 119), '#%02x%02x%02x' % (97, 255, 190))
             self.red = ('#%02x%02x%02x' % (141, 24, 77), '#%02x%02x%02x' % (234, 0, 105))
             self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
@@ -365,7 +393,8 @@ class AnalysisGUI(Tk):
             self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
         elif theme == 'pink':
             self.theme.set(6)
-            self.defaultColor = '#%02x%02x%02x' % (245, 215, 227)
+            self.defaultColor = '#%02x%02x%02x' % (247, 217, 230)
+            self.defaultColor2 = '#%02x%02x%02x' % (245, 215, 227)
             self.blue= ('#%02x%02x%02x' % (255, 112, 232), '#%02x%02x%02x' % (255, 0, 228))
             self.red = ('#%02x%02x%02x' % (171, 140, 142), '#%02x%02x%02x' % (87, 56, 47))
             self.defaultText= '#%02x%02x%02x' % (48, 43, 45)
@@ -376,7 +405,8 @@ class AnalysisGUI(Tk):
             self.selectedDefault = '#%02x%02x%02x' % (238, 189, 208)
         elif theme == 'pop':
             self.theme.set(1)
-            self.defaultColor = '#%02x%02x%02x' % (57, 57, 57)
+            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
+            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
             self.blue= ('#%02x%02x%02x' % (87, 152, 24), '#%02x%02x%02x' % (126, 255, 0))
             self.red = ('#%02x%02x%02x' % (152, 24, 123), '#%02x%02x%02x' % (255, 0, 198))
             self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
@@ -387,7 +417,8 @@ class AnalysisGUI(Tk):
             self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
         elif theme == 'retro':
             self.theme.set(2)
-            self.defaultColor = '#%02x%02x%02x' % (241, 226, 189)
+            self.defaultColor = '#%02x%02x%02x' % (243, 228, 191)
+            self.defaultColor2 = '#%02x%02x%02x' % (241, 226, 189)
             self.blue= ('#%02x%02x%02x' % (195, 136, 226), '#%02x%02x%02x' % (140, 37, 255))
             self.red = ('#%02x%02x%02x' % (244, 166, 133), '#%02x%02x%02x' % (237, 97, 70))
             self.defaultText= '#%02x%02x%02x' % (48, 45, 37)
@@ -443,6 +474,11 @@ class AnalysisGUI(Tk):
         """presents file dialog box for selecting one file.  loads data to the board and history"""
         fn = filedialog.askopenfilename(filetypes=[('Concentrate Game Document', '.cgd')])
         if fn != '':
+            opener = self.make_opener(fn)
+            opener()
+
+    def make_opener(self,fn):
+        def opener():
             self.canvas_draw()
             self.file = fn
             f = open(self.file,'rb')
@@ -450,6 +486,9 @@ class AnalysisGUI(Tk):
             f.close()
             self.restore_from_dict(dct)
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
+            self.save_recent_files()
+            self.draw_menu()
+        return opener
 
     def make_save_dict(self):
         saveDict = dict()
@@ -479,25 +518,44 @@ class AnalysisGUI(Tk):
             fn += '.cgd'
         return fn
 
+    def save_recent_files(self):
+        f = open('recent.ccd','rb')
+        gqueue = pickle.load(f) #list of filenames with paths... oldest first
+        f.close()
+        if self.file not in gqueue:
+            gqueue.append(self.file) #add this file to the end
+        else:
+            gqueue.remove(self.file)
+            gqueue.append(self.file) #move this file to the end
+        if len(gqueue) > 12:
+            gqueue = gqueue[1:]
+        f = open('recent.ccd','wb')
+        pickle.dump(gqueue,f)
+        f.close()
+
+
     def save(self,event=None):
         """loops over the history and saves to the current open file"""
         if self.file == '':
             fn = filedialog.asksaveasfilename(filetypes=[('Concentrate Game Document', '.cgd')])
-            if fn != '': #pressed cancel on the dialog
+            if fn != '': #didn't press cancel on the dialog
                 self.file = fn
                 self.file = self.file_name_check(self.file)
+                print(self.file)
                 f = open(self.file,'wb')
                 saveDict = self.make_save_dict()
                 pickle.dump(saveDict,f)
                 self.title(self.titleText+self.titleSeparator+path.basename(self.file))
                 f.close()
-                self.title(self.titleText+self.titleSeparator+path.basename(self.file))
+                self.save_recent_files()
+                self.draw_menu()
         else:
             f = open(self.file,'wb')
             saveDict = self.make_save_dict()
             pickle.dump(saveDict,f)
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
             f.close()
+
 
     def save_as(self,event=None):
         """loops over the history and presents the file save dialog box"""
@@ -507,6 +565,8 @@ class AnalysisGUI(Tk):
             self.file = self.file_name_check(self.file)
             self.save()
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
+            self.save_recent_files()
+            self.draw_menu()
 
     def blue_turn(self,event=None):
         self.move.set(1)
@@ -546,7 +606,7 @@ class AnalysisGUI(Tk):
             self.wordList.set('Full')
             self.maxWordSize.set('25')
             self.randomized.set('No')
-
+        print(self.player.difficulty, self.player.name)
 
 
     def ask_custom_difficulty(self):
@@ -615,7 +675,11 @@ class AnalysisGUI(Tk):
                 left = col * self.squareSize + 1
                 bottom = row * self.squareSize + self.squareSize
                 right = col * self.squareSize + self.squareSize
-                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill=self.defaultColor)
+                #rect = self.board.reate_rectangle(left,top,right,bottom,outline='gray',fill=self.defaultColor)
+                if (row+col)%2==0:
+                    rect = self.board.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=self.defaultColor)
+                else:
+                    rect =self.board.create_rectangle(left,top,right,bottom,outline=self.defaultColor2,fill=self.defaultColor2)
                 text = self.board.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
                 self.boardStuff[row][col] = (rect,text)
         self.board.focus_set()
@@ -790,28 +854,31 @@ class AnalysisGUI(Tk):
             if nRow in range(5) and nCol in range(5):
                 nColors.add(self.get_color(nRow, nCol))
             if 'B' not in nColors and 'W' not in nColors:
-                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[1])
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[1], outline=self.red[1])
                 self.board.itemconfig(self.boardStuff[row][col][1], fill=self.redText[1])
             elif 'R' not in nColors and 'W' not in nColors:
-                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[1])
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[1], outline=self.blue[1])
                 self.board.itemconfig(self.boardStuff[row][col][1], fill=self.blueText[1])
             else:
                 if myColor == 'B':
-                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0], outline=self.blue[0])
                     self.board.itemconfig(self.boardStuff[row][col][1], fill=self.blueText[0])
                 elif myColor == 'R':
-                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0], outline=self.red[0])
                     self.board.itemconfig(self.boardStuff[row][col][1], fill=self.redText[0])
 
     def update_colors(self, row, col, color):
         if color == 'blue':
-            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
+            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0], outline=self.blue[0])
             self.board.itemconfig(self.boardStuff[row][col][1], fill=self.blueText[0])
         elif color == 'red':
-            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
+            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0], outline=self.red[0])
             self.board.itemconfig(self.boardStuff[row][col][1], fill=self.redText[0])
         else:
-            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.defaultColor)
+            if (row+col)%2==0:
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.defaultColor, outline=self.defaultColor)
+            else:
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.defaultColor2, outline=self.defaultColor2)
             self.board.itemconfig(self.boardStuff[row][col][1], fill=self.defaultText)
 
         #check if I am defended
@@ -827,7 +894,7 @@ class AnalysisGUI(Tk):
         (row, col) = self.get_row_col(event.x, event.y)
         self.select_square(row,col)
         color = self.board.itemcget(self.boardStuff[row][col][0], 'fill')
-        if color == self.defaultColor:
+        if color in (self.defaultColor, self.defaultColor2):
             self.update_colors(row,col,'blue')
         elif color in self.blue:
             self.update_colors(row,col,'red')
@@ -839,7 +906,8 @@ class AnalysisGUI(Tk):
         self.selected = (selectRow,selectCol)
         for row in range(5):
             for col in range(5):
-                self.board.itemconfig(self.boardStuff[row][col][0], outline='gray')
+                color = self.board.itemcget(self.boardStuff[row][col][0], 'fill')
+                self.board.itemconfig(self.boardStuff[row][col][0], outline=color)
         self.board.itemconfig(self.boardStuff[selectRow][selectCol][0], outline='black')
 
     def busy(self, widget=None):
@@ -908,7 +976,10 @@ class AnalysisGUI(Tk):
                 i = row*5+col
                 l = newBoard[i]
                 s = selected[i] == 'Y'
-                bgColor = self.defaultColor
+                if (row+col)%2==0:
+                    bgColor = self.defaultColor
+                else:
+                    bgColor = self.defaultColor2
                 if s:
                     txtColor = self.selectedDefault
                 else:
@@ -937,7 +1008,7 @@ class AnalysisGUI(Tk):
                         txtColor = self.selectedRed[1]
                     else:
                         txtColor = self.redText[1]
-                self.board.itemconfig(self.boardStuff[row][col][0],fill=bgColor)
+                self.board.itemconfig(self.boardStuff[row][col][0],fill=bgColor,outline=bgColor)
                 self.board.itemconfig(self.boardStuff[row][col][1],fill=txtColor)
         self.update_score_display()
 
@@ -1079,13 +1150,26 @@ class AnalysisGUI(Tk):
                 words.append(txt)
             if iid == self.historySelection:
                 break
-        needLetters = self.need.get().upper()
+        searchtxt = self.need.get().upper()
+        if '-' in searchtxt:  #notLetters
+            searchtxt = searchtxt.replace(' ', '')
+            pos = searchtxt.index('-')
+            print(searchtxt,pos)
+            print(searchtxt[:pos])
+            print(searchtxt[pos+1:])
+            needLetters = searchtxt[:pos]
+            notLetters = searchtxt[pos+1:]
+        else:
+            needLetters = self.need.get().upper()
+            notLetters = ''
         self.player.possible(self.letters)
         self.player.resetplayed(self.letters, words)
+        beg = time()
         if self.endGame.get() == 'L':
-            wordList, more = self.player.search(self.letters, score, needLetters, self.move.get(), lastDisplayed)
+            wordList, more = self.player.search(self.letters, score, needLetters, notLetters, self.move.get(), lastDisplayed)
         else:
-            wordList, more = self.player.search2(self.letters, score, needLetters, self.move.get(), lastDisplayed)
+            wordList, more = self.player.search2(self.letters, score, needLetters, notLetters, self.move.get(), lastDisplayed)
+        print(time()-beg,'seconds')
         for i, word in enumerate(wordList):
             if word[1][0] not in ascii_uppercase:
                 self.suggest.insert('', 'end', tag=word[1][0], values=(word[1][1:], word[0], word[2]))
@@ -1099,15 +1183,26 @@ class AnalysisGUI(Tk):
             self.suggest.see(self.suggest.get_children()[0])
         self.not_busy()
 
+    def change_player_version(self, event):
+        if self.player_version == 0:
+            self.player= AnalysisPlayer1()
+            self.player_version= 1
+            self.change_difficulty()
+        else:
+            self.player = AnalysisPlayer()
+            self.player_version=0
+            self.change_difficulty()
+
+
 
 class AnalysisPlayer(player0):
     def __init__(self, difficulty=['R', 5, 25, 'S']):
         player0.__init__(self, difficulty)
 
-    def search(self, allLetters, score, needLetters, move, lastDisplayed):
+    def search(self, allLetters, score, needLetters, notLetters, move, lastDisplayed):
         """returns a list for the GUI to display"""
         if lastDisplayed == -1:
-            self.wordScores = self.decide(allLetters, score, needLetters, move)
+            self.wordScores = self.decide(allLetters, score, needLetters, notLetters, move)
             if self.difficulty[3] == 'S':
                 if move == 1:
                     self.wordScores.sort(reverse=True)
@@ -1115,7 +1210,6 @@ class AnalysisPlayer(player0):
                     self.wordScores.sort()
             else:
                 self.displayed = list()
-        start = time()
         results = list()
         amountToDisplay = 200
         displayed = 0
@@ -1133,9 +1227,7 @@ class AnalysisPlayer(player0):
                         results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
                         displayed += 1
                 elif displayed >= amountToDisplay:
-                    #print(round(time()-start,2),'seconds to endgame check')
                     return results, True
-            #print(round(time()-start,2),'seconds to endgame check')
             return results, False
         else:
             notDisplayed = [x for x in range(len(self.wordScores)) if x not in self.displayed]
@@ -1154,10 +1246,10 @@ class AnalysisPlayer(player0):
                 self.displayed += lst
                 return results, False
 
-    def search2(self, allLetters, score, needLetters, move, lastDisplayed):
+    def search2(self, allLetters, score, needLetters, notLetters, move, lastDisplayed):
         """returns a list for the GUI to display, searches 2 plies"""
         if lastDisplayed == -1:
-            self.wordScores = self.decide(allLetters, score, needLetters, move)
+            self.wordScores = self.decide(allLetters, score, needLetters, notLetters, move)
             if self.difficulty[3] == 'S':
                 if move == 1:
                     self.wordScores.sort(reverse=True)
@@ -1165,7 +1257,6 @@ class AnalysisPlayer(player0):
                     self.wordScores.sort()
             else:
                 self.displayed = list()
-        start = time()
         results = list()
         amountToDisplay = 50
         displayed = 0
@@ -1181,13 +1272,119 @@ class AnalysisPlayer(player0):
                     results.append((newScore, word, self.displayscore(blue, red, blueDef, redDef)))
                     displayed += 1
                 elif displayed >= amountToDisplay:
-                    #print(round(time()-start,2),'seconds to endgame check')
                     if move == 1:
                         results.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
                     else:
                         results.sort(key=lambda x: (x[0],-len(x[1])))
                     return results, True
-            #print(round(time()-start,2),'seconds to endgame check')
+            if move == 1:
+                results.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
+            else:
+                results.sort(key=lambda x: (x[0],-len(x[1])))
+            return results, False
+        else:
+            notDisplayed = [x for x in range(len(self.wordScores)) if x not in self.displayed]
+            if len(notDisplayed) > amountToDisplay:
+                lst = sample(notDisplayed, amountToDisplay)
+                for i in lst:
+                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                self.displayed += lst
+                return results, True
+            else:
+                lst = notDisplayed
+                for i in lst:
+                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                self.displayed += lst
+                return results, False
+
+
+
+
+class AnalysisPlayer1(player1):
+    def __init__(self, difficulty=['R', 5, 25, 'S']):
+        player1.__init__(self, difficulty)
+        self.logger = logging.getLogger('GUI')
+
+    def search(self, allLetters, score, needLetters, notLetters, move, lastDisplayed):
+        """returns a list for the GUI to display"""
+        if lastDisplayed == -1:
+            self.wordScores = self.decide(allLetters, score, needLetters, notLetters, move)
+            if self.difficulty[3] == 'S':
+                if move == 1:
+                    self.wordScores.sort(reverse=True)
+                else:
+                    self.wordScores.sort()
+            else:
+                self.displayed = list()
+        results = list()
+        amountToDisplay = 200
+        displayed = 0
+        if self.difficulty[3] == 'S':
+            for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
+                if wordNum > lastDisplayed and displayed < amountToDisplay:
+                    zeroLetters,endingSoon, losing, newScore = self.endgamecheck(allLetters, blue, red, blueDef, redDef, move)
+                    if losing:  # endgame check found a way for opponent to win
+                        results.append((score, '-'+word, self.displayscore(blue, red, blueDef, redDef)))
+                        displayed += 1
+                    elif endingSoon:  # endgame check only found way for opponent to end game, but not win
+                        results.append((score, '*'+word, self.displayscore(blue, red, blueDef, redDef)))
+                        displayed += 1
+                    else:
+                        results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                        displayed += 1
+                elif displayed >= amountToDisplay:
+                    return results, True
+            return results, False
+        else:
+            notDisplayed = [x for x in range(len(self.wordScores)) if x not in self.displayed]
+            if len(notDisplayed) > amountToDisplay:
+                lst = sample(notDisplayed, amountToDisplay)
+                for i in lst:
+                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                self.displayed += lst
+                return results, True
+            else:
+                lst = notDisplayed
+                for i in lst:
+                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                self.displayed += lst
+                return results, False
+
+    def search2(self, allLetters, score, needLetters, notLetters, move, lastDisplayed):
+        """returns a list for the GUI to display, searches 2 plies"""
+        if lastDisplayed == -1:
+            self.wordScores = self.decide(allLetters, score, needLetters, notLetters, move)
+            if self.difficulty[3] == 'S':
+                if move == 1:
+                    self.wordScores.sort(reverse=True)
+                else:
+                    self.wordScores.sort()
+            else:
+                self.displayed = list()
+        results = list()
+        amountToDisplay = 50
+        displayed = 0
+        if self.difficulty[3] == 'S':
+            for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
+                if wordNum > lastDisplayed and displayed < amountToDisplay:
+                    if abs(score) < 1000:
+                        self.playword(allLetters,word)
+                        newScore = self.ply2(allLetters, blue, red, blueDef, redDef, move)
+                        self.unplayword(allLetters,word)
+                    else:
+                        newScore = score
+                    results.append((newScore, word, self.displayscore(blue, red, blueDef, redDef)))
+                    displayed += 1
+                elif displayed >= amountToDisplay:
+                    if move == 1:
+                        results.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
+                    else:
+                        results.sort(key=lambda x: (x[0],-len(x[1])))
+                    return results, True
             if move == 1:
                 results.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
             else:
@@ -1218,10 +1415,6 @@ class PlayGUI(AnalysisGUI):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self)
 
-        #not working correctly TODO
-##        img = PhotoImage('concentrate2.gif')
-##        self.tk.call('wm', 'iconphoto', self._w, img)
-
         dct = kwargs.get('dct',dict())
 
         self.file = kwargs.get('file','')
@@ -1237,14 +1430,13 @@ class PlayGUI(AnalysisGUI):
         self.titleSeparator = ' - '
 
         #default theme is 'light'
-        self.defaultColor = '#%02x%02x%02x' % (240, 240, 240)  # different from iOS app
+        self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
+        self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
         self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
         self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
         self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
         self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
         self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
-        #self.selectedBlue = ('SkyBlue2','RoyalBlue3')
-        #self.selectedRed = ('IndianRed2','IndianRed3')
         self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
         self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
         self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
@@ -1325,6 +1517,8 @@ class PlayGUI(AnalysisGUI):
         self.randomized= StringVar()
         self.randomized.set('No')
 
+        iconfile = getcwd()+sep+'concentrate.ico'
+        self.iconbitmap(iconfile)  #finally this works on windows!  #TODO: check mac
 
         if self.sys == 'aqua': #mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
@@ -1481,9 +1675,13 @@ class PlayGUI(AnalysisGUI):
                 left = col * self.squareSize + 1
                 bottom = row * self.squareSize + self.squareSize
                 right = col * self.squareSize + self.squareSize
-                rect = self.board.create_rectangle(left,top,right,bottom,outline='gray',fill=self.defaultColor)
-                text = self.board.create_text(left+self.squareSize/2, top+self.squareSize/2,text='',font='Helvetica 20')
-                self.boardStuff[row][col] = (rect, text)
+                #rect = self.board.reate_rectangle(left,top,right,bottom,outline='gray',fill=self.defaultColor)
+                if (row+col)%2==0:
+                    rect = self.board.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=self.defaultColor)
+                else:
+                    rect =self.board.create_rectangle(left,top,right,bottom,outline=self.defaultColor2,fill=self.defaultColor2)
+                text = self.board.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+                self.boardStuff[row][col] = (rect,text)
 
     def make_word_set(self):
         self.letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
@@ -1546,6 +1744,7 @@ class PlayGUI(AnalysisGUI):
 
 
     def select_letter(self, event):
+
         self.board.focus_set()
         (row, col) = self.get_row_col(event.x, event.y)
 
@@ -1670,8 +1869,11 @@ class PlayGUI(AnalysisGUI):
             self.player.changedifficulty(['R', 5, 8, 'S'])
         elif self.difficulty.get() == 'H':
             self.player.changedifficulty(['R', 5, 25, 'S'])
+        elif self.difficulty.get() == 'C':
+            self.set_custom_difficulty()
         else:
             self.player.changedifficulty(['A', 5, 25, 'S'])
+
 
     def add_to_hist(self, word, score, board, letters, turn):
         #delete the history past the current selection
@@ -1761,12 +1963,11 @@ class PlayGUI(AnalysisGUI):
                 break
         self.player.possible(self.letters)
         self.player.resetplayed(self.letters, words)
-        start = time()
         word, board, score = self.player.turn(self.letters, boardColors, -1)
-        totalTime = round(time()-start,2)
         self.add_to_hist(word, score, board, self.letters, -1)
         self.not_busy()
 
 
 if __name__ == '__main__':
-    AnalysisGUI().mainloop()
+    me = AnalysisGUI()
+    me.mainloop()
