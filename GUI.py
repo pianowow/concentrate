@@ -527,7 +527,7 @@ class AnalysisGUI(Tk):
         else:
             gqueue.remove(self.file)
             gqueue.append(self.file) #move this file to the end
-        if len(gqueue) > 12:
+        while len(gqueue) > 12:
             gqueue = gqueue[1:]
         f = open('recent.ccd','wb')
         pickle.dump(gqueue,f)
@@ -612,6 +612,12 @@ class AnalysisGUI(Tk):
     def ask_custom_difficulty(self):
         ask = self.ask = Toplevel(self)
         ask.grab_set()
+        mydir = getcwd()
+        iconfile = 'concentrate.ico'
+        ask.iconbitmap(mydir+sep+iconfile)
+
+        ask.title('Custom Difficulty')
+
         optionsFrame = ttk.Frame(ask)
         optionsFrame.grid(row=0,column=0)
         ttk.Label(optionsFrame, text='Word Size Limit:').grid(row=0,column=0)

@@ -15,7 +15,7 @@
 endings = ('ing','ly','ed','d','er','r','s','es','ings','ers','rs','y','ey','')
 prefixes = ('dis','in','im','il','ir','re','un','')
 
-listfile = open('en14.txt','r')
+listfile = open('en15.txt','r')
 en14set = set()
 for line in listfile:
     en14set.add(line.upper().strip())
@@ -36,10 +36,10 @@ for eslword in eslset:
         if eslword[-1] == 'E':
             withoute = eslword [:-1]
             for variant in [x for x in [p.upper()+withoute+e.upper() for e in endings for p in prefixes] if x in en14set]:
-                goodeslset.add(variant) 
+                goodeslset.add(variant)
 
 esllist = sorted([w+'\n' for w in goodeslset])
 
-easydict = open('reduced.txt','w')
+easydict = open('reduced 2.txt','w')
 easydict.writelines(esllist)
 easydict.close()

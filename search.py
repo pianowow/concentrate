@@ -21,7 +21,7 @@ class search(player0):
             raise ValueError('allletters must be 25 letters')
         print('searching...')
         start = time()
-        wordscores = self.decide(allletters,score,'',move)
+        wordscores = self.decide(allletters,score,'','',move)
         decidetime = round(time() - start,2)
         plays = len(wordscores)
         rate = int(plays/decidetime)
