@@ -1192,13 +1192,12 @@ class AnalysisGUI(Tk):
     def change_player_version(self, event):
         if self.player_version == 0:
             self.player= AnalysisPlayer1()
-            self.player_version= 1
+            self.player_version=1
             self.change_difficulty()
         else:
             self.player = AnalysisPlayer()
             self.player_version=0
             self.change_difficulty()
-
 
 
 class AnalysisPlayer(player0):
@@ -1412,8 +1411,6 @@ class AnalysisPlayer1(player1):
                     results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
                 self.displayed += lst
                 return results, False
-
-
 
 
 class PlayGUI(AnalysisGUI):
