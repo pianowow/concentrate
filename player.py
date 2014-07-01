@@ -6,13 +6,12 @@
 #
 # Created:     24/03/2013
 
-#test weighting vulnerability higher and lower
-#test weighting defended squares a little higher
-#maybe a genetic algorithm version of the arena?  Need to pass constants to __init__ ... need a simple version to play each generation against
-
-#gotta be a way to program parity... choosing between a few words on the border between occupations (take the last word!)
+#is it possible to write arrange as a loop instead of recursion? might be better for performance
 
 #eliminate the addition of uw and dw in evaluate pos (add in possible)
+    #make player1 the same as player0 except possible and evaluatepos, make sure they score words the same.
+
+#gotta be a way to program parity... choosing between a few words on the border between occupations (take the last word!)
 
 
 from string import ascii_uppercase, digits
@@ -26,7 +25,7 @@ import logging
 
 
 class player0:
-    def __init__(self, difficulty=['A',5,25,'S']): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (5.15, -2.75, 3.09, 5.72)): #this represents maximum difficulty
         '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
         self.difficulty = difficulty
         self.name = 'stable - player0'
@@ -61,6 +60,13 @@ class player0:
             if square % 5 != 0:
                 saveneighbor(square,square-1)
             saveneighbor(square,square+5)
+        self.endgamearrangecount= 0
+        self.weights= weights
+        self.dw = weights[0]
+        self.uw = 1
+        self.dpw = weights[1]
+        self.upw = weights[2]
+        self.mw = weights[3]
 
     def changedifficulty(self, diff):
         self.difficulty = diff
@@ -195,47 +201,49 @@ class player0:
                 goodlist.append(word1)
         return tuple(sorted(goodlist,key=lambda x:(len(x),x)))
 
-    def evaluatepos(self, allletters, blue, red):
+    def evaluatepos(self, allletters, blue, red, move):
         '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
         bluedef = reddef = 0
         ending = (bin(blue|red).count('1') == 25)
-        dw = 2
-        uw = 1
         d = self.cache[allletters][2] #defended
         u = self.cache[allletters][3] #undefended
         bluescore = redscore = 0
-        vulnerableRed = 0
-        vulnerableBlue = 0
         for i in range(25):
             if blue & (1<<i):
                 if (blue & self.neighbors[i]) == self.neighbors[i]:
-                    bluescore += (dw + d[i])
+                    bluescore += (self.dw + self.dpw*d[i])
                     bluedef = bluedef | (1<<i)
                 else:
-                    bluescore += (uw + u[i])
-                    vulnerableBlue |= (self.neighbors[i] & ~blue)
+                    bluescore += (self.uw + self.upw*u[i])
             if red & (1<<i):
                 if (red & self.neighbors[i]) == self.neighbors[i]:
-                    redscore += (dw + d[i])
+                    redscore += (self.dw + self.dpw*d[i])
                     reddef = reddef | (1<<i)
                 else:
-                    redscore += (uw + u[i])
-                    vulnerableRed |= (self.neighbors[i] & ~red)
-        vulnerableBlue = bin(vulnerableBlue).count('1')
-        vulnerableRed = bin(vulnerableRed).count('1')
-        total = bluescore - redscore - vulnerableBlue/5 + vulnerableRed/5
+                    redscore += (self.uw + self.upw*u[i])
         if not ending:
+            #bonus for being away from the zeroletters
+            if move == 1:
+                mycenter = self.centroid(blue)
+                theircenter = self.centroid(red)
+            else:
+                mycenter = self.centroid(red)
+                theircenter = self.centroid(blue)
+            zerocenter = self.centroid(~(red|blue))
+            mydiff = self.vectordiff(mycenter,zerocenter)
+            theirdiff = self.vectordiff(theircenter,zerocenter)
+            zerodiff = mydiff - theirdiff
+            total = bluescore - redscore + self.mw*zerodiff*move
             return total,bluedef,reddef
         else: #game over
             total = bin(blue).count('1') - bin(red).count('1')
             return total * 1000,bluedef,reddef
 
     #TODO: is it possible to write arrange as a loop instead of recursion? might be better for performance
-    def arrange(self,allletters,word,blue,red,targets,scores=dict(),used=[],move=1):
+    def arrange(self,allletters,word,blue,red,origbluedef,origreddef,scores=dict(),used=[],move=1):
         '''recursive function to determine the best placement of word'''
-        #most of the time figuring out what to do is spent here
         if len(word) == 0:
-            score,bluedef,reddef = self.evaluatepos(allletters,blue,red)
+            score,bluedef,reddef = self.evaluatepos(allletters,blue,red,move)
             if (blue,red) not in scores:
                 scores[(blue,red)] = (score,bluedef,reddef)
         else:
@@ -245,15 +253,15 @@ class player0:
             oldred = red
             oldblue = blue
             while i >= 0:
-                if i not in used and ((1<<i) & targets): #only care about tiles that change the score
+                if i not in used:
                     used.append(i)
-                    if move == 1:
+                    if move == 1 and (1<<i & origreddef == 0):
                         blue = blue | (1<<i) #set 1 to position i
                         red = red & ~(1<<i) #set 0 to position i
-                    else:
+                    elif move == -1 and (1<<i & origbluedef == 0):
                         blue = blue & ~(1<<i) #set 0 to position i
                         red = red | (1<<i) #set 1 to position i
-                    self.arrange(allletters,word[1:],blue,red,targets,scores,used,move)
+                    self.arrange(allletters,word[1:],blue,red,origbluedef,origreddef,scores,used,move)
                     red = oldred
                     blue = oldblue
                     used.pop()
@@ -315,571 +323,6 @@ class player0:
     def groupwords(self, words, anyl):
         '''groups words to limit the number of calls to arrange (optimization added after using cProfile.run)'''
         wordgroups = dict() #{'groupletters': [word1, word2, etc]}
-        for word in words:
-            group = [l for l in word if l in anyl]
-            newgroup = group[:]
-            for letter in group:  #remove letters that are duplicated by defended or occupied tiles
-                while newgroup.count(letter) > anyl.count(letter):
-                    newgroup.remove(letter)
-            group = tuple(sorted(newgroup))
-            if group in wordgroups:
-                wordgroups[group].append(word)
-            else:
-                wordgroups[group]=[word]
-        return wordgroups
-
-    def endgamecheck(self, allletters, blue, red, bluedef, reddef, move):
-        zeroletters = ''
-        anyl = ''
-        zeros = (~blue & ~red)
-        if move == 1: #reversed here for opponent's reply
-            targets = (blue & ~bluedef) | zeros
-        else:
-            targets = (red & ~reddef) | zeros
-        for i in range(25):
-            if (1<<i) & targets:
-                anyl += allletters[i]
-            if (1<<i) & zeros:
-                zeroletters += allletters[i]
-
-        gameendingwords = []
-        losing = False
-        endingsoon = False
-        newscore = None
-        if zeroletters != '':  #don't check if we've already finished the game
-            if allletters+zeroletters in self.cache:
-                gameendingwords = self.cache[allletters+zeroletters]
-            else:
-                gameendingwords = self.concentrate(allletters,needletters=zeroletters)
-                self.cache[allletters+zeroletters] = gameendingwords
-            wordgroups = tuple(self.groupwords(gameendingwords,anyl))
-            for gameendingword in wordgroups:
-                scores = dict()
-                used = []
-                self.arrange(allletters,gameendingword,blue,red,targets,scores,used,-move)
-                if move == 1:
-                    newscore = min(x[0] for x in scores.values())
-                    if newscore < -999:
-                        losing = True
-                        break
-                else:
-                    newscore = max(x[0] for x in scores.values())
-                    if newscore > 999:
-                        losing = True
-                        break
-        if len(gameendingwords) > 0:
-            endingsoon = True
-        else:
-            endingsoon = False
-        return (zeroletters,endingsoon,losing,newscore)
-
-    def ply2(self, allletters, blue, red, bluedef, reddef, move):
-        rbscore = self.displayscore(blue,red,bluedef,reddef)
-        newrbscore = rbscore.replace(' ','').upper()
-        oppscores = self.decide(allletters, newrbscore, '','', -move)
-        if move == 1:
-            newscore = min(x[0] for x in oppscores)
-        else:
-            newscore = max(x[0] for x in oppscores)
-        #print(rbscore,newscore)
-        return newscore
-
-    def decide(self, allletters,score,needletters,notletters,move):
-        '''judges the merit of possible words for this board'''
-        blue,red,bluedef,reddef = self.convertboardscore(score)
-        #letters to focus on are undefended opponent and unclaimed
-        if move == 1:
-            targets = (red & ~reddef) | (~blue & ~red)
-        else:
-            targets = (blue & ~bluedef) | (~blue & ~red)
-        anyl = ''
-        for i in range(25):
-            if (1 << i) & targets:
-                anyl += allletters[i]
-        words = self.concentrate(allletters,needletters,notletters,anyl)
-        wordgroups = self.groupwords(words,anyl)
-        print(len(words),'words')
-        print(len(wordgroups),'groups')
-        wordscores = list()
-        for x,group in enumerate(wordgroups.keys()):
-            #wordscore = [row[:] for row in board] #much faster than deepcopy!
-            scores = dict() #scores formed by different arrangements of the same group
-                            #entries of the form (red,blue):(score,bluedef,reddef)
-            self.arrange(allletters,group,blue,red,targets,scores,[],move)
-            for playblue,playred in scores:
-                playscore, playbluedef, playreddef = scores[(playblue,playred)]
-                groupsize = len(wordgroups[group])
-                for word in wordgroups[group]:
-                    wordscores.append((round(playscore,3),word,groupsize,playblue,playred,playbluedef,playreddef))
-        print(len(wordscores),'plays')
-        return wordscores
-
-    def playword(self, allletters, word):
-        self.cache[allletters][1].append(word)
-
-    def resetplayed(self, allletters, words):
-        self.cache[allletters][1] = words
-
-    def unplayword(self, allletters, word):
-        if word in self.cache[allletters][1]:
-            self.cache[allletters][1].remove(word)
-
-    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww', move=1, logger=None):
-        if logger:
-            self.logger = logger
-        '''selects a result from decide'''
-        allletters = allletters.upper()
-        score = score.upper()
-        score = score.replace(' ','')
-        if len(allletters) != 25:
-            raise ValueError('allletters must be 25 letters')
-
-        wordscores = self.decide(allletters,score,'','',move)
-        #wordscores is a list of tuples: (playscore,word,groupsize,playblue,playred,playbluedef,playreddef)
-        #look at the highest scores, return first word that doesn't lose
-        if self.difficulty[3] == 'S':  # not random difficulty
-            if move == 1:
-                wordscores.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
-            else:
-                wordscores.sort(key=lambda x: (x[0],-len(x[1])))
-            play = 0
-            for wordnum,(numScore,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
-                zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
-                if not losing:
-                    if move == 1:
-                        if numScore > -999:
-                            play = wordnum
-                            break
-                        else:
-                            break
-                    else:
-                        if numScore < 999:
-                            play = wordnum
-                            break
-                        else:
-                            break
-        else:
-            play = choice(range(len(wordscores))) #random difficulty
-        if len(wordscores) > 0:
-            word = wordscores[play][1]
-            board = self.displayscore(wordscores[play][3],wordscores[play][4],wordscores[play][5],wordscores[play][6])
-            numScore = wordscores[play][0]
-            self.playword(allletters,word)
-            return word,board,numScore
-        else:
-            blue, red, bluedef, reddef = self.convertboardscore(score)
-            numScore, bluedef, reddef = self.evaluatepos(allletters, blue, red)
-            return '', self.displayscore(blue, red, bluedef, reddef), numScore
-
-
-class player1(player0):
-    def __init__(self, difficulty=['A',5,25,'S']):
-        super().__init__(difficulty)
-        self.name = 'beta - player1'
-        self.endgamearrangecount= 0
-
-    def evaluatepos(self, allletters, blue, red, move):
-        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
-        bluedef = reddef = 0
-        ending = (bin(blue|red).count('1') == 25)
-        dw = 2
-        uw = 1
-        d = self.cache[allletters][2] #defended
-        u = self.cache[allletters][3] #undefended
-        bluescore = redscore = 0
-        vulnerableRed = 0
-        vulnerableBlue = 0
-        for i in range(25):
-            if blue & (1<<i):
-                if (blue & self.neighbors[i]) == self.neighbors[i]:
-                    bluescore += (dw + d[i])
-                    bluedef = bluedef | (1<<i)
-                else:
-                    bluescore += (uw + u[i])
-                    vulnerableBlue |= (self.neighbors[i] & ~blue)
-            if red & (1<<i):
-                if (red & self.neighbors[i]) == self.neighbors[i]:
-                    redscore += (dw + d[i])
-                    reddef = reddef | (1<<i)
-                else:
-                    redscore += (uw + u[i])
-                    vulnerableRed |= (self.neighbors[i] & ~red)
-
-        vulnerableBlue = bin(vulnerableBlue).count('1')
-        vulnerableRed = bin(vulnerableRed).count('1')
-        if not ending:
-            #bonus for being away from the zeroletters
-            if move == 1:
-                mycenter = self.centroid(blue)
-                theircenter = self.centroid(red)
-            else:
-                mycenter = self.centroid(red)
-                theircenter = self.centroid(blue)
-            zerocenter = self.centroid(~(red|blue))
-            mydiff = self.vectordiff(mycenter,zerocenter)
-            theirdiff = self.vectordiff(theircenter,zerocenter)
-            zerodiff = mydiff - theirdiff
-            total = bluescore - redscore - vulnerableBlue/5 + vulnerableRed/5 + zerodiff*move
-            return total,bluedef,reddef
-        else: #game over
-            total = bin(blue).count('1') - bin(red).count('1')
-            return total * 1000,bluedef,reddef
-
-    def arrange(self,allletters,word,blue,red,origbluedef,origreddef,scores=dict(),used=[],move=1):
-        '''recursive function to determine the best placement of word'''
-        if len(word) == 0:
-            score,bluedef,reddef = self.evaluatepos(allletters,blue,red,move)
-            if (blue,red) not in scores:
-                scores[(blue,red)] = (score,bluedef,reddef)
-        else:
-            l = word[0]
-            listindex = list()
-            i = allletters.find(l)
-            oldred = red
-            oldblue = blue
-            while i >= 0:
-                if i not in used:
-                    used.append(i)
-                    if move == 1 and (1<<i & origreddef == 0):
-                        blue = blue | (1<<i) #set 1 to position i
-                        red = red & ~(1<<i) #set 0 to position i
-                    elif move == -1 and (1<<i & origbluedef == 0):
-                        blue = blue & ~(1<<i) #set 0 to position i
-                        red = red | (1<<i) #set 1 to position i
-                    self.arrange(allletters,word[1:],blue,red,origbluedef,origreddef,scores,used,move)
-                    red = oldred
-                    blue = oldblue
-                    used.pop()
-                i = allletters.find(l, i + 1)
-
-
-    def groupwords(self, words, anyl):
-        '''groups words to limit the number of calls to arrange (optimization added after using cProfile.run)'''
-        wordgroups = dict() #{'groupletters': [word1, word2, etc]}
-
-        for word in words:
-            group = ''.join(sorted([l for l in word if l in anyl]))
-            if group in wordgroups:
-                wordgroups[group].append(word)
-            else:
-                wordgroups[group]=[word]
-        return wordgroups
-
-
-    def endgamecheck(self, allletters, blue, red, bluedef, reddef, move):
-        zeroletters = ''
-        zeros = (~blue & ~red)
-        anyl = ''
-        if move == 1: #reversed here for opponent's reply
-            targets = (blue & ~bluedef) | zeros
-        else:
-            targets = (red & ~reddef) | zeros
-        for i in range(25):
-            if (1<<i) & targets:
-                anyl += allletters[i]
-            if (1<<i) & zeros:
-                zeroletters += allletters[i]
-        gameendingwords = []
-        losing = False
-        endingsoon = False
-        newscore = None
-        if zeroletters != '':  #don't check if we've already finished the game
-            if allletters+zeroletters in self.cache:
-                gameendingwords = self.cache[allletters+zeroletters]
-            else:
-                gameendingwords = self.concentrate(allletters,needletters=zeroletters)
-                self.cache[allletters+zeroletters] = gameendingwords
-            wordgroups = tuple(self.groupwords(gameendingwords,anyl))
-            for gameendingword in wordgroups:
-                scores = dict()
-                used = []
-                self.arrange(allletters,gameendingword,blue,red,bluedef,reddef, scores,used,-move)
-                self.endgamearrangecount += len(scores)
-                if move == 1:
-                    newscore = min(x[0] for x in scores.values())
-                    if newscore < -999:
-                        losing = True
-                        break
-                else:
-                    newscore = max(x[0] for x in scores.values())
-                    if newscore > 999:
-                        losing = True
-                        break
-        if len(gameendingwords) > 0:
-            endingsoon = True
-        else:
-            endingsoon = False
-        return (zeroletters,endingsoon,losing,newscore)
-
-
-    def decide(self, allletters,score,needletters,notletters,move):
-        '''judges the merit of possible words for this board'''
-        blue,red,bluedef,reddef = self.convertboardscore(score)
-        #find goal for notletters
-        goal = self.computegoal(allletters, blue, red, move)
-
-        #letters to focus on are undefended opponent and unclaimed
-        if move == 1:
-            targets = (red & ~reddef) | (~blue & ~red)
-        else:
-            targets = (blue & ~bluedef) | (~blue & ~red)
-        anyl = ''
-        dontuse = []
-        notletters = ''
-        for i,l in enumerate(allletters):
-            if (1<<i) & targets:
-                anyl += allletters[i]
-            if (1<<i) & goal:
-                dontuse.append(i)
-                notletters += l
-        if goal:
-            self.logger.debug('goal: '+notletters+' '+str(goal))
-            print('goal:',notletters,bin(goal))
-        words = self.concentrate(allletters,needletters,notletters,anyl)
-        wordgroups = self.groupwords(words,anyl)
-        print(len(words),'words')
-        print(len(wordgroups),'groups')
-        wordscores = list()
-        for x,group in enumerate(wordgroups.keys()):
-            scores = dict() #scores formed by different arrangements of the same group
-                            #entries of the form (red,blue):(score,bluedef,reddef)
-            self.arrange(allletters,group,blue,red,bluedef,reddef,scores,dontuse,move)
-            for playblue,playred in scores:
-                playscore, playbluedef, playreddef = scores[(playblue,playred)]
-                groupsize = len(wordgroups[group])
-                for word in wordgroups[group]:
-                    wordscores.append((playscore,word,groupsize,playblue,playred,playbluedef,playreddef))
-        print(len(wordscores),'plays')
-        return wordscores
-
-    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww', move=1, logger=None):
-        if logger:
-            self.logger = logger
-        else:
-            self.logger = logging.getLogger()
-        '''selects a result from decide'''
-        allletters = allletters.upper()
-        score = score.upper()
-        score = score.replace(' ','')
-        if len(allletters) != 25:
-            raise ValueError('allletters must be 25 letters')
-
-        wordscores = self.decide(allletters,score,'','',move)
-        #wordscores is a list of tuples: (playscore,word,groupsize,playblue,playred,playbluedef,playreddef)
-        #look at the highest scores, return first word that doesn't lose
-        if self.difficulty[3] == 'S':  # not random difficulty
-            if move == 1:
-                wordscores.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
-            else:
-                wordscores.sort(key=lambda x: (x[0],-len(x[1])))
-            play = 0
-            for wordnum,(numScore,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
-                zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
-                if not losing:
-                    if move == 1:
-                        if numScore > -999:
-                            play = wordnum
-                            break
-                        else:
-                            break
-                    else:
-                        if numScore < 999:
-                            play = wordnum
-                            break
-                        else:
-                            break
-        else:
-            play = choice(range(len(wordscores))) #random difficulty
-        if len(wordscores) > 0:
-            word = wordscores[play][1]
-            board = self.displayscore(wordscores[play][3],wordscores[play][4],wordscores[play][5],wordscores[play][6])
-            numScore = wordscores[play][0]
-            self.playword(allletters,word)
-            return word,board,numScore
-        else:
-            blue, red, bluedef, reddef = self.convertboardscore(score)
-            numScore, bluedef, reddef = self.evaluatepos(allletters, blue, red, move)
-            return '', self.displayscore(blue, red, bluedef, reddef), numScore
-
-
-    def computegoal(self, allletters, blue, red, move):
-        '''return the favorite smallest group of letters that have no playable spanning words'''
-        goodgoals = []
-        unoccupiedmap= ~(blue|red)
-        unoccupied = []
-        for x in range(25):
-            if 1<<x & unoccupiedmap == 1<<x:
-                unoccupied.append(x)
-        lst = self.possible(allletters)
-        for r in range(2,len(unoccupied)):
-            #print('r =',r)
-            for goal in combinations(unoccupied,r):
-                goalstr = ''.join(allletters[i] for i in goal)
-                goodgoal = True
-                for word in lst: #find one word that uses all the goal letters
-                    goodword = True
-                    for l in goalstr:
-                        if word.count(l) < goalstr.count(l):
-                            goodword = False
-                            break
-                    if goodword: #we found a word that uses all the goal letters
-                        goodgoal = False
-                        break
-                if goodgoal:
-                    goalmap = 0
-                    for i in goal:
-                        goalmap |= 1<<i
-                    goodgoals.append(goalmap)
-            if goodgoals!=[]:
-                break
-        #once we get here, we've got either an empty list, or a list of equally-sized goals
-        #we choose the "best" goal by using the goalvalue function
-        if goodgoals == []:
-            return 0
-        else:
-            self.logger.debug('goal count: '+str(len(goodgoals)))
-            return max(goodgoals,key=lambda goal:self.goalvalue(goal, blue, red, move))
-
-    def goalvalue(self, goal, blue, red, move):
-        #strict letter popularity reduced the strength of the program
-        #testing centroid analysis now
-        val = 0
-        if move == 1:
-            #compute distance between blue centroid and goal centroid = goal value
-            if blue:
-                v1 = self.centroid(blue)
-            else:
-                v1 = (2,2)
-            v2 = self.centroid(goal)
-        else:
-            #compute distance between red centroid and goal centroid = goal value
-            if red:
-                v1 = self.centroid(red)
-            else:
-                v1 = (2,2)
-            v2 = self.centroid(goal)
-        val = self.vectordiff(v1, v2)
-        #print('blue:',str(self.centroid(blue)),'red:',str(self.centroid(red)),'goal:',str(self.centroid(goal)),'val:',val)
-        #self.printmap(blue, red, goal)
-        return val
-
-    def vectordiff(self, v1, v2):
-        return sqrt((v1[0]-v2[0])**2 + (v1[1]-v2[1])**2)
-
-    def centroid(self, map):
-        cnt = 0
-        ysum = 0
-        xsum = 0
-        for i in range(25):
-            if (1<<i & map):
-                y = i//5
-                x = i%5
-                ysum+=y
-                xsum+=x
-                cnt += 1
-        if cnt > 0:
-            return (xsum/cnt, ysum/cnt)
-        else:
-            return (2,2)
-
-##    def centroid(self, map):
-##        ylst = []
-##        xlst = []
-##        for x in range(5):
-##            for y in range(5):
-##                i = y*5+x
-##                if (1<<i & map) == 1<<i:
-##                    ylst.append(y)
-##                    xlst.append(x)
-##        if xlst != []:
-##            return (sum(xlst)/len(xlst), sum(ylst)/len(ylst))
-##        else:
-##            return (2,2)
-
-
-class player2(player0):
-    def __init__(self, difficulty=['A',5,25,'S']):
-        super().__init__(difficulty)
-        self.name = 'beta - player2'
-        self.endgamearrangecount= 0
-
-
-    def evaluatepos(self, allletters, blue, red, move):
-        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
-        bluedef = reddef = 0
-        ending = (bin(blue|red).count('1') == 25)
-        dw = 2
-        uw = 1
-        d = self.cache[allletters][2] #defended
-        u = self.cache[allletters][3] #undefended
-        bluescore = redscore = 0
-        vulnerableRed = 0
-        vulnerableBlue = 0
-        for i in range(25):
-            if blue & (1<<i):
-                if (blue & self.neighbors[i]) == self.neighbors[i]:
-                    bluescore += (dw + d[i])
-                    bluedef = bluedef | (1<<i)
-                else:
-                    bluescore += (uw + u[i])
-                    vulnerableBlue |= (self.neighbors[i] & ~blue)
-            if red & (1<<i):
-                if (red & self.neighbors[i]) == self.neighbors[i]:
-                    redscore += (dw + d[i])
-                    reddef = reddef | (1<<i)
-                else:
-                    redscore += (uw + u[i])
-                    vulnerableRed |= (self.neighbors[i] & ~red)
-        if not ending:
-            vulnerableBlue = bin(vulnerableBlue).count('1')
-            vulnerableRed = bin(vulnerableRed).count('1')
-            #bonus for being away from the zeroletters
-            if move == 1:
-                mycenter = self.centroid(blue)
-                theircenter = self.centroid(red)
-            else:
-                mycenter = self.centroid(red)
-                theircenter = self.centroid(blue)
-            zerocenter = self.centroid(~(red|blue))
-            mydiff = self.vectordiff(mycenter,zerocenter)
-            theirdiff = self.vectordiff(theircenter,zerocenter)
-            zerodiff = mydiff - theirdiff
-            total = bluescore - redscore - vulnerableBlue/5 + vulnerableRed/5 + zerodiff*move
-            return total,bluedef,reddef
-        else: #game over
-            total = bin(blue).count('1') - bin(red).count('1')
-            return total * 1000,bluedef,reddef
-
-    def arrange(self,allletters,word,blue,red,origbluedef,origreddef,scores=dict(),used=[],move=1):
-        '''recursive function to determine the best placement of word'''
-        if len(word) == 0:
-            score,bluedef,reddef = self.evaluatepos(allletters,blue,red,move)
-            if (blue,red) not in scores:
-                scores[(blue,red)] = (score,bluedef,reddef)
-        else:
-            l = word[0]
-            listindex = list()
-            i = allletters.find(l)
-            oldred = red
-            oldblue = blue
-            while i >= 0:
-                if i not in used:
-                    used.append(i)
-                    if move == 1 and (1<<i & origreddef == 0):
-                        blue = blue | (1<<i) #set 1 to position i
-                        red = red & ~(1<<i) #set 0 to position i
-                    elif move == -1 and (1<<i & origbluedef == 0):
-                        blue = blue & ~(1<<i) #set 0 to position i
-                        red = red | (1<<i) #set 1 to position i
-                    self.arrange(allletters,word[1:],blue,red,origbluedef,origreddef,scores,used,move)
-                    red = oldred
-                    blue = oldblue
-                    used.pop()
-                i = allletters.find(l, i + 1)
-
-    def groupwords(self, words, anyl):
-        '''groups words to limit the number of calls to arrange (optimization added after using cProfile.run)'''
-        wordgroups = dict() #{'groupletters': [word1, word2, etc]}
 
         for word in words:
             group = ''.join(sorted([l for l in word if l in anyl]))
@@ -934,12 +377,23 @@ class player2(player0):
             endingsoon = False
         return (zeroletters,endingsoon,losing,newscore)
 
+    def ply2(self, allletters, blue, red, bluedef, reddef, move):
+        rbscore = self.displayscore(blue,red,bluedef,reddef)
+        newrbscore = rbscore.replace(' ','').upper()
+        oppscores = self.decide(allletters, newrbscore, '','', -move)
+        if move == 1:
+            newscore = min(x[0] for x in oppscores)
+        else:
+            newscore = max(x[0] for x in oppscores)
+        #print(rbscore,newscore)
+        return newscore
+
     def decide(self, allletters,score,needletters,notletters,move):
         '''judges the merit of possible words for this board'''
         blue,red,bluedef,reddef = self.convertboardscore(score)
         #find goal for notletters
         maxwordsizepossible = max(len(x) for x in self.possible(allletters))
-        print('max word size',maxwordsizepossible)
+        #print('max word size',maxwordsizepossible)
         if maxwordsizepossible < 13: #based on testing goal vs flexible version
             goal = self.computegoal(allletters, blue, red, move)
         else:
@@ -958,12 +412,12 @@ class player2(player0):
             if (1<<i) & goal:
                 dontuse.append(i)
                 notletters += l
-        if goal:
-            self.logger.debug('goal: '+notletters+' '+str(goal))
+        #if goal:
+            #self.logger.debug('goal: '+notletters+' '+str(goal))
         words = self.concentrate(allletters,needletters,notletters,anyl)
         wordgroups = self.groupwords(words,anyl)
-        print(len(words),'words')
-        print(len(wordgroups),'groups')
+        #print(len(words),'words')
+        #print(len(wordgroups),'groups')
         wordscores = list()
         for x,group in enumerate(wordgroups.keys()):
             scores = dict() #scores formed by different arrangements of the same group
@@ -974,8 +428,18 @@ class player2(player0):
                 groupsize = len(wordgroups[group])
                 for word in wordgroups[group]:
                     wordscores.append((playscore,word,groupsize,playblue,playred,playbluedef,playreddef))
-        print(len(wordscores),'plays')
+        #print(len(wordscores),'plays')
         return wordscores
+
+    def playword(self, allletters, word):
+        self.cache[allletters][1].append(word)
+
+    def resetplayed(self, allletters, words):
+        self.cache[allletters][1] = words
+
+    def unplayword(self, allletters, word):
+        if word in self.cache[allletters][1]:
+            self.cache[allletters][1].remove(word)
 
     def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww', move=1, logger=None):
         if logger:
@@ -998,7 +462,7 @@ class player2(player0):
             else:
                 wordscores.sort(key=lambda x: (x[0],-len(x[1])))
             play = 0
-            for wordnum,(numScore,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores):
+            for wordnum,(numScore,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores[:200]):
                 zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
                 if not losing:
                     if move == 1:
@@ -1025,7 +489,6 @@ class player2(player0):
             blue, red, bluedef, reddef = self.convertboardscore(score)
             numScore, bluedef, reddef = self.evaluatepos(allletters, blue, red, move)
             return '', self.displayscore(blue, red, bluedef, reddef), numScore
-
 
     def computegoal(self, allletters, blue, red, move):
         '''return the favorite smallest group of letters that have no playable spanning words'''
@@ -1062,7 +525,7 @@ class player2(player0):
         if goodgoals == []:
             return 0
         else:
-            self.logger.debug('goal count: '+str(len(goodgoals)))
+            #self.logger.debug('goal count: '+str(len(goodgoals)))
             return max(goodgoals,key=lambda goal:self.goalvalue(goal, blue, red, move))
 
     def goalvalue(self, goal, blue, red, move):
@@ -1107,4 +570,120 @@ class player2(player0):
         else:
             return (2,2)
 
-p1 = player1()
+
+class player1(player0):
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (5.15, -2.75, 3.09, 5.72)): #this represents maximum difficulty
+        self.name = 'stable - player0'
+        super().__init__(difficulty, weights)
+
+    def possible(self, letters):
+        '''Returns words using only these letters.  Also saves constants used for position evaluation later'''
+        letters = letters.upper()
+        if letters in self.cache:
+            return [x for x in self.cache[letters][0] if x not in self.cache[letters][1]] #so we don't suggest words that have already been played
+        else:
+            found = list()
+            wordsizelimit = self.difficulty[2]
+            if self.difficulty[0] == 'A':
+                for word in [x for x in self.wordlist if len(x) <= wordsizelimit]:
+                    good = True
+                    for l in word:
+                        if letters.count(l) < word.count(l):
+                            good = False
+                            break
+                    if good:
+                        found.append(word)
+            else:
+                for word in [x for x in self.reducedlist if len(x) <= wordsizelimit]:
+                    good = True
+                    for l in word:
+                        if letters.count(l) < word.count(l):
+                            good = False
+                            break
+                    if good:
+                        found.append(word)
+            #calculate the popularity of each letter
+            letterdict = dict()
+            for word in found:
+                for letter in word:
+                    if letter in letterdict:
+                        letterdict[letter] += 1
+                    else:
+                        letterdict[letter] = 1
+            letterlst = []
+            cnt = []
+            for letter in letterdict.keys():
+                letterlst.append(letter)
+                cnt.append(letterdict[letter])
+            mincnt = min(cnt)
+            for i,num in enumerate(cnt):
+                cnt[i] = num/mincnt  #gets it into range 1-max/min
+            maxcnt = max(cnt)
+            for i,num in enumerate(cnt):
+                cnt[i] = num/maxcnt  #gets it into range 0-1
+            for i,letter in enumerate(letterlst):
+                letterdict[letter] = round(cnt[i],2)
+            for l in ascii_uppercase:
+                if l not in letterdict:
+                    letterdict[l] = 0
+            #calculate defended scores (same as popularity), plus the weights introduced for evolution
+            d = [0 for x in range(25)]
+            for i,l in enumerate(letters):
+                d[i] = self.dw + self.dwp*letterdict[l]
+            #calculate undefended scores (average of neighbor popularity and 1-popularity of square)
+            u = [0 for x in range(25)]
+            for row in range(5):
+                for col in range(5):
+                    neighborlist = []
+                    if row-1 in range(5):
+                        neighborlist.append(letterdict[letters[(row-1)*5+col]])
+                    if col+1 in range(5):
+                        neighborlist.append(letterdict[letters[row*5+col+1]])
+                    if row+1 in range(5):
+                        neighborlist.append(letterdict[letters[(row+1)*5+col]])
+                    if col-1 in range(5):
+                        neighborlist.append(letterdict[letters[row*5+col-1]])
+                    size = len(neighborlist)
+                    for x in range(size):
+                        neighborlist.append(1-letterdict[letters[row*5+col]])  #prefer non-usable undefended squares
+                    u[row*5+col] = round(sum(neighborlist) / len(neighborlist),2)
+            self.cache[letters] = [tuple(found),[],d,u] #valid words, played words, defended scores, undefended scores
+            return found
+
+    def evaluatepos(self, allletters, blue, red, move):
+        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
+        bluedef = reddef = 0
+        ending = (bin(blue|red).count('1') == 25)
+        d = self.cache[allletters][2] #defended
+        u = self.cache[allletters][3] #undefended
+        bluescore = redscore = 0
+        for i in range(25):
+            if blue & (1<<i):
+                if (blue & self.neighbors[i]) == self.neighbors[i]:
+                    bluescore += d[i]
+                    bluedef = bluedef | (1<<i)
+                else:
+                    bluescore += (self.uw + self.upw*u[i])
+            if red & (1<<i):
+                if (red & self.neighbors[i]) == self.neighbors[i]:
+                    redscore += d[i]
+                    reddef = reddef | (1<<i)
+                else:
+                    redscore += (self.uw + self.upw*u[i])
+        if not ending:
+            #bonus for being away from the zeroletters
+            if move == 1:
+                mycenter = self.centroid(blue)
+                theircenter = self.centroid(red)
+            else:
+                mycenter = self.centroid(red)
+                theircenter = self.centroid(blue)
+            zerocenter = self.centroid(~(red|blue))
+            mydiff = self.vectordiff(mycenter,zerocenter)
+            theirdiff = self.vectordiff(theircenter,zerocenter)
+            zerodiff = mydiff - theirdiff
+            total = bluescore - redscore + self.mw*zerodiff*move
+            return total,bluedef,reddef
+        else: #game over
+            total = bin(blue).count('1') - bin(red).count('1')
+            return total * 1000,bluedef,reddef
