@@ -4,7 +4,7 @@
 #
 # Author:      CHRISTOPHER_IRWIN
 #
-# Created:     24/03/2013
+# Created:     23/06/2014
 #
 # Purpose: to tune evaluation parameters with an evolutionary algorithm
 
@@ -62,20 +62,16 @@ def genletters(vowelCount = -1):
 def numscore(board):
     blue = 0
     red = 0
-    blued = 0
-    redd = 0
     for char in board:
         if char == 'B':
             blue += 1
-            blued += 1
         elif char == 'b':
             blue += 1
         elif char == 'R':
             red += 1
-            redd += 1
         elif char == 'r':
             red += 1
-    return str(blue).zfill(2), str(blued).zfill(2), str(red).zfill(2), str(redd).zfill(2)
+    return blue,red
 
 def game(allletters, player1, player2):
     if allletters == '':
@@ -102,7 +98,7 @@ def game(allletters, player1, player2):
         if turn == 'blue':
             oldscore = score
             word,board,score = b.turn(allletters,board,1)
-            blue,blued,red,redd = numscore(board)
+            blue,red = numscore(board)
             playedwords.append(word)
             r.playword(allletters,word)
             if word == '':
@@ -114,7 +110,7 @@ def game(allletters, player1, player2):
         else:
             oldscore = score
             word,board,score = r.turn(allletters,board,-1)
-            blue,blued,red,redd = numscore(board)
+            blue,red = numscore(board)
             playedwords.append(word)
             b.playword(allletters,word)
             if word == '':
@@ -180,25 +176,25 @@ def mutate(parent):  #sliding window based on current values for parent +/- .5 a
 
 def sex(parent1, parent2):
     child = []
-    for i,value in enumerate(parent1):
-        newval = round((value + parent2[i]) / 2, 2)
+    for x,y in zipip(parent1,parent2):
+        newval = round((x + y) / 2, 2)
         child.append(newval)
     return tuple(child)
 
-def have_kids(parent_scores): #parent_scores is a dict of {parent:score, parent:score, ..}
+def have_kids(parent_scores):  # parent_scores is a dict of {parent:score, parent:score, ..}
     parents = list(parent_scores.keys())
     parents.sort(key=lambda x:parent_scores[x], reverse=True)
-    parents.pop()
-    parents.pop()
+    while len(parents) > 2:
+        parents.pop()
     diff = round(sum([abs(x-y) for (x,y) in zip(parents[0],parents[1])]),2)
     logger.info('%s %s',parents, diff)
     if diff > .5:
-        parents.append(sex(parents[0],parents[1])) #if they are different enough, sex makes sense
+        parents.append(sex(parents[0],parents[1]))  # if they are different enough, sex makes sense
     else:
-        parents.pop() #else, get rid of #2, because it's mostly a copy of #1
+        parents.pop()  # else, get rid of #2, because it's mostly a copy of #1
     while len(parents) < 4:
         newparent = mutate(parents[0])
-        if newparent not in parents: #because the score dictionary will double the score of a duplicated entry here
+        if newparent not in parents:  # because the score dictionary will double the score of a duplicated entry here
             parents.append(newparent)
     return parents
 
@@ -231,29 +227,23 @@ def do_generation(competitors, boards):
         logger.info(comp_scores)
     return comp_scores
 
+def read_file():
+    f = open('evolve_memory.pkl','rb')
+    best_dict = pickle.load(f)
+    f.close()
+    return best_dict
+
 def evolve(num_generations):
     logger.info('===== Begin Evolution =====')
     boards = make_boards()
     competitors = []
     #start with best weight known, and three mutations
-    #best_so_far = (2,.8,1,1,1)  #original values for concentrate
-    #best_so_far = (2.09, 0.38, 1.39, 0.54, 1.33) #after 2 generations:
-    #best_so_far = (2.22, 0.13, 1.05, 0.43, 0.95) #after 10 more generations
-    #best_so_far = (2.1, 0.38, 0.9, 0.43, 1.82) #after 10 more generations
-    #best_so_far = (1.75, 0.72, 1.12, 0.85, 1.99) #after 10 more generations
-    #best_so_far = (2.14, 0.7, 1.54, 0.71, 1.67) #after 10 more generations
-    #best_so_far = (2.14, 0.41, 1.06, 0.71, 1.58) #after 4 more generations
-    #best_so_far = (2.39, 0.41, 0.85, 0.71, 1.58) #after 4 more generations
-    #best_so_far = (2.46, 0.27, 0.79, 0.87, 2.15) #after 10 more generations
-    #best_so_far = (1.64, 0.15, -0.13, 1.47, 1.54) #after 20 more generations
-    #best_so_far = (2.06, 0.32, -1.07, 0.8, 1.18) #after 120 more generations
-    #to avoid "drifting" along a line of solutions (perhaps increasing or decreasing all weights by a % does not change the strength) I will fix one paramter, uw
-    #best_so_far = (1.34, 0.27, -0.42, 0.92, 1.53) after 35 more generations
-    #multiply this to get 1 instead of .27, then leave that out
-    #best_so_far = (4.95, -3.4, 3.4, 5.6) #hopefully this is equivalent... but I'll do a bunch more generations to be sure
-    f = open('evolve_memory.pkl','rb')
-    best_dict = pickle.load(f)
-    f.close()
+    #best_so_far = (2.5, 1.25, 1.25, 1.25)  #original values for concentrate (shifted so uw = 1, instead of .8)
+    #best_so_far = (5.15, -2.75, 3.09, 5.72) #after 270 generations from original values
+    #second run, started with four random values between (-5 and +5) and continued
+    #best_so_far =(3.32, 0.35, 2.56, 4.56) #second run after 300 generations (weaker than first run)
+
+    best_dict = read_file()
     best_so_far = list(best_dict.keys())[0]
     prior_generations = best_dict[best_so_far]
     competitors.append(best_so_far)
@@ -294,12 +284,11 @@ if __name__ == '__main__':
     # define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
-    # set a format which is simpler for console use
-    cformatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
-    fformatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
-    # tell the handler to use this format
-    console.setFormatter(cformatter)
-    fh.setFormatter(fformatter)
+    # set a format
+    myformatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+    # tell the handlers to use this format
+    console.setFormatter(myformatter)
+    fh.setFormatter(myformatter)
     # add the handler to the root logger
     logger.addHandler(console)
     logger.addHandler(fh)
@@ -327,9 +316,11 @@ if __name__ == '__main__':
     for letter in letterhist:
         letterhist[letter] = int(max((letterhist[letter]/tot,minimum)) / minimum * 100)
         newletterlist += [letter]*letterhist[letter]
-
     pool = multiprocessing.Pool(3)
 
-    evolve(30)
-
+def begin(num_gens):
+    try:
+        evolve(num_gens)
+    except:
+        pass
     pool.terminate()
