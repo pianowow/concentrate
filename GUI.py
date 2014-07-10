@@ -1219,17 +1219,17 @@ class AnalysisPlayer(player0):
         amountToDisplay = 200
         displayed = 0
         if self.difficulty[3] == 'S':
-            for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
+            for wordNum, (score, word, groupSize, blue, red) in enumerate(self.wordScores):
                 if wordNum > lastDisplayed and displayed < amountToDisplay:
-                    zeroLetters,endingSoon, losing, newScore = self.endgamecheck(allLetters, blue, red, blueDef, redDef, move)
+                    zeroLetters,endingSoon, losing, newScore = self.endgamecheck(allLetters, blue, red, move)
                     if losing:  # endgame check found a way for opponent to win
-                        results.append((score, '-'+word, self.displayscore(blue, red, blueDef, redDef)))
+                        results.append((score, '-'+word, self.displayscore(blue, red)))
                         displayed += 1
                     elif endingSoon:  # endgame check only found way for opponent to end game, but not win
-                        results.append((score, '*'+word, self.displayscore(blue, red, blueDef, redDef)))
+                        results.append((score, '*'+word, self.displayscore(blue, red)))
                         displayed += 1
                     else:
-                        results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                        results.append((score, word, self.displayscore(blue, red)))
                         displayed += 1
                 elif displayed >= amountToDisplay:
                     return results, True
@@ -1239,15 +1239,15 @@ class AnalysisPlayer(player0):
             if len(notDisplayed) > amountToDisplay:
                 lst = sample(notDisplayed, amountToDisplay)
                 for i in lst:
-                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
-                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                    (score, word, groupSize, blue, red) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red)))
                 self.displayed += lst
                 return results, True
             else:
                 lst = notDisplayed
                 for i in lst:
-                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
-                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                    (score, word, groupSize, blue, red) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red)))
                 self.displayed += lst
                 return results, False
 
@@ -1266,15 +1266,15 @@ class AnalysisPlayer(player0):
         amountToDisplay = 50
         displayed = 0
         if self.difficulty[3] == 'S':
-            for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
+            for wordNum, (score, word, groupSize, blue, red) in enumerate(self.wordScores):
                 if wordNum > lastDisplayed and displayed < amountToDisplay:
                     if abs(score) < 1000:
                         self.playword(allLetters,word)
-                        newScore = self.ply2(allLetters, blue, red, blueDef, redDef, move)
+                        newScore = self.ply2(allLetters, blue, red, move)
                         self.unplayword(allLetters,word)
                     else:
                         newScore = score
-                    results.append((newScore, word, self.displayscore(blue, red, blueDef, redDef)))
+                    results.append((newScore, word, self.displayscore(blue, red)))
                     displayed += 1
                 elif displayed >= amountToDisplay:
                     if move == 1:
@@ -1292,15 +1292,15 @@ class AnalysisPlayer(player0):
             if len(notDisplayed) > amountToDisplay:
                 lst = sample(notDisplayed, amountToDisplay)
                 for i in lst:
-                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
-                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                    (score, word, groupSize, blue, red) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red)))
                 self.displayed += lst
                 return results, True
             else:
                 lst = notDisplayed
                 for i in lst:
-                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
-                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                    (score, word, groupSize, blue, red) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red)))
                 self.displayed += lst
                 return results, False
 
@@ -1308,9 +1308,10 @@ class AnalysisPlayer(player0):
 
 
 class AnalysisPlayer1(player1):
-    def __init__(self, difficulty=['R', 5, 25, 'S']):
+    def __init__(self, difficulty=['R', 5, 25, 'S'], weights=(5.15, -2.75, 3.09, 5.72)):
         player1.__init__(self, difficulty)
         self.logger = logging.getLogger('GUI')
+
 
     def search(self, allLetters, score, needLetters, notLetters, move, lastDisplayed):
         """returns a list for the GUI to display"""
@@ -1327,17 +1328,17 @@ class AnalysisPlayer1(player1):
         amountToDisplay = 200
         displayed = 0
         if self.difficulty[3] == 'S':
-            for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
+            for wordNum, (score, word, groupSize, blue, red) in enumerate(self.wordScores):
                 if wordNum > lastDisplayed and displayed < amountToDisplay:
-                    zeroLetters,endingSoon, losing, newScore = self.endgamecheck(allLetters, blue, red, blueDef, redDef, move)
+                    zeroLetters,endingSoon, losing, newScore = self.endgamecheck(allLetters, blue, red, move)
                     if losing:  # endgame check found a way for opponent to win
-                        results.append((score, '-'+word, self.displayscore(blue, red, blueDef, redDef)))
+                        results.append((score, '-'+word, self.displayscore(blue, red)))
                         displayed += 1
                     elif endingSoon:  # endgame check only found way for opponent to end game, but not win
-                        results.append((score, '*'+word, self.displayscore(blue, red, blueDef, redDef)))
+                        results.append((score, '*'+word, self.displayscore(blue, red)))
                         displayed += 1
                     else:
-                        results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                        results.append((score, word, self.displayscore(blue, red)))
                         displayed += 1
                 elif displayed >= amountToDisplay:
                     return results, True
@@ -1347,15 +1348,15 @@ class AnalysisPlayer1(player1):
             if len(notDisplayed) > amountToDisplay:
                 lst = sample(notDisplayed, amountToDisplay)
                 for i in lst:
-                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
-                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                    (score, word, groupSize, blue, red) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red)))
                 self.displayed += lst
                 return results, True
             else:
                 lst = notDisplayed
                 for i in lst:
-                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
-                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                    (score, word, groupSize, blue, red) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red)))
                 self.displayed += lst
                 return results, False
 
@@ -1374,15 +1375,15 @@ class AnalysisPlayer1(player1):
         amountToDisplay = 50
         displayed = 0
         if self.difficulty[3] == 'S':
-            for wordNum, (score, word, groupSize, blue, red, blueDef, redDef) in enumerate(self.wordScores):
+            for wordNum, (score, word, groupSize, blue, red) in enumerate(self.wordScores):
                 if wordNum > lastDisplayed and displayed < amountToDisplay:
                     if abs(score) < 1000:
                         self.playword(allLetters,word)
-                        newScore = self.ply2(allLetters, blue, red, blueDef, redDef, move)
+                        newScore = self.ply2(allLetters, blue, red, move)
                         self.unplayword(allLetters,word)
                     else:
                         newScore = score
-                    results.append((newScore, word, self.displayscore(blue, red, blueDef, redDef)))
+                    results.append((newScore, word, self.displayscore(blue, red)))
                     displayed += 1
                 elif displayed >= amountToDisplay:
                     if move == 1:
@@ -1400,15 +1401,15 @@ class AnalysisPlayer1(player1):
             if len(notDisplayed) > amountToDisplay:
                 lst = sample(notDisplayed, amountToDisplay)
                 for i in lst:
-                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
-                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                    (score, word, groupSize, blue, red) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red)))
                 self.displayed += lst
                 return results, True
             else:
                 lst = notDisplayed
                 for i in lst:
-                    (score, word, groupSize, blue, red, blueDef, redDef) = self.wordScores[i]
-                    results.append((score, word, self.displayscore(blue, red, blueDef, redDef)))
+                    (score, word, groupSize, blue, red) = self.wordScores[i]
+                    results.append((score, word, self.displayscore(blue, red)))
                 self.displayed += lst
                 return results, False
 
@@ -1708,23 +1709,23 @@ class PlayGUI(AnalysisGUI):
             if nRow in range(5) and nCol in range(5):
                 nColors.add(self.get_color(nRow, nCol))
             if 'B' not in nColors and 'W' not in nColors:
-                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[1])
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[1], outline=self.red[1])
                 fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
                 if fgColor not in (tuple(self.defaultText) + self.blueText + self.redText):
-                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.selectedRed[1])
+                    self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedRed[1])
             elif 'R' not in nColors and 'W' not in nColors:
-                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[1])
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[1], outline=self.blue[1])
                 fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
                 if fgColor not in (tuple(self.defaultText) + self.blueText + self.redText):
                     self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedBlue[1])
             else:
                 if myColor == 'B':
-                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0], outline=self.blue[0])
                     fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
                     if fgColor not in (tuple(self.defaultText) + self.blueText + self.redText):
                         self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedBlue[0])
                 elif myColor == 'R':
-                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
+                    self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0], outline=self.red[0])
                     fgColor = self.board.itemcget(self.boardStuff[row][col][1], 'fill')
                     if fgColor not in (tuple(self.defaultText) + self.blueText + self.redText):
                         self.board.itemconfig(self.boardStuff[row][col][1], fill=self.selectedRed[0])
@@ -1732,11 +1733,15 @@ class PlayGUI(AnalysisGUI):
 
     def update_colors(self, row, col, color):
         if color == 'blue':
-            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0])
+            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.blue[0], outline=self.blue[0])
         elif color == 'red':
-            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0])
+            self.board.itemconfig(self.boardStuff[row][col][0], fill=self.red[0], outline=self.red[0])
         else:
-            self.board.itemconfig(self.boardStuff[row][col][0], fill='')
+            if (row+col)%2==0:
+                self.board.itemconfig(self.boardStuff[row][col][0], outline=self.defaultColor,fill=self.defaultColor)
+            else:
+                self.board.itemconfig(self.boardStuff[row][col][0], outline=self.defaultColor2,fill=self.defaultColor2)
+
         #check if I am defended
         self.check_defended(row,col)
         #check if neighbors are defended
@@ -1772,7 +1777,7 @@ class PlayGUI(AnalysisGUI):
             elif bgColor in self.red:
                 i = self.red.index(bgColor)
                 newColor = self.selectedRed[i]
-            self.board.itemconfigure(self.boardStuff[row][col][1], fill=newColor)
+            self.board.itemconfig(self.boardStuff[row][col][1], fill=newColor)
             #add the letter to the label below the board
             playWord = self.play.config()['text'][-1] + letter
             self.play.config(text=playWord)
@@ -1929,9 +1934,13 @@ class PlayGUI(AnalysisGUI):
         #add word made to history with current colors of the board
         word = self.play.config()['text'][-1]
         board = ''.join(self.get_defended_color(row, col) for row in range(5) for col in range(5))
+        if '-' not in board:
+            messagebox.showwarning("Concentrate","Game Over.")
+            self.clear_play()
+            return
         letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
         blue, red, bluedef, reddef = self.refPlayer.convertboardscore(board.upper())
-        score, bluedef, reddef = self.refPlayer.evaluatepos(letters, blue, red)
+        score = self.refPlayer.evaluatepos(letters, blue, red, 1)
         self.add_to_hist(word, score, board, letters, 1)
         self.btnPlay.state(['disabled'])
         self.save_board_colors()
