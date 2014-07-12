@@ -84,7 +84,9 @@ class AnalysisGUI(Tk):
 
         self.blueScore = ttk.Label(self.topFrame, text='0', foreground=self.blue[1])
         self.blueScore.grid(column=0, row=0, padx=25, sticky=(W))
-        ttk.Label(self.topFrame, text='Board').grid(column=0,row=0)
+        self.boardLabel = ttk.Label(self.topFrame, text='Board')
+        self.boardLabel.grid(column=0,row=0)
+        self.boardLabel.bind('<Double-Button-1>',self.under_the_hood)
         self.redScore = ttk.Label(self.topFrame, text='0', foreground=self.red[1])
         self.redScore.grid(column=0, row=0, padx=25, sticky=(E))
 
@@ -1198,6 +1200,94 @@ class AnalysisGUI(Tk):
             self.player = AnalysisPlayer()
             self.player_version=0
             self.change_difficulty()
+
+    def under_the_hood(self, event):
+        colors = ''
+        for row in range(5):
+            for col in range(5):
+                colors += self.get_defended_color(row,col)
+        self.letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
+        if not(all([x in ascii_uppercase for x in self.letters]) and len(self.letters) == 25):
+            self.not_busy()
+            messagebox.showwarning("Concentrate","The board must be completely filled with letters.")
+            return
+        blue,red,bluedef,reddef = self.player.convertboardscore(colors.upper())
+        self.player.possible(self.letters)
+        overallscore = self.player.evaluatepos(self.letters, blue, red, self.move.get())
+        popup = Toplevel(self)
+        mydir = getcwd()
+        iconfile = 'concentrate.ico'
+        popup.iconbitmap(mydir+sep+iconfile)
+        popup.title('Under the Hood')
+        score = ttk.Label(popup,text='Score: '+str(overallscore))
+        score.grid(row=0,column=0)
+
+        blueBoard = Canvas(popup, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
+        blueBoard.grid(row=1,column=0)
+        blueScore = ttk.Label(popup,text = 'Defended: %s\nDefended Popularity: %s\nUndefended: %s\nUndefended Popularity: %s\nCenter of Mass: %s\n\nTotal: %s' %
+        (1,1,1,1,1,5))
+        blueScore.grid(row=1,column=1)
+        redBoard = Canvas(popup, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
+        redBoard.grid(row=1,column=2)
+
+        u = self.player.cache[self.letters][3]
+        d = self.player.cache[self.letters][2]
+
+        minscore = min(u+d)
+        maxscore = max(u+d)
+        maxbluecolor =  [int(self.blue[1][x:x+2],16) for x in range(1,7,2)]
+        maxredcolor = [int(self.red[1][x:x+2],16) for x in range(1,7,2)]
+        minbluecolor = tuple([x/2 for x in maxbluecolor])
+        minredcolor = tuple([x/2 for x in maxredcolor])
+        diffbluecolor = tuple([x-y for x,y in zip(maxbluecolor,minbluecolor)])
+        diffredcolor = tuple([x-y for x,y in zip(maxredcolor,minredcolor)])
+
+        def getColor(value, color):
+            percent = (value-minscore) / maxscore
+            if color == 'blue':
+                return '#%02x%02x%02x' % tuple([x*percent+y for x,y in zip(diffbluecolor,minbluecolor)])
+            else:
+                return '#%02x%02x%02x' % tuple([x*percent+y for x,y in zip(diffredcolor,minredcolor)])
+
+        for row in range(5):
+            for col in range(5):
+                color = self.get_defended_color(row,col)
+                top = row * self.squareSize + 1
+                left = col * self.squareSize + 1
+                bottom = row * self.squareSize + self.squareSize
+                right = col * self.squareSize + self.squareSize
+
+                if (row+col)%2==0:
+                    defaultColor = self.defaultColor
+                else:
+                    defaultColor = self.defaultColor2
+                if color == '-':
+                    blueBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
+                    redBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
+                elif color == 'r':
+                    blueBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
+                    redcolor = getColor(u[row*5+col],'red')
+                    redBoard.create_rectangle(left,top,right,bottom,outline=redcolor,fill=redcolor)
+                    redBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+                elif color == 'R':
+                    blueBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
+                    redcolor = getColor(d[row*5+col],'red')
+                    redBoard.create_rectangle(left,top,right,bottom,outline=redcolor,fill=redcolor)
+                    redBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+                elif color == 'b':
+                    redBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
+                    bluecolor = getColor(u[row*5+col],'blue')
+                    blueBoard.create_rectangle(left,top,right,bottom,outline=bluecolor,fill=bluecolor)
+                    blueBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+                elif color == 'B':
+                    redBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
+                    bluecolor = getColor(d[row*5+col],'blue')
+                    blueBoard.create_rectangle(left,top,right,bottom,outline=bluecolor,fill=bluecolor)
+                    blueBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+
+
+
+
 
 
 class AnalysisPlayer(player0):
