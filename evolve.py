@@ -176,7 +176,7 @@ def mutate(parent):  #sliding window based on current values for parent +/- .5 a
 
 def sex(parent1, parent2):
     child = []
-    for x,y in zipip(parent1,parent2):
+    for x,y in zip(parent1,parent2):
         newval = round((x + y) / 2, 2)
         child.append(newval)
     return tuple(child)
@@ -239,7 +239,7 @@ def evolve(num_generations):
     competitors = []
     #start with best weight known, and three mutations
     #best_so_far = (2.5, 1.25, 1.25, 1.25)  #original values for concentrate (shifted so uw = 1, instead of .8)
-    #best_so_far = (5.15, -2.75, 3.09, 5.72) #after 270 generations from original values
+    #best_so_far = (4.75, -1.55, 2.6, 6.95) #after 400 generations from original values
     #second run, started with four random values between (-5 and +5) and continued
     #best_so_far =(3.32, 0.35, 2.56, 4.56) #second run after 300 generations (weaker than first run)
 
@@ -319,8 +319,5 @@ if __name__ == '__main__':
     pool = multiprocessing.Pool(3)
 
 def begin(num_gens):
-    try:
-        evolve(num_gens)
-    except:
-        pass
+    evolve(num_gens)
     pool.terminate()
