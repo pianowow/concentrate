@@ -1214,21 +1214,63 @@ class AnalysisGUI(Tk):
         blue,red,bluedef,reddef = self.player.convertboardscore(colors.upper())
         self.player.possible(self.letters)
         overallscore = self.player.evaluatepos(self.letters, blue, red, self.move.get())
+
+
+        blueDef = blueUndef = bluePopDef = bluePopUndef = blueCenterOfMass = blueTotal = 0
+        redDef = redUndef = redPopDef = redPopUndef = redCenterOfMass = redTotal = 0
+        d = self.player.cache[self.letters][2]
+        u = self.player.cache[self.letters][3]
+        for i in range(25):
+            if 1<<i & bluedef:
+                blueDef += self.player.dw
+                bluePopDef += (d[i] - self.player.dw)
+                blueTotal += d[i]
+            elif 1<<i & blue:
+                blueUndef += self.player.uw
+                bluePopUndef += (u[i] - self.player.uw)
+                blueTotal += u[i]
+            elif 1<<i & reddef:
+                redDef -= self.player.dw
+                redPopDef -= (d[i] - self.player.dw)
+                redTotal -= d[i]
+            elif 1<<i & red:
+                redUndef -= self.player.uw
+                redPopUndef -= (u[i] - self.player.uw)
+                redTotal -= u[i]
+
+        zero = (~red) & (~blue)
+        bluediff = self.player.mw * self.player.vectordiff(self.player.centroid(blue), self.player.centroid(zero))
+        blueTotal += bluediff;
+        reddiff = - self.player.mw * self.player.vectordiff(self.player.centroid(red), self.player.centroid(zero))
+        redTotal += reddiff
+
         popup = Toplevel(self)
         mydir = getcwd()
         iconfile = 'concentrate.ico'
         popup.iconbitmap(mydir+sep+iconfile)
-        popup.title('Under the Hood')
-        score = ttk.Label(popup,text='Score: '+str(overallscore))
-        score.grid(row=0,column=0)
+
+        clickedIID = self.history.focus()
+        txt = self.history.set(clickedIID,'Word')
+        if txt:
+            popup.title('Under the Hood - after ' + txt)
+        else:
+            popup.title('Under the Hood')
+
+        score = ttk.Label(popup,text='Score: '+str(round(overallscore,2)))
+        score.grid(row=0,column=0,columnspan=4)
 
         blueBoard = Canvas(popup, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
         blueBoard.grid(row=1,column=0)
-        blueScore = ttk.Label(popup,text = 'Defended: %s\nDefended Popularity: %s\nUndefended: %s\nUndefended Popularity: %s\nCenter of Mass: %s\n\nTotal: %s' %
-        (1,1,1,1,1,5))
+
+        blueScore = ttk.Label(popup,text = 'Defended: %s\nUndefended: %s\nDefended Popularity: %s\nUndefended Popularity: %s\nCenter of Mass: %s\n\nTotal: %s' %
+        (round(blueDef,2),round(blueUndef,2),round(bluePopDef,2),round(bluePopUndef,2),round(bluediff,2),round(blueTotal,2)))
         blueScore.grid(row=1,column=1)
         redBoard = Canvas(popup, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
         redBoard.grid(row=1,column=2)
+
+        redScore = ttk.Label(popup,text = 'Defended: %s\nUndefended: %s\nDefended Popularity: %s\nUndefended Popularity: %s\nCenter of Mass: %s\n\nTotal: %s' %
+        (round(redDef,2),round(redUndef,2),round(redPopDef,2),round(redPopUndef,2),round(reddiff,2),round(redTotal,2)))
+        redScore.grid(row=1,column=3)
 
         u = self.player.cache[self.letters][3]
         d = self.player.cache[self.letters][2]
@@ -1237,8 +1279,8 @@ class AnalysisGUI(Tk):
         maxscore = max(u+d)
         maxbluecolor =  [int(self.blue[1][x:x+2],16) for x in range(1,7,2)]
         maxredcolor = [int(self.red[1][x:x+2],16) for x in range(1,7,2)]
-        minbluecolor = tuple([x/2 for x in maxbluecolor])
-        minredcolor = tuple([x/2 for x in maxredcolor])
+        minbluecolor = tuple([x/5 for x in maxbluecolor])
+        minredcolor = tuple([x/5 for x in maxredcolor])
         diffbluecolor = tuple([x-y for x,y in zip(maxbluecolor,minbluecolor)])
         diffredcolor = tuple([x-y for x,y in zip(maxredcolor,minredcolor)])
 
