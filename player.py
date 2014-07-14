@@ -22,7 +22,7 @@ import logging
 
 
 class player0:
-    def __init__(self, difficulty=['A',5,25,'S'], weights = (5.15, -2.75, 3.09, 5.72)): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.75, -1.55, 2.6, 6.95)): #this represents maximum difficulty
         '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
         self.difficulty = difficulty
         self.name = 'stable - player0'
@@ -615,7 +615,7 @@ class player0:
 
 
 class player1(player0):
-    def __init__(self, difficulty=['A',5,25,'S'], weights = (3.32, 0.35, 2.56, 4.56)): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.75, -1.55, 2.6, 6.95)): #this represents maximum difficulty
         super().__init__(difficulty, weights)
         self.name = 'beta - player1'
 
