@@ -46,20 +46,20 @@ class search(player0):
         while True:
             displayed = 0
             previouslastdisplayed = lastdisplayed
-            for wordnum,(score,word,groupsize,blue,red,bluedef,reddef) in enumerate(wordscores): #print score and check if opponent can win on next turn
+            for wordnum,(score,word,groupsize,blue,red) in enumerate(wordscores): #print score and check if opponent can win on next turn
 
                 if wordnum > lastdisplayed and displayed < amounttodisplay:
-                    zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,bluedef,reddef,move)
+                    zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,move)
                     if losing:
                         if showhidden:
-                            print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red,bluedef,reddef),zeroletters,'loses')
+                            print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red),zeroletters,'loses')
                             displayed += 1
                     elif endingsoon:
-                        print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red,bluedef,reddef),zeroletters,'ending soon')
+                        print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red),zeroletters,'ending soon')
                         lastdisplayed = wordnum
                         displayed += 1
                     else:
-                        print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red,bluedef,reddef),zeroletters)
+                        print(wordnum,word.ljust(25),score,groupsize,self.displayscore(blue,red),zeroletters)
                         lastdisplayed = wordnum
                         displayed += 1
                 elif displayed >= amounttodisplay:
