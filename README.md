@@ -7,7 +7,7 @@ Letterpress AI
 Main engine module, but not used directly.  Other modules depend on it
 
 - GUI.py  
-Run this to view the graphical user interface for concentrate.
+Run this to view the graphical user interface for concentrate.  
 Press Tab or use the menu item in options to switch between two modes: playing against Concentrate, and analyzing a game with Concentrate.  
 The five difficulty settings: Dunce, Easy, Medium, Hard, Extreme.  Extreme always plays the best word according to the AI's evaluation from the complete letterpress word list.  The other difficulty settings use a reduced word list, meant to simulate a layman's vocabulary.  Hard chooses the best word it can find from the reduced word list.  Medium chooses the best word of 8 letters or fewer from the reduced word list.  Easy chooses the best word of 5 letters or fewer from the reduced word list.  Dunce chooses a random word 8 letters or less from the reduced word list.  
   - Analyze mode  
