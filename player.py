@@ -6,10 +6,10 @@
 #
 # Created:     24/03/2013
 
-#is it possible to write arrange as a loop instead of recursion? might be better for performance
-
-#gotta be a way to program parity... choosing between a few words on the border between occupations (take the last word!)
-
+# TODO
+  # is it possible to write arrange as a loop instead of recursion? might be better for performance
+  # gotta be a way to program parity... choosing between a few words on the border between occupations (take the last word!)
+  # I wonder if the value of an undefended tile can be refined by weighing the neighbors' and self's popularity differently.  evolve.
 
 from string import ascii_uppercase, digits
 from random import choice
