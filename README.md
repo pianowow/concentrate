@@ -18,10 +18,9 @@ The five difficulty settings: Dunce, Easy, Medium, Hard, Extreme.  Extreme alway
   - Play Against mode  
   You play blue, Concentrate plays red.  Click letters to form a word, and press the Play button.  Click the word formed below if you want to clear your selection.  Press the pass button to pass.  Select a word in the game history to continue from that point in the game (a way to take back a move).
 
-
 - evolve.py  
-This module was created to determine the appropriate value for various values (weights) in concentrate's evaluation function.  It uses an evolutionary algorithm to spawn multiple versions of concentrate with different weights, and they play against each other.  The strongest survive and new members are generated.
-Please note this is set to spawn 3 processes to speed things up, so if you have a single or dual core system, this may not play nice.  
+This module was created to determine the appropriate value for various values (weights) in concentrate's evaluation function.  It uses an evolutionary algorithm to create multiple versions of concentrate with different weights, and they play against each other.  The strongest survive and new members are generated.
+Please note this is set to spawn 3 python processes (multiprocessing.Pool) to speed things up, so if you have a single or dual core system, this may not play nice.  
 
 - search.py  
 Command line interface for viewing possible words to play in a position.
