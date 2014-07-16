@@ -8,7 +8,7 @@
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
 #TODO
-#Under-the-hood view.  heat map of defended and undefended values
+
 
 from tkinter import *
 from tkinter import messagebox
