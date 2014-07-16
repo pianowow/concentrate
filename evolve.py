@@ -293,7 +293,7 @@ if __name__ == '__main__':
     logger.addHandler(console)
     logger.addHandler(fh)
 
-    listfile = open(find_data_file('en14.txt'),'r')
+    listfile = open(find_data_file('en15.txt'),'r')
     letterlist = list()
     for word in listfile:
         word = word.upper().strip()
