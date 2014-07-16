@@ -27,7 +27,7 @@ class player0:
         self.difficulty = difficulty
         self.name = 'stable - player0'
         #load word lists
-        listfile = open('en14.txt','r')
+        listfile = open('en15.txt','r')
         reducedfile = open('reduced.txt','r')
         wordset = set()
         reducedset = set()
