@@ -8,7 +8,7 @@
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
 #TODO
-
+    #auto play item in menu in Board under Search.  Finishes the game with the current difficulty, adding to history and updating the board progressively.
 
 from tkinter import *
 from tkinter import messagebox
@@ -152,7 +152,8 @@ class AnalysisGUI(Tk):
 
         mydir = getcwd()
         iconfile = 'concentrate.ico'
-        self.iconbitmap(mydir+sep+iconfile)  #finally this works on windows!  #TODO: check mac
+        self.iconpathandfn = mydir+sep+iconfile
+        self.iconbitmap(self.iconpathandfn)  #finally this works on windows!  #TODO: check mac
 
         self.draw_menu()
 
@@ -182,8 +183,7 @@ class AnalysisGUI(Tk):
             self.bind('<Command-o>',self.open)
             self.fileMenu.add_command(label="Save",underline=0, command=self.save, accelerator='Command-S')
             self.bind('<Command-s>',self.save)
-            self.fileMenu.add_command(label="Save As...", underline=5, command=self.save_as, accelerator='Command+A')
-            self.bind('<Command-a>',self.save_as)
+            self.fileMenu.add_command(label="Save As...", underline=5, command=self.save_as)
             self.menuBar.add_cascade(label="Concentrate", underline=0, menu=self.fileMenu)
 
             self.boardMenu = Menu(self.menuBar, tearoff=0)
@@ -197,6 +197,8 @@ class AnalysisGUI(Tk):
             self.bind('<Command-c>',self.random_colors)
             self.boardMenu.add_separator()
             self.boardMenu.add_command(label="Search", command=self.do_search, accelerator='Return')
+            self.boardMenu.add_command(label="Auto Play", underline=0, command=self.auto_play, accelerator='Command-Return')
+            self.bind('<Command-Return>',self.auto_play)
             self.menuBar.add_cascade(label="Board", menu=self.boardMenu)
 
             self.optionsMenu = Menu(self.menuBar, tearoff=0)
@@ -246,9 +248,15 @@ class AnalysisGUI(Tk):
             self.recentMenu= Menu(self.fileMenu, tearoff=0)
 
             currentlyopen = self.file
-            f = open('recent.ccd','rb')
-            gqueue = pickle.load(f)
-            f.close()
+            try:
+                f = open('recent.ccd','rb')
+                gqueue = pickle.load(f)
+                f.close()
+            except:
+                f = open('recent.ccd','wb')
+                gqueue = []
+                pickle.dump(gqueue,f)
+                f.close()
             while gqueue != []:
                 nextfile = gqueue.pop() #take from the end of the list and add to the top of the menu
                 self.recentMenu.add_command(label=nextfile, command=self.make_opener(nextfile))
@@ -257,8 +265,7 @@ class AnalysisGUI(Tk):
 
             self.fileMenu.add_command(label="Save",underline=0, command=self.save, accelerator='Ctrl+S')
             self.bind('<Control-s>',self.save)
-            self.fileMenu.add_command(label="Save As...", underline=5, command=self.save_as, accelerator='Ctrl+A')
-            self.bind('<Control-a>',self.save_as)
+            self.fileMenu.add_command(label="Save As...", underline=5, command=self.save_as)
             self.menuBar.add_cascade(label="File", underline=0, menu=self.fileMenu)
             self.boardMenu = Menu(self.menuBar, tearoff=0)
             self.boardMenu.add_command(label="Empty Board", underline=6, command=self.canvas_draw, accelerator='Ctrl+E')
@@ -271,7 +278,10 @@ class AnalysisGUI(Tk):
             self.bind('<Control-c>',self.random_colors)
             self.boardMenu.add_separator()
             self.boardMenu.add_command(label="Search", underline=0, command=self.do_search, accelerator='Enter')
+            self.boardMenu.add_command(label="Auto Play", underline=0, command=self.auto_play, accelerator='Ctrl+Enter')
+            self.bind('<Control-Return>',self.auto_play)
             self.menuBar.add_cascade(label="Board", underline=0, menu=self.boardMenu)
+
 
             self.optionsMenu = Menu(self.menuBar, tearoff=0)
             self.optionsMenu.add_command(label="Play Against Concentrate", underline=0, command=self.play_against, accelerator='Tab')
@@ -614,9 +624,7 @@ class AnalysisGUI(Tk):
     def ask_custom_difficulty(self):
         ask = self.ask = Toplevel(self)
         ask.grab_set()
-        mydir = getcwd()
-        iconfile = 'concentrate.ico'
-        ask.iconbitmap(mydir+sep+iconfile)
+        ask.iconbitmap(self.iconpathandfn)
 
         ask.title('Custom Difficulty')
 
@@ -1245,9 +1253,8 @@ class AnalysisGUI(Tk):
         redTotal += reddiff
 
         popup = Toplevel(self)
-        mydir = getcwd()
-        iconfile = 'concentrate.ico'
-        popup.iconbitmap(mydir+sep+iconfile)
+
+        popup.iconbitmap(self.iconpathandfn)
 
         clickedIID = self.history.focus()
         txt = self.history.set(clickedIID,'Word')
@@ -1328,7 +1335,94 @@ class AnalysisGUI(Tk):
                     blueBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
 
 
+    def auto_play(self, event=None):
 
+        letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
+        score = ''.join(self.get_color(row,col) for row in range(5) for col in range(5))
+
+        if not(all([x in ascii_uppercase for x in letters]) and len(letters) == 25):
+            self.not_busy()
+            messagebox.showwarning("Concentrate","The board must be completely filled with letters.")
+            return
+        self.busy()
+        self.clear_search()
+        if self.title()[-1] != '*' and self.file != '':
+            self.title(self.title()+'*')
+
+        #clear history past the current selection
+        txt = ''
+        if self.historySelection != -1:
+            txt = self.history.set(self.historySelection,'Word')
+            toDelete = []
+            if txt == self.initialHist:
+                toDelete.append(self.historySelection)
+            iid = self.history.next(self.historySelection)
+            while iid != '':
+                toDelete.append(iid)
+                iid = self.history.next(iid)
+            for iid in toDelete:
+                self.history.delete(iid)
+
+
+        #check if the history treeview is empty
+        cnt = len(self.history.get_children())
+        if cnt == 0:
+            self.save_board_colors()
+            self.history.insert('','end',values=(self.initialHist,'' ,self.boardColors,letters))
+
+        #reset the player cache of words played to the currently selected history entry and above
+
+        words = list()
+        for iid in self.history.get_children():
+            txt = self.history.set(iid,'Word')
+            if txt != self.initialHist:
+                words.append(txt)
+            if iid == self.historySelection:
+                break
+        self.player.possible(letters)
+        self.player.resetplayed(letters, words)
+        #loop while the board isn't full
+        self.lastpass = False
+
+        self.after(10,self.loop_play)
+
+
+    def loop_play(self):
+
+        letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
+        score = ''.join(self.get_color(row,col) for row in range(5) for col in range(5))
+        #get a turn from the player
+        word, newcolors, numscore = self.player.turn(letters,score,self.move.get())
+        #write that turn to history
+        if self.move.get() == 1:
+            insertID = self.history.insert('', 'end', tag='blue', values=(word, numscore, newcolors, letters))
+        else:
+            insertID = self.history.insert('', 'end', tag='red', values=(word, numscore, newcolors, letters))
+        self.historyIgnore=True
+        self.history.selection_set(insertID)
+        self.history.focus(insertID)
+        self.historySelection = insertID
+        self.history.see(insertID)
+
+        #change whose turn it is
+        self.move.set(-self.move.get())
+
+        #put the new colors on the board
+        self.update_board_colors(newcolors)
+        #if player passed twice, break
+        if word == '' and self.lastpass:
+            self.not_busy()
+            return
+        elif word == '':
+            self.lastpass = True
+
+        #get the new score
+        score = ''.join(self.get_color(row,col) for row in range(5) for col in range(5))
+
+        if 'W' in score:
+            self.after(10, self.loop_play)
+        else:
+            self.not_busy()
 
 
 
