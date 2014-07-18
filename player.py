@@ -22,7 +22,7 @@ import logging
 
 
 class player0:
-    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.75, -1.55, 2.6, 6.95)): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.38, -1.28, 2.29, 7.78)): #this represents maximum difficulty
         '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
         self.difficulty = difficulty
         self.name = 'stable - player0'
@@ -108,10 +108,16 @@ class player0:
             for letter in letterdict.keys():
                 letterlst.append(letter)
                 cnt.append(letterdict[letter])
-            mincnt = min(cnt)
+            try:
+                mincnt = min(cnt)
+            except:
+                mincnt = 1
             for i,num in enumerate(cnt):
                 cnt[i] = num/mincnt  #gets it into range 1-max/min
-            maxcnt = max(cnt)
+            try:
+                maxcnt = max(cnt)
+            except:
+                maxcnt = 1
             for i,num in enumerate(cnt):
                 cnt[i] = num/maxcnt  #gets it into range 0-1
             for i,letter in enumerate(letterlst):
@@ -402,7 +408,10 @@ class player0:
         goal = 0
         #find goal for notletters (if none given already)
         if not notletters and not needletters:
-            maxwordsizepossible = max(len(x) for x in self.possible(allletters))
+            try:
+                maxwordsizepossible = max(len(x) for x in self.possible(allletters))
+            except:
+                maxwordsizepossible = 0
             #print('max word size',maxwordsizepossible)
             if maxwordsizepossible < 13: #based on testing goal vs flexible version
                 goal = self.computegoal(allletters, blue, red, move)
@@ -615,7 +624,7 @@ class player0:
 
 
 class player1(player0):
-    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.75, -1.55, 2.6, 6.95)): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.38, -1.28, 2.29, 7.78)): #this represents maximum difficulty
         super().__init__(difficulty, weights)
         self.name = 'beta - player1'
 
