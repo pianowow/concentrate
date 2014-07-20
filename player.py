@@ -250,27 +250,41 @@ class player0:
         else:
             l = word[0]
             listindex = list()
+            i = allletters.find(l)
+            add = listindex.append
             nxt = allletters.find
-            add = used.append
-            remove = used.pop
-            arrng = self.arrange
-            i = nxt(l)
-            oldred = red
-            oldblue = blue
             while i >= 0:
                 if i not in used:
                     add(i)
-                    if move == 1 and (1<<i & origreddef == 0):
-                        blue = blue | (1<<i) #set 1 to position i
-                        red = red & ~(1<<i) #set 0 to position i
-                    elif move == -1 and (1<<i & origbluedef == 0):
-                        blue = blue & ~(1<<i) #set 0 to position i
-                        red = red | (1<<i) #set 1 to position i
-                    arrng(allletters,word[1:],blue,red,origbluedef,origreddef,scores,used,move)
+                i = nxt(l,i+1)
+            n = word.count(l)
+            oldred = red
+            oldblue = blue
+            arrnge = self.arrange
+            if n > 1:
+                for play in combinations(listindex,n):
+                    for i in play:
+                        if move == 1 and (1<<i & origreddef == 0):
+                            blue = blue | (1<<i) #set 1 to position i
+                            red = red & ~(1<<i) #set 0 to position i
+                        elif move == -1 and (1<<i & origbluedef == 0):
+                            blue = blue & ~(1<<i) #set 0 to position i
+                            red = red | (1<<i) #set 1 to position i
+                    # we can call with word[n:] because each word is sorted alphabetically by groupwords
+                    arrnge(allletters,word[n:],blue,red,origbluedef,origreddef,scores,used,move)
                     red = oldred
                     blue = oldblue
-                    remove()
-                i = nxt(l, i + 1)
+            else:
+                i = listindex[0]
+                if move == 1 and (1<<i & origreddef == 0):
+                    blue = blue | (1<<i) #set 1 to position i
+                    red = red & ~(1<<i) #set 0 to position i
+                elif move == -1 and (1<<i & origbluedef == 0):
+                    blue = blue & ~(1<<i) #set 0 to position i
+                    red = red | (1<<i) #set 1 to position i
+                arrnge(allletters,word[1:],blue,red,origbluedef,origreddef,scores,used,move)
+                red = oldred
+                blue = oldblue
 
     def convertboardscore(self, rbscore):
         '''produces bitmaps from string of 25 characters representing the colors'''
@@ -426,9 +440,9 @@ class player0:
                 if (1<<i) & targets:
                     anyl += l
 
-        #if goal:
+        if goal:
             #self.logger.debug('goal: '+notletters+' '+str(goal))
-            #print('goal: '+notletters+' '+bin(goal))
+            print('goal: '+notletters+' '+bin(goal))
         words = self.concentrate(allletters,needletters,notletters,anyl)
         wordgroups = self.groupwords(words,anyl)
         #print(len(words),'words')
