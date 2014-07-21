@@ -41,6 +41,7 @@ class player0:
         self.reducedlist = list(reducedset)
         #initialize cache (memory of games, words available for each game, words played, values for tiles)
         self.cache = dict() #dict of {letters:(words,played,defendedscore,undefendedscore)}
+        self.hashtable = dict() #dict of {letters: {(blue1,red1): evalresult1, (blue2,red2): evalresult2}} to remember evaluations
         #save reference neighbor dictionary
         self.neighbors= dict() #dict of square:[map].  square is a number 0-24, map is a bitmap of all its neighbors
         def saveneighbor(square, nsquare):
@@ -147,6 +148,7 @@ class player0:
                         neighborlist.append(1-letterdict[letters[row*5+col]])  #prefer non-usable undefended squares
                     u[row*5+col] = self.uw+ self.upw*round(sum(neighborlist) / len(neighborlist),2)
             self.cache[letters] = [tuple(found),[],d,u] #valid words, played words, defended scores, undefended scores
+            self.hashtable[letters] = dict()
             return found
 
     def concentrate(self, allletters, needletters='', notletters='', anyletters=''):
@@ -206,23 +208,25 @@ class player0:
 
     def evaluatepos(self, allletters, blue, red, move):
         '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
+        if (blue,red) in self.hashtable[allletters]:
+            return self.hashtable[allletters][(blue,red)]
         ending = (bin(blue|red).count('1') == 25)
-        d = self.cache[allletters][2] #defended
-        u = self.cache[allletters][3] #undefended
-        n = self.neighbors
-        bluescore = redscore = 0
-        for i in range(25):
-            if blue & (1<<i):
-                if (blue & n[i]) == n[i]:
-                    bluescore += d[i]
-                else:
-                    bluescore += u[i]
-            if red & (1<<i):
-                if (red & n[i]) == n[i]:
-                    redscore += d[i]
-                else:
-                    redscore += u[i]
         if not ending:
+            d = self.cache[allletters][2] #defended
+            u = self.cache[allletters][3] #undefended
+            n = self.neighbors
+            bluescore = redscore = 0
+            for i in range(25):
+                if blue & (1<<i):
+                    if (blue & n[i]) == n[i]:
+                        bluescore += d[i]
+                    else:
+                        bluescore += u[i]
+                if red & (1<<i):
+                    if (red & n[i]) == n[i]:
+                        redscore += d[i]
+                    else:
+                        redscore += u[i]
             #bonus for being away from the zeroletters
             if move == 1:
                 mycenter = self.centroid(blue)
@@ -235,10 +239,10 @@ class player0:
             theirdiff = self.vectordiff(theircenter,zerocenter)
             zerodiff = mydiff - theirdiff
             total = bluescore - redscore + self.mw*zerodiff*move
-            return total
         else: #game over
-            total = bin(blue).count('1') - bin(red).count('1')
-            return total * 1000
+            total = (bin(blue).count('1') - bin(red).count('1'))*1000
+        self.hashtable[allletters][(blue,red)] = total
+        return total
 
     #TODO: is it possible to write arrange as a loop instead of recursion? might be better for performance
     def arrange(self,allletters,word,blue,red,origbluedef,origreddef,scores=dict(),used=[],move=1):
@@ -425,7 +429,7 @@ class player0:
         if not notletters and not needletters:
             try:
                 maxwordsizepossible = max(len(x) for x in self.possible(allletters))
-            except:
+            except: # needed in case user makes a crazy board with no possible words
                 maxwordsizepossible = 0
             #print('max word size',maxwordsizepossible)
             if maxwordsizepossible < 13: #based on testing goal vs flexible version
@@ -441,9 +445,9 @@ class player0:
                 if (1<<i) & targets:
                     anyl += l
 
-        if goal:
+        #if goal:
             #self.logger.debug('goal: '+notletters+' '+str(goal))
-            print('goal: '+notletters+' '+bin(goal))
+            #print('goal: '+notletters+' '+bin(goal))
         words = self.concentrate(allletters,needletters,notletters,anyl)
         wordgroups = self.groupwords(words,anyl)
         #print(len(words),'words')
