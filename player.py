@@ -258,10 +258,11 @@ class player0:
                     add(i)
                 i = nxt(l,i+1)
             n = word.count(l)
+            m = allletters.count(l)
             oldred = red
             oldblue = blue
             arrnge = self.arrange
-            if n > 1:
+            if m > 1:
                 for play in combinations(listindex,n):
                     for i in play:
                         if move == 1 and (1<<i & origreddef == 0):
