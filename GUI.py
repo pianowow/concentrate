@@ -8,7 +8,6 @@
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
 #TODO
-    #auto play item in menu in Board under Search.  Finishes the game with the current difficulty, adding to history and updating the board progressively.
 
 from tkinter import *
 from tkinter import messagebox
@@ -481,6 +480,12 @@ class AnalysisGUI(Tk):
             self.history.see(selected)
         colors = dct['colors']
         self.update_board_colors(colors)
+
+        self.historyIgnore=True
+        self.history.selection_set(insertID)
+        self.history.focus(insertID)
+        self.historySelection = insertID
+        self.history.see(insertID)
 
     def open(self,event=None):
         """presents file dialog box for selecting one file.  loads data to the board and history"""
