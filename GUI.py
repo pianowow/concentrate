@@ -481,11 +481,6 @@ class AnalysisGUI(Tk):
         colors = dct['colors']
         self.update_board_colors(colors)
 
-        self.historyIgnore=True
-        self.history.selection_set(insertID)
-        self.history.focus(insertID)
-        self.historySelection = insertID
-        self.history.see(insertID)
 
     def open(self,event=None):
         """presents file dialog box for selecting one file.  loads data to the board and history"""
