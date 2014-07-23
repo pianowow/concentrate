@@ -7,7 +7,6 @@
 # Created:     24/03/2013
 
 # TODO
-  # is it possible to write arrange as a loop instead of recursion? might be better for performance
   # gotta be a way to program parity... choosing between a few words on the border between occupations (take the last word!)
   # I wonder if the value of an undefended tile can be refined by weighing the neighbors' and self's popularity differently.  evolve.
 
@@ -244,52 +243,53 @@ class player0:
         self.hashtable[allletters][(blue,red)] = total
         return total
 
-    #TODO: is it possible to write arrange as a loop instead of recursion? might be better for performance
     def arrange(self,allletters,word,blue,red,origbluedef,origreddef,scores=dict(),used=[],move=1):
-        '''recursive function to determine the best placement of word'''
-        if len(word) == 0:
-            if (blue,red) not in scores:
-                score = self.evaluatepos(allletters,blue,red,move)
-                scores[(blue,red)] = score
-        else:
-            l = word[0]
-            listindex = list()
-            i = allletters.find(l)
-            add = listindex.append
-            nxt = allletters.find
-            while i >= 0:
-                if i not in used:
-                    add(i)
-                i = nxt(l,i+1)
-            n = word.count(l)
-            m = allletters.count(l)
-            oldred = red
-            oldblue = blue
-            arrnge = self.arrange
-            if m > 1:
-                for play in combinations(listindex,n):
-                    for i in play:
-                        if move == 1 and (1<<i & origreddef == 0):
-                            blue = blue | (1<<i) #set 1 to position i
-                            red = red & ~(1<<i) #set 0 to position i
-                        elif move == -1 and (1<<i & origbluedef == 0):
-                            blue = blue & ~(1<<i) #set 0 to position i
-                            red = red | (1<<i) #set 1 to position i
-                    # we can call with word[n:] because each word is sorted alphabetically by groupwords
-                    arrnge(allletters,word[n:],blue,red,origbluedef,origreddef,scores,used,move)
-                    red = oldred
-                    blue = oldblue
-            else:
-                i = listindex[0]
+        '''function to determine the best placement of word'''
+        # for each unique letter, get a list of tuples for the indexes it can be played in
+        wordhist = dict()
+        for l in word:
+            wordhist[l] = word.count(l)
+        letteroptions = [list(combinations([i for i in range(25) if allletters[i] == l and i not in used],wordhist[l])) for l in wordhist]
+        # create a new list with enough elements to hold all the options above (multiply the length of all the lists)
+        lenwordplays=1
+        for lst in letteroptions:
+            lenwordplays *= len(lst)
+        wordplays = [[] for x in range(lenwordplays)]
+        # write the options to wordplays to get all the ways to play this word
+        # [[(1,),(2)],[(3,4),(3,5),(4,5)]] becomes [[1,3,4],[1,3,5],[1,4,5],[2,3,4],[2,3,5],[2,4,5]]
+        divisor = 1
+        for letterplays in letteroptions:
+            divisor *= len(letterplays)
+            cutoff = lenwordplays//divisor
+            if len(letterplays) > 1:
+                for playindex in range(lenwordplays):
+                    lookup = (playindex//cutoff) % len(letterplays)
+                    for index in letterplays[lookup]:
+                        wordplays[playindex].append(index)
+            else:  # if there's only one place for a letter (or group of letters), just modify the board for it, don't create another loop iteration
+                for i in letterplays[0]:
+                    if move == 1 and (1<<i & origreddef == 0):
+                        blue = blue | (1<<i) #set 1 to position i
+                        red = red & ~(1<<i) #set 0 to position i
+                    elif move == -1 and (1<<i & origbluedef == 0):
+                        blue = blue & ~(1<<i) #set 0 to position i
+                        red = red | (1<<i) #set 1 to position i
+        # for each play create new maps for what the position looks like using those indexes, and evaluate each position
+        oldred = red
+        oldblue = blue
+        for play in wordplays:
+            for i in play:
                 if move == 1 and (1<<i & origreddef == 0):
                     blue = blue | (1<<i) #set 1 to position i
                     red = red & ~(1<<i) #set 0 to position i
                 elif move == -1 and (1<<i & origbluedef == 0):
                     blue = blue & ~(1<<i) #set 0 to position i
                     red = red | (1<<i) #set 1 to position i
-                arrnge(allletters,word[1:],blue,red,origbluedef,origreddef,scores,used,move)
-                red = oldred
-                blue = oldblue
+            if (blue,red) not in scores:
+                score = self.evaluatepos(allletters,blue,red,move)
+                scores[(blue,red)] = score
+            red = oldred
+            blue = oldblue
 
     def convertboardscore(self, rbscore):
         '''produces bitmaps from string of 25 characters representing the colors'''
@@ -646,6 +646,5 @@ class player1(player0):
     def __init__(self, difficulty=['A',5,25,'S'], weights = (4.38, -1.28, 2.29, 7.78)): #this represents maximum difficulty
         super().__init__(difficulty, weights)
         self.name = 'beta - player1'
-
 
 
