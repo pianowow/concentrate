@@ -8,8 +8,6 @@
 
 #TODO
 
-#simulate from the middle of the game, have score be an input (need a way to force the engine to choose different words first though)
-
 import os
 import sys
 import inspect
