@@ -233,6 +233,12 @@ def read_file():
     f.close()
     return best_dict
 
+def new_file(begin_weights, generations=0):
+    dct = {begin_weights: generations}
+    f = open('evolve_memory.pkl','wb')
+    pickle.dump(dct,f)
+    f.close()
+
 def evolve(num_generations):
     logger.info('===== Begin Evolution =====')
     boards = make_boards()
@@ -240,8 +246,13 @@ def evolve(num_generations):
     #start with best weight known, and three mutations
     #best_so_far = (2.5, 1.25, 1.25, 1.25)  #original values for concentrate (shifted so uw = 1, instead of .8)
     #best_so_far = (4.75, -1.55, 2.6, 6.95) #after 400 generations from original values
+    #best_so_far = (4.38, -1.28, 2.29, 7.78) #after 450 generation
+
     #second run, started with four random values between (-5 and +5) and continued
     #best_so_far =(3.32, 0.35, 2.56, 4.56) #second run after 300 generations (weaker than first run)
+
+    #third run, split upw into upsw and upnw for self and neighbor popularity
+    #best_so_far = (4.38, -1.28, 2.29, 2.29, 7.78) #initial values (from gen 450 in first run)
 
     best_dict = read_file()
     best_so_far = list(best_dict.keys())[0]
@@ -253,7 +264,9 @@ def evolve(num_generations):
     for board in boards:
         logger.info('    %s',board)
     while len(competitors) < 4:
-        competitors.append(mutate(best_so_far))
+        newguy = mutate(best_so_far)
+        if newguy not in competitors:
+            competitors.append(mutate(best_so_far))
     start = time()
     for i in range(num_generations):
         logger.info('Generation %s: %s',i,competitors)
