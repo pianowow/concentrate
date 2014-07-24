@@ -7,8 +7,6 @@
 # Created:     31/03/2013
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
-#TODO
-
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
@@ -774,7 +772,7 @@ class AnalysisGUI(Tk):
         if self.sys == 'aqua':
             noModifier = {0}
         else:
-            noModifier = {8,9,10} #8 is none, 9 is shift, 10 is capslock
+            noModifier = {0,1,2,3,8,9,10,11} # sum of modifiers: 1-shift, 2-capslock, 4-ctrl, 8-numlock
         char = event.char.upper()
         if char in ascii_uppercase and len(char) > 0 and event.state in noModifier: #len is used to avoid moving forward with Control/Command buttons alone
                                                                                     #event.state is used to avoid doing the same for Command-key on the mac
