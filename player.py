@@ -21,7 +21,7 @@ import logging
 
 
 class player0:
-    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.38, -1.28, 2.29, 7.78)): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (2.29, 2.29)): #this represents maximum difficulty
         '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
         self.difficulty = difficulty
         self.name = 'stable - player0'
@@ -59,11 +59,12 @@ class player0:
             saveneighbor(square,square+5)
         self.endgamearrangecount= 0
         self.weights= weights
-        self.dw = weights[0]
+        self.dw = 4.38
         self.uw = 1
-        self.dpw = weights[1]
-        self.upw = weights[2]
-        self.mw = weights[3]
+        self.dpw = -1.28
+        self.upsw = weights[0]
+        self.upnw = weights[1]
+        self.mw = 7.78
 
     def changedifficulty(self, diff):
         self.difficulty = diff
@@ -135,17 +136,17 @@ class player0:
                 for col in range(5):
                     neighborlist = []
                     if row-1 in range(5):
-                        neighborlist.append(letterdict[letters[(row-1)*5+col]])
+                        neighborlist.append(self.upnw*letterdict[letters[(row-1)*5+col]])
                     if col+1 in range(5):
-                        neighborlist.append(letterdict[letters[row*5+col+1]])
+                        neighborlist.append(self.upnw*letterdict[letters[row*5+col+1]])
                     if row+1 in range(5):
-                        neighborlist.append(letterdict[letters[(row+1)*5+col]])
+                        neighborlist.append(self.upnw*letterdict[letters[(row+1)*5+col]])
                     if col-1 in range(5):
-                        neighborlist.append(letterdict[letters[row*5+col-1]])
+                        neighborlist.append(self.upnw*letterdict[letters[row*5+col-1]])
                     size = len(neighborlist)
                     for x in range(size):
-                        neighborlist.append(1-letterdict[letters[row*5+col]])  #prefer non-usable undefended squares
-                    u[row*5+col] = self.uw+ self.upw*round(sum(neighborlist) / len(neighborlist),2)
+                        neighborlist.append(self.upsw*(1-letterdict[letters[row*5+col]]))  #prefer non-usable undefended squares
+                    u[row*5+col] = self.uw+round(sum(neighborlist) / len(neighborlist),2)
             self.cache[letters] = [tuple(found),[],d,u] #valid words, played words, defended scores, undefended scores
             self.hashtable[letters] = dict()
             return found
@@ -496,7 +497,7 @@ class player0:
             else:
                 wordscores.sort(key=lambda x: (x[0],-len(x[1])))
             play = 0
-            for wordnum,(numScore,word,groupsize,blue,red) in enumerate(wordscores[:200]):
+            for wordnum,(numScore,word,groupsize,blue,red) in enumerate(wordscores[:1000]):
                 zeroletters,endingsoon,losing,newscore = self.endgamecheck(allletters,blue,red,move)
                 if not losing:
                     if move == 1:
