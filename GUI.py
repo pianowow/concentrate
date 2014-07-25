@@ -772,7 +772,7 @@ class AnalysisGUI(Tk):
         if self.sys == 'aqua':
             noModifier = {0}
         else:
-            noModifier = {0,1,2,3,8,9,10,11} # sum of modifiers: 1-shift, 2-capslock, 4-ctrl, 8-numlock
+            noModifier = {0,1,2,3,8,9,10,11,32,33,34,35,40,41,42,43} # sum of modifiers: 1-shift, 2-capslock, 4-ctrl, 8-numlock, 32-scolllock
         char = event.char.upper()
         if char in ascii_uppercase and len(char) > 0 and event.state in noModifier: #len is used to avoid moving forward with Control/Command buttons alone
                                                                                     #event.state is used to avoid doing the same for Command-key on the mac
