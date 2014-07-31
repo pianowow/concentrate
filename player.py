@@ -15,9 +15,8 @@ from random import choice
 from itertools import combinations, count
 from time import clock
 from math import sqrt
-import os
-import sys
-import logging
+
+
 
 
 class player0:
@@ -129,7 +128,7 @@ class player0:
             #calculate defended scores (same as popularity), plus the weights introduced for evolution
             d = [0 for x in range(25)]
             for i,l in enumerate(letters):
-                d[i] = self.dw + self.dpw*letterdict[l]
+                d[i] = round(self.dw + self.dpw*letterdict[l],2)
             #calculate undefended scores (average of neighbor popularity and 1-popularity of square)
             u = [0 for x in range(25)]
             for row in range(5):
@@ -146,7 +145,7 @@ class player0:
                     size = len(neighborlist)
                     for x in range(size):
                         neighborlist.append(self.upsw*(1-letterdict[letters[row*5+col]]))  #prefer non-usable undefended squares
-                    u[row*5+col] = self.uw+round(sum(neighborlist) / len(neighborlist),2)
+                    u[row*5+col] = round(self.uw+(sum(neighborlist) / len(neighborlist)),2)
             self.cache[letters] = [tuple(found),[],d,u] #valid words, played words, defended scores, undefended scores
             self.hashtable[letters] = dict()
             return found
@@ -447,7 +446,6 @@ class player0:
                     anyl += l
 
         #if goal:
-            #self.logger.debug('goal: '+notletters+' '+str(goal))
             #print('goal: '+notletters+' '+bin(goal))
         words = self.concentrate(allletters,needletters,notletters,anyl)
         wordgroups = self.groupwords(words,anyl)
@@ -476,11 +474,8 @@ class player0:
         if word in self.cache[allletters][1]:
             self.cache[allletters][1].remove(word)
 
-    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww', move=1, logger=None):
-        if logger:
-            self.logger = logger
-        else:
-            self.logger = logging.getLogger()
+    def turn(self, allletters, score='wwwwwwwwwwwwwwwwwwwwwwwww', move=1):
+
         '''selects a result from decide'''
         allletters = allletters.upper()
         score = score.upper()
@@ -560,7 +555,6 @@ class player0:
         if goodgoals == []:
             return 0
         else:
-            #self.logger.debug('goal count: '+str(len(goodgoals)))
             return max(goodgoals,key=lambda goal:self.goalvalue(goal, blue, red, move))
 
     def goalvalue(self, goal, blue, red, move):
