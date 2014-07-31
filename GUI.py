@@ -1221,6 +1221,11 @@ class AnalysisGUI(Tk):
         self.player.possible(self.letters)
         overallscore = self.player.evaluatepos(self.letters, blue, red, self.move.get())
 
+        u = self.player.cache[self.letters][3]
+        d = self.player.cache[self.letters][2]
+
+        minscore = min(u+d)
+        maxscore = max(u+d)
 
         blueDef = blueUndef = bluePopDef = bluePopUndef = blueCenterOfMass = blueTotal = 0
         redDef = redUndef = redPopDef = redPopUndef = redCenterOfMass = redTotal = 0
@@ -1264,37 +1269,107 @@ class AnalysisGUI(Tk):
         score = ttk.Label(popup,text='Score: '+str(round(overallscore,2)))
         score.grid(row=0,column=0,columnspan=4)
 
+        bluelabel = ttk.Label(popup,text='Blue Position')
+        bluelabel.grid(row=1,column=0)
+
+        redlabel = ttk.Label(popup,text='Red Position')
+        redlabel.grid(row=1,column=2)
+
+
         blueBoard = Canvas(popup, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
-        blueBoard.grid(row=1,column=0)
+        blueBoard.grid(row=2,column=0)
 
         blueScore = ttk.Label(popup,text = 'Defended: %s\nUndefended: %s\nDefended Popularity: %s\nUndefended Popularity: %s\nCenter of Mass: %s\n\nTotal: %s' %
         (round(blueDef,2),round(blueUndef,2),round(bluePopDef,2),round(bluePopUndef,2),round(bluediff,2),round(blueTotal,2)))
-        blueScore.grid(row=1,column=1)
+        blueScore.grid(row=2,column=1)
         redBoard = Canvas(popup, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
-        redBoard.grid(row=1,column=2)
+        redBoard.grid(row=2,column=2)
 
         redScore = ttk.Label(popup,text = 'Defended: %s\nUndefended: %s\nDefended Popularity: %s\nUndefended Popularity: %s\nCenter of Mass: %s\n\nTotal: %s' %
         (round(redDef,2),round(redUndef,2),round(redPopDef,2),round(redPopUndef,2),round(reddiff,2),round(redTotal,2)))
-        redScore.grid(row=1,column=3)
+        redScore.grid(row=2,column=3)
 
-        u = self.player.cache[self.letters][3]
-        d = self.player.cache[self.letters][2]
+        MinVisibleWaveLength = 450
+        MaxVisibleWaveLength = 520
+##        maxbluecolor =  [int(self.blue[1][x:x+2],16) for x in range(1,7,2)]
+##        maxredcolor = [int(self.red[1][x:x+2],16) for x in range(1,7,2)]
+##        minbluecolor = tuple([x/5 for x in maxbluecolor])
+##        minredcolor = tuple([x/5 for x in maxredcolor])
+##        diffbluecolor = tuple([x-y for x,y in zip(maxbluecolor,minbluecolor)])
+##        diffredcolor = tuple([x-y for x,y in zip(maxredcolor,minredcolor)])
+##
+##        def getColor(value, color):
+##            percent = (value-minscore) / maxscore
+##            if color == 'blue':
+##                return '#%02x%02x%02x' % tuple([x*percent+y for x,y in zip(diffbluecolor,minbluecolor)])
+##            else:
+##                return '#%02x%02x%02x' % tuple([x*percent+y for x,y in zip(diffredcolor,minredcolor)])
 
-        minscore = min(u+d)
-        maxscore = max(u+d)
-        maxbluecolor =  [int(self.blue[1][x:x+2],16) for x in range(1,7,2)]
-        maxredcolor = [int(self.red[1][x:x+2],16) for x in range(1,7,2)]
-        minbluecolor = tuple([x/5 for x in maxbluecolor])
-        minredcolor = tuple([x/5 for x in maxredcolor])
-        diffbluecolor = tuple([x-y for x,y in zip(maxbluecolor,minbluecolor)])
-        diffredcolor = tuple([x-y for x,y in zip(maxredcolor,minredcolor)])
 
         def getColor(value, color):
-            percent = (value-minscore) / maxscore
-            if color == 'blue':
-                return '#%02x%02x%02x' % tuple([x*percent+y for x,y in zip(diffbluecolor,minbluecolor)])
+            Wavelength = (value - minscore) / (maxscore-minscore) * (MaxVisibleWaveLength - MinVisibleWaveLength) + MinVisibleWaveLength;
+            if Wavelength < 440:
+                Red   = -(Wavelength - 440) / (440 - 380)
+                Green = 0.0
+                Blue  = 1.0
+            elif Wavelength < 490:
+                Red   = 0.0
+                Green = (Wavelength - 440) / (490 - 440)
+                Blue  = 1.0
+            elif Wavelength < 510:
+                Red   = 0.0
+                Green = 1.0
+                Blue  = -(Wavelength - 510) / (510 - 490)
+            elif Wavelength < 580:
+                Red   = (Wavelength - 510) / (580 - 510)
+                Green = 1.0
+                Blue  = 0.0
+            elif Wavelength < 645:
+                Red   = 1.0
+                Green = -(Wavelength - 645) / (645 - 580)
+                Blue  = 0.0
+            elif Wavelength < 780:
+                Red   = 1.0
+                Green = 0.0
+                Blue  = 0.0
+
+            if Wavelength >= 390 and Wavelength < 420:
+                factor = 0.3 + 0.7*(Wavelength - 380) / (420 - 380)
+            elif Wavelength >= 420 and Wavelength <=700:
+                factor = 1.0
+            elif Wavelength > 700 and Wavelength <= 780:
+                factor = 0.3 + 0.7*(780 - Wavelength) / (780 - 700)
             else:
-                return '#%02x%02x%02x' % tuple([x*percent+y for x,y in zip(diffredcolor,minredcolor)])
+                factor = 0.0
+
+            R = Adjust(Red,   factor)
+            G = Adjust(Green, factor)
+            B = Adjust(Blue,  factor)
+            return '#%02x%02x%02x' %(R,G,B)
+
+        def Adjust(Color, Factor):
+            Gamma = 0.50;
+            if Color == 0.0:
+                return 0     # Don't want 0^x = 1 for x <> 0
+            else:
+                return round(255 * ((Color * Factor) ** Gamma),0)
+
+        filllabel = ttk.Label(popup,text = ' ')
+        filllabel.grid(row=3,column=0)
+
+        colorscale = Canvas(popup, width=self.boardSize * 2, height=self.boardSize / 10, borderwidth=0, highlightthickness=1, bg='white')
+        colorscale.grid(row=4,column=0,columnspan=4)
+
+        steps = 100
+        increment = (maxscore - minscore) / steps
+        currscore = minscore
+        for x in range(steps):
+            currscore += increment
+            color = getColor(currscore,'')
+            colorscale.create_rectangle((self.boardSize * 2 / steps) * x + 1,1,(self.boardSize * 2 / steps) * (x+1) + 1,self.boardSize/10,outline=color,fill=color)
+        colorscale.create_text(15, self.boardSize / 20,text=minscore,font='Helvetica 10',fill=self.defaultText)
+        colorscale.create_text(self.boardSize*2 - 15, self.boardSize / 20,text=maxscore,font='Helvetica 10',fill=self.defaultText)
+
 
         for row in range(5):
             for col in range(5):
@@ -1315,22 +1390,22 @@ class AnalysisGUI(Tk):
                     blueBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
                     redcolor = getColor(u[row*5+col],'red')
                     redBoard.create_rectangle(left,top,right,bottom,outline=redcolor,fill=redcolor)
-                    redBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+                    redBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=str(-u[row*5+col]),font='Helvetica 10',fill=self.defaultText)
                 elif color == 'R':
                     blueBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
                     redcolor = getColor(d[row*5+col],'red')
                     redBoard.create_rectangle(left,top,right,bottom,outline=redcolor,fill=redcolor)
-                    redBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+                    redBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=str(-d[row*5+col]),font='Helvetica 10',fill=self.defaultText)
                 elif color == 'b':
                     redBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
                     bluecolor = getColor(u[row*5+col],'blue')
                     blueBoard.create_rectangle(left,top,right,bottom,outline=bluecolor,fill=bluecolor)
-                    blueBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+                    blueBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=str(u[row*5+col]),font='Helvetica 10',fill=self.defaultText)
                 elif color == 'B':
                     redBoard.create_rectangle(left,top,right,bottom,outline=self.defaultColor,fill=defaultColor)
                     bluecolor = getColor(d[row*5+col],'blue')
                     blueBoard.create_rectangle(left,top,right,bottom,outline=bluecolor,fill=bluecolor)
-                    blueBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=' ',font='Helvetica 20',fill=self.defaultText)
+                    blueBoard.create_text(left+self.squareSize/2, top+self.squareSize/2,text=str(d[row*5+col]),font='Helvetica 10',fill=self.defaultText)
 
 
     def auto_play(self, event=None):
