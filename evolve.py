@@ -251,9 +251,6 @@ def evolve(num_generations):
     #second run, started with four random values between (-5 and +5) and continued
     #best_so_far =(3.32, 0.35, 2.56, 4.56) #second run after 300 generations (weaker than first run)
 
-    #third run, split upw into upsw and upnw for self and neighbor popularity
-    #best_so_far = (4.38, -1.28, 2.29, 2.29, 7.78) #initial values (from gen 450 in first run)
-
     best_dict = read_file()
     best_so_far = list(best_dict.keys())[0]
     prior_generations = best_dict[best_so_far]
