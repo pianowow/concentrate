@@ -18,7 +18,6 @@ from os import path, getcwd, sep
 from time import time
 import arena
 import pickle
-import logging
 
 class AnalysisGUI(Tk):
 
@@ -1509,9 +1508,9 @@ class AnalysisPlayer(player0):
             self.wordScores = self.decide(allLetters, score, needLetters, notLetters, move)
             if self.difficulty[3] == 'S':
                 if move == 1:
-                    self.wordScores.sort(reverse=True)
+                    self.wordScores.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
                 else:
-                    self.wordScores.sort()
+                    self.wordScores.sort(key=lambda x: (x[0],-len(x[1])))
             else:
                 self.displayed = list()
         results = list()
@@ -1556,9 +1555,9 @@ class AnalysisPlayer(player0):
             self.wordScores = self.decide(allLetters, score, needLetters, notLetters, move)
             if self.difficulty[3] == 'S':
                 if move == 1:
-                    self.wordScores.sort(reverse=True)
+                    self.wordScores.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
                 else:
-                    self.wordScores.sort()
+                    self.wordScores.sort(key=lambda x: (x[0],-len(x[1])))
             else:
                 self.displayed = list()
         results = list()
@@ -1607,9 +1606,8 @@ class AnalysisPlayer(player0):
 
 
 class AnalysisPlayer1(player1):
-    def __init__(self, difficulty=['R', 5, 25, 'S'], weights=(5.15, -2.75, 3.09, 5.72)):
+    def __init__(self, difficulty=['R', 5, 25, 'S']):
         player1.__init__(self, difficulty)
-        self.logger = logging.getLogger('GUI')
 
 
     def search(self, allLetters, score, needLetters, notLetters, move, lastDisplayed):
@@ -1618,9 +1616,9 @@ class AnalysisPlayer1(player1):
             self.wordScores = self.decide(allLetters, score, needLetters, notLetters, move)
             if self.difficulty[3] == 'S':
                 if move == 1:
-                    self.wordScores.sort(reverse=True)
+                    self.wordScores.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
                 else:
-                    self.wordScores.sort()
+                    self.wordScores.sort(key=lambda x: (x[0],-len(x[1])))
             else:
                 self.displayed = list()
         results = list()
@@ -1665,9 +1663,9 @@ class AnalysisPlayer1(player1):
             self.wordScores = self.decide(allLetters, score, needLetters, notLetters, move)
             if self.difficulty[3] == 'S':
                 if move == 1:
-                    self.wordScores.sort(reverse=True)
+                    self.wordScores.sort(reverse=True, key=lambda x: (x[0],len(x[1])))
                 else:
-                    self.wordScores.sort()
+                    self.wordScores.sort(key=lambda x: (x[0],-len(x[1])))
             else:
                 self.displayed = list()
         results = list()
