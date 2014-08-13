@@ -201,7 +201,7 @@ class player0:
                 goodlist.append(word1)
         return tuple(sorted(goodlist,key=lambda x:(len(x),x)))
 
-    def evaluatepos(self, allletters, blue, red, move):
+    def evaluatepos(self, allletters, blue, red):
         '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
         if (blue,red) in self.hashtable[allletters]:
             return self.hashtable[allletters][(blue,red)]
@@ -223,17 +223,13 @@ class player0:
                     else:
                         redscore += u[i]
             #bonus for being away from the zeroletters
-            if move == 1:
-                mycenter = self.centroid(blue)
-                theircenter = self.centroid(red)
-            else:
-                mycenter = self.centroid(red)
-                theircenter = self.centroid(blue)
+
+            bluecenter = self.centroid(blue)
+            redcenter = self.centroid(red)
             zerocenter = self.centroid(~(red|blue))
-            mydiff = self.vectordiff(mycenter,zerocenter)
-            theirdiff = self.vectordiff(theircenter,zerocenter)
-            zerodiff = mydiff - theirdiff
-            total = bluescore - redscore + self.mw*zerodiff*move
+            bluediff = self.vectordiff(bluecenter,zerocenter)
+            reddiff = self.vectordiff(redcenter,zerocenter)
+            total = bluescore - redscore + self.mw*(bluediff - reddiff)
         else: #game over
             total = (bin(blue).count('1') - bin(red).count('1'))*1000
         self.hashtable[allletters][(blue,red)] = total
@@ -282,7 +278,7 @@ class player0:
                     blue = blue & ~(1<<i) #set 0 to position i
                     red = red | (1<<i) #set 1 to position i
             if (blue,red) not in scores:
-                score = self.evaluatepos(allletters,blue,red,move)
+                score = self.evaluatepos(allletters,blue,red)
                 scores[(blue,red)] = score
             red = oldred
             blue = oldblue
@@ -530,7 +526,7 @@ class player0:
             return word,board,numScore
         else:
             blue, red, bluedef, reddef = self.convertboardscore(score)
-            numScore = self.evaluatepos(allletters, blue, red, move)
+            numScore = self.evaluatepos(allletters, blue, red)
             return '', self.displayscore(blue, red), numScore
 
     def computegoal(self, allletters, blue, red, move):
@@ -596,7 +592,7 @@ class player0:
     def vectordiff(self, v1, v2):
         return sqrt((v1[0]-v2[0])**2 + (v1[1]-v2[1])**2)
 
-    def centroid(self, map):
+    def centroid(self, map):  # had an idea to look up this value from a reference file, but that file would be almost 1 GB in size using pickle.
         cnt = 0
         ysum = 0
         xsum = 0
@@ -694,36 +690,3 @@ class player1(player0):
         super().__init__(difficulty, weights)
         self.name = 'beta - player1'
 
-    def evaluatepos(self, allletters, blue, red, move):
-        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
-        if (blue,red) in self.hashtable[allletters]:
-            return self.hashtable[allletters][(blue,red)]
-        ending = (bin(blue|red).count('1') == 25)
-        if not ending:
-            d = self.cache[allletters][2] #defended
-            u = self.cache[allletters][3] #undefended
-            n = self.neighbors
-            bluescore = redscore = 0
-            for i in range(25):
-                if blue & (1<<i):
-                    if (blue & n[i]) == n[i]:
-                        bluescore += d[i]
-                    else:
-                        bluescore += u[i]
-                if red & (1<<i):
-                    if (red & n[i]) == n[i]:
-                        redscore += d[i]
-                    else:
-                        redscore += u[i]
-            #bonus for being away from the zeroletters
-
-            bluecenter = self.centroid(blue)
-            redcenter = self.centroid(red)
-            zerocenter = self.centroid(~(red|blue))
-            bluediff = self.vectordiff(mycenter,zerocenter)
-            reddiff = self.vectordiff(theircenter,zerocenter)
-            total = bluescore - redscore + bluediff - reddiff
-        else: #game over
-            total = (bin(blue).count('1') - bin(red).count('1'))*1000
-        self.hashtable[allletters][(blue,red)] = total
-        return total
