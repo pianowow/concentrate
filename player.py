@@ -450,13 +450,30 @@ class player0:
         wordscores = list()
         for x,group in enumerate(wordgroups.keys()):
             scores = dict() #scores formed by different arrangements of the same group
-                            #entries of the form (red,blue):(score,bluedef,reddef)
+                            #entries of the form (red,blue):score
             self.arrange(allletters,group,blue,red,bluedef,reddef,scores,dontuse,move)
             for playblue,playred in scores:
-                playscore = scores[(playblue,playred)]
+                playscore = round(scores[(playblue,playred)],3)
                 groupsize = len(wordgroups[group])
                 for word in wordgroups[group]:
                     wordscores.append((playscore,word,groupsize,playblue,playred))
+
+        if move == 1:
+            bestscore = max(wordscores)[0]
+            inc = .0005
+        else:
+            inc = -.0005
+            bestscore = min(wordscores)[0]
+        bestwords = dict()
+        for i,(score,word,groupsize,playblue,playred) in enumerate(wordscores):
+            if score == bestscore:
+                bestwords[i] = (score,word,groupsize,playblue,playred)
+        group = [bestwords[key][1] for key in bestwords.keys()]
+        for i in bestwords:
+            (score,word,groupsize,playblue,playred) = bestwords[i]
+            if self.playissafe(group,word):
+                wordscores[i] = (score+inc,word,groupsize,playblue,playred)
+
         #print(len(wordscores),'plays')
         return wordscores
 
@@ -632,26 +649,81 @@ class player0:
                 defmap = defmap | (1<<i)
         return defmap
 
+    def playissafe(self, group, play):
+        assert play in group
+        newgroup = []
+        for word in group:
+            l = len(word)
+            if play[:l] != word:
+                newgroup.append(word)
+        group = newgroup
+        category = defaultdict(int)
+        group.sort(key=lambda x:len(x))
+        children = set()
+        for i,word1 in enumerate(group):
+            mychildren = []
+            if word1 not in children:
+                l = len(word1)
+                for word2 in group[i+1:]:
+                    if word2[:l] == word1:
+                        mychildren.append(word2)
+                        children.add(word2)
+                if mychildren:
+                    double = True
+                    mychildren.sort(key=lambda x:len(x))
+                    for i,child1 in enumerate(mychildren[:-1]):
+                        l = len(child1)
+                        for child2 in mychildren[i+1:]:
+                            if child2[:l] == child1:
+                                category['big'] += 1
+                                double = False
+                    if double:
+                        category['double'] += 1
+                else:
+                    category['single'] += 1
+        if category['big']:
+            return False
+        else:
+            if category['single']%2==0 and category['double']%2==0:
+                return True
+            else:
+                return False
 
 class player1(player0):
     def __init__(self, difficulty=['A',5,25,'S'], weights = (4.38, -1.28, 2.29, 7.78)): #this represents maximum difficulty
         super().__init__(difficulty, weights)
         self.name = 'beta - player1'
 
-    def groupissafe(self, group):
-        category = defaultdict(int)
-        group.sort(key=lambda x:len(x))
-        print(group)
-        for word in group:
-            cnt = 0
-            smaller
-            for i in range(2,len(word)):
-                if word[:i] in group:
-                    cnt += 1
+    def evaluatepos(self, allletters, blue, red, move):
+        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
+        if (blue,red) in self.hashtable[allletters]:
+            return self.hashtable[allletters][(blue,red)]
+        ending = (bin(blue|red).count('1') == 25)
+        if not ending:
+            d = self.cache[allletters][2] #defended
+            u = self.cache[allletters][3] #undefended
+            n = self.neighbors
+            bluescore = redscore = 0
+            for i in range(25):
+                if blue & (1<<i):
+                    if (blue & n[i]) == n[i]:
+                        bluescore += d[i]
+                    else:
+                        bluescore += u[i]
+                if red & (1<<i):
+                    if (red & n[i]) == n[i]:
+                        redscore += d[i]
+                    else:
+                        redscore += u[i]
+            #bonus for being away from the zeroletters
 
-
-
-
-
-
-
+            bluecenter = self.centroid(blue)
+            redcenter = self.centroid(red)
+            zerocenter = self.centroid(~(red|blue))
+            bluediff = self.vectordiff(mycenter,zerocenter)
+            reddiff = self.vectordiff(theircenter,zerocenter)
+            total = bluescore - redscore + bluediff - reddiff
+        else: #game over
+            total = (bin(blue).count('1') - bin(red).count('1'))*1000
+        self.hashtable[allletters][(blue,red)] = total
+        return total
