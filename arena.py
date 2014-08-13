@@ -16,7 +16,7 @@ from player import player0, player1
 from time import time,strftime
 from random import choice, shuffle, sample
 
-difficulty = ['R',5,25,'S']
+difficulty = ['A',5,25,'S']
 
 import logging
 
@@ -177,7 +177,7 @@ def game(allletters='',player0blue=False):
         if turn == 'blue':
             start = time()
             oldscore = score
-            word,board,score = b.turn(allletters,board,1,logger)
+            word,board,score = b.turn(allletters,board,1)
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             r.playword(allletters,word)
@@ -194,7 +194,7 @@ def game(allletters='',player0blue=False):
         else:
             start = time()
             oldscore = score
-            word,board,score = r.turn(allletters,board,-1,logger)
+            word,board,score = r.turn(allletters,board,-1)
             blue,blued,red,redd = numscore(board)
             playedwords.append(word)
             b.playword(allletters,word)
