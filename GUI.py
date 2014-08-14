@@ -1218,7 +1218,7 @@ class AnalysisGUI(Tk):
             return
         blue,red,bluedef,reddef = self.player.convertboardscore(colors.upper())
         self.player.possible(self.letters)
-        overallscore = self.player.evaluatepos(self.letters, blue, red, self.move.get())
+        overallscore = self.player.evaluatepos(self.letters, blue, red)
 
         u = self.player.cache[self.letters][3]
         d = self.player.cache[self.letters][2]
@@ -1249,9 +1249,9 @@ class AnalysisGUI(Tk):
                 redTotal -= u[i]
 
         zero = (~red) & (~blue)
-        bluediff = self.player.mw * self.player.vectordiff(self.player.centroid(blue), self.player.centroid(zero))
+        bluediff = self.player.mw * self.player.vectordiff(self.player.centroid(bluedef), self.player.centroid(zero))
         blueTotal += bluediff;
-        reddiff = - self.player.mw * self.player.vectordiff(self.player.centroid(red), self.player.centroid(zero))
+        reddiff = - self.player.mw * self.player.vectordiff(self.player.centroid(reddef), self.player.centroid(zero))
         redTotal += reddiff
 
         popup = Toplevel(self)
