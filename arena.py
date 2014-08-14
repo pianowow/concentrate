@@ -16,7 +16,7 @@ from player import player0, player1
 from time import time,strftime
 from random import choice, shuffle, sample
 
-difficulty = ['A',5,25,'S']
+difficulty = ['R',5,25,'S']
 
 import logging
 
