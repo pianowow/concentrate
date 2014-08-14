@@ -14,7 +14,7 @@ import inspect
 import logging
 import pickle
 import multiprocessing
-from player import player0
+from player import player0,player1
 from time import time,strftime
 from random import choice, shuffle, sample, random
 from itertools import combinations
@@ -210,7 +210,7 @@ def do_generation(competitors, boards):
     comp_objs = dict()
     for p in competitors:
         comp_scores[p] = 0
-        comp_objs[p] = player0(difficulty=d, weights=p)
+        comp_objs[p] = player1(difficulty=d, weights=p)
     pairs = list(combinations(competitors,2))
     pairs_obj = [(comp_objs[x], comp_objs[y]) for (x,y) in pairs]
     for board in boards:
