@@ -686,7 +686,44 @@ class player0:
                 return False
 
 class player1(player0):
-    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.38, -1.28, 2.29, 7.78)): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.51, -1.23, 0.36, 0.08)): #this represents maximum difficulty
         super().__init__(difficulty, weights)
         self.name = 'beta - player1'
 
+    def evaluatepos(self, allletters, blue, red):
+        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
+        if (blue,red) in self.hashtable[allletters]:
+            return self.hashtable[allletters][(blue,red)]
+        ending = (bin(blue|red).count('1') == 25)
+        if not ending:
+            d = self.cache[allletters][2] #defended
+            u = self.cache[allletters][3] #undefended
+            n = self.neighbors
+            bluescore = redscore = 0
+            bluedefmap = 0
+            reddefmap = 0
+            for i in range(25):
+                if blue & (1<<i):
+                    if (blue & n[i]) == n[i]:
+                        bluescore += d[i]
+                        bluedefmap |= 1<<i
+                    else:
+                        bluescore += u[i]
+                if red & (1<<i):
+                    if (red & n[i]) == n[i]:
+                        redscore += d[i]
+                        reddefmap |= 1<<i
+                    else:
+                        redscore += u[i]
+
+            #bonus for being away from the zeroletters
+            bluecenter = self.centroid(bluedefmap)
+            redcenter = self.centroid(reddefmap)
+            zerocenter = self.centroid(~(red|blue))
+            bluediff = self.vectordiff(bluecenter,zerocenter)
+            reddiff = self.vectordiff(redcenter,zerocenter)
+            total = bluescore - redscore + self.mw*(bluediff - reddiff)
+        else: #game over
+            total = (bin(blue).count('1') - bin(red).count('1'))*1000
+        self.hashtable[allletters][(blue,red)] = total
+        return total
