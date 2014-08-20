@@ -183,13 +183,13 @@ def game(allletters='',player0blue=False):
             r.playword(allletters,word)
             t = round(time() - start,2)
             btime += t
-            logger.debug(' '.join(('blue plays',word.ljust(25),board,str(len(playedwords)),'blue:',blue+'('+str(blued)+')','red:',red+'('+str(redd)+')','time:',str(t),'seconds',str(round(score,2)))))
+            logger.debug(' '.join(('blue plays',word.ljust(25),board,str(len(playedwords)),'blue:',blue+'('+str(blued)+')','red:',red+'('+str(redd)+')','time:',str(t),'seconds',str(round(score,4)))))
             if word == '':
                 bluePassed = True
             else:
                 bluePassed = False
             num = len(playedwords)+1
-            saveList.append(('I%03d' % num,word,score,board.replace(' ',''),allletters, turn))
+            saveList.append(('I%03d' % num,word,round(score,4),board.replace(' ',''),allletters, turn))
             turn = 'red'
         else:
             start = time()
@@ -200,13 +200,13 @@ def game(allletters='',player0blue=False):
             b.playword(allletters,word)
             t = round(time() - start,2)
             rtime += t
-            logger.debug(' '.join((' red plays',word.ljust(25),board,str(len(playedwords)),'blue:',blue+'('+str(blued)+')','red:',red+'('+str(redd)+')','time:',str(t),'seconds',str(round(score,2)))))
+            logger.debug(' '.join((' red plays',word.ljust(25),board,str(len(playedwords)),'blue:',blue+'('+str(blued)+')','red:',red+'('+str(redd)+')','time:',str(t),'seconds',str(round(score,4)))))
             if word == '':
                 redPassed = True
             else:
                 redPassed = False
             num = len(playedwords)+1
-            saveList.append(('I%03d' % num,word,score,board.replace(' ',''),allletters, turn))
+            saveList.append(('I%03d' % num,word,round(score,4),board.replace(' ',''),allletters, turn))
             turn = 'blue'
         if len(playedwords) > 100 and ((oldscore < 0 and score < 0) or (oldscore > 0 and score > 0)):
             early = True
