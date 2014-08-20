@@ -1257,6 +1257,7 @@ class AnalysisGUI(Tk):
         popup = Toplevel(self)
 
         popup.iconbitmap(self.iconpathandfn)
+        popup.resizable(0,0)
 
         clickedIID = self.history.focus()
         txt = self.history.set(clickedIID,'Word')
