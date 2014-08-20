@@ -328,6 +328,11 @@ if __name__ == '__main__':
         newletterlist += [letter]*letterhist[letter]
     pool = multiprocessing.Pool(3)
 
+    print(read_file())
+
 def begin(num_gens):
     evolve(num_gens)
-    pool.terminate()
+
+def multiple(round_size, round_count):
+    for x in range(round_count):
+        begin(round_size)
