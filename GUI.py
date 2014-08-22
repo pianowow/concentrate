@@ -229,6 +229,12 @@ class AnalysisGUI(Tk):
             self.bind('<Command-Key-6>', lambda x: self.ask_custom_difficulty())
 
             self.optionsMenu.add_separator()
+            self.optionsMenu.add_radiobutton(label="Losing/Ending Check", underline=0, variable=self.endGame, value="L", accelerator='Command+L')
+            self.bind('<Command-l>', lambda x: self.endGame.set("L"))
+            self.optionsMenu.add_radiobutton(label="Full 2-Ply Search", underline=0, variable=self.endGame, value="2", accelerator='Command+F')
+            self.bind('<Command-f>', lambda x: self.endGame.set("2"))
+            self.optionsMenu.add_separator()
+            
             self.optionsMenu.add_radiobutton(label="Blue to Play", variable=self.move, value = 1,
                                              command=self.blue_turn)
             self.optionsMenu.add_radiobutton(label="Red to Play", variable=self.move, value = -1, command=self.red_turn)
