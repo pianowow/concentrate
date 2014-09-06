@@ -16,7 +16,7 @@ from player import player0, player1
 from time import time,strftime
 from random import choice, shuffle, sample
 
-difficulty = ['R',5,25,'S']
+difficulty = ['A',5,25,'S']
 
 import logging
 
@@ -244,9 +244,9 @@ def game(allletters='',player0blue=False):
 def both(allletters=''):
     if allletters == '':
         allletters = genletters()
-        ref = player0(difficulty)
-        numwords = len(ref.possible(allletters))
-        biggestlength = max(len(x) for x in ref.possible(allletters))
+    ref = player0(difficulty)
+    numwords = len(ref.possible(allletters))
+    biggestlength = max(len(x) for x in ref.possible(allletters))
         #logger.info(allletters + ' - number of possible words: ' +str(numwords))
         #logger.info(allletters + ' - longest word length: ' +str(biggestlength))
     g1res,g1len,b1time,r1time,fnwithpath = game(allletters,True)
