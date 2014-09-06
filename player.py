@@ -16,7 +16,7 @@ from time import clock
 from math import sqrt
 
 class player0:
-    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.38, -1.28, 2.29, 7.78)): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (3.1, 1.28, 2.29, 7.78)): #this represents maximum difficulty
         '''difficulty:#'A' for all words, 'R' for reduced.  numbers for span limit and word length limit'''
         self.difficulty = difficulty
         self.name = 'stable - player0'
@@ -120,11 +120,11 @@ class player0:
             for l in ascii_uppercase:
                 if l not in letterdict:
                     letterdict[l] = 0
-            #calculate defended scores (same as popularity), plus the weights introduced for evolution
+            #calculate defended scores
             d = [0 for x in range(25)]
             for i,l in enumerate(letters):
-                d[i] = round(self.dw + self.dpw*letterdict[l],2)
-            #calculate undefended scores (average of neighbor popularity and 1-popularity of square)
+                d[i] = round(self.dw + self.dpw*(1-letterdict[l]),2)
+            #calculate undefended scores
             u = [0 for x in range(25)]
             for row in range(5):
                 for col in range(5):
@@ -201,7 +201,7 @@ class player0:
         return tuple(sorted(goodlist,key=lambda x:(len(x),x)))
 
     def evaluatepos(self, allletters, blue, red):
-        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.  Also returns bitmaps of blue defended and red defended squares'''
+        '''returns a number indicating who is winning, and by how much.  Positive, blue; negative, red.'''
         if (blue,red) in self.hashtable[allletters]:
             return self.hashtable[allletters][(blue,red)]
         ending = (bin(blue|red).count('1') == 25)
@@ -228,6 +228,7 @@ class player0:
             bluediff = self.vectordiff(bluecenter,zerocenter)
             reddiff = self.vectordiff(redcenter,zerocenter)
             total = bluescore - redscore + self.mw*(bluediff - reddiff)
+
         else: #game over
             total = (bin(blue).count('1') - bin(red).count('1'))*1000
         self.hashtable[allletters][(blue,red)] = total
@@ -469,7 +470,7 @@ class player0:
             for i in bestwords:
                 (score,word,groupsize,playblue,playred) = bestwords[i]
                 if self.playissafe(group,word):
-                    wordscores[i] = (score+inc,word,groupsize,playblue,playred)
+                    wordscores[i] = (round(score+inc,4),word,groupsize,playblue,playred)
 
         #print(len(wordscores),'plays')
         return wordscores
@@ -687,7 +688,6 @@ class player0:
                 return False
 
 class player1(player0):
-    def __init__(self, difficulty=['A',5,25,'S'], weights = (4.38, -1.28, 2.29, 7.78)): #this represents maximum difficulty
+    def __init__(self, difficulty=['A',5,25,'S'], weights = (3.1, 1.28, 2.29, 7.78)): #this represents maximum difficulty
         super().__init__(difficulty,weights)
         self.name = 'beta - player1'
-
