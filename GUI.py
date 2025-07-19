@@ -11,6 +11,7 @@ from tkinter import Canvas, E, IntVar, Menu, N, S, StringVar, TclError, Tk, Topl
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import ttk
+from tkinter import PhotoImage
 from player import player0, player1
 from string import ascii_uppercase
 from random import choice, sample
@@ -147,9 +148,10 @@ class AnalysisGUI(Tk):
         self.randomized.set('No')
 
         mydir = getcwd()
-        iconfile = 'concentrate.ico'
+        iconfile = 'concentrate.png'
         self.iconpathandfn = mydir+sep+iconfile
-        self.iconbitmap(self.iconpathandfn)  #finally this works on windows!  #TODO: check mac
+        icon = PhotoImage(file=self.iconpathandfn)
+        self.iconphoto(False, icon)  #Linux solution
 
         self.draw_menu()
 
@@ -493,9 +495,8 @@ class AnalysisGUI(Tk):
         def opener():
             self.canvas_draw()
             self.file = fn
-            f = open(self.file,'rb')
-            dct = pickle.load(f)
-            f.close()
+            with open(self.file,'rb') as f:
+                dct = pickle.load(f)
             self.restore_from_dict(dct)
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
             self.save_recent_files()
@@ -531,19 +532,20 @@ class AnalysisGUI(Tk):
         return fn
 
     def save_recent_files(self):
-        f = open('recent.ccd','rb')
-        gqueue = pickle.load(f) #list of filenames with paths... oldest first
-        f.close()
+        try:
+            with open('recent.ccd', 'rb') as f:
+                gqueue = pickle.load(f)  # list of filenames with paths... oldest first
+        except (FileNotFoundError, EOFError, pickle.UnpicklingError):
+            gqueue = []
         if self.file not in gqueue:
-            gqueue.append(self.file) #add this file to the end
+            gqueue.append(self.file)  # add this file to the end
         else:
             gqueue.remove(self.file)
-            gqueue.append(self.file) #move this file to the end
+            gqueue.append(self.file)  # move this file to the end
         while len(gqueue) > 12:
             gqueue = gqueue[1:]
-        f = open('recent.ccd','wb')
-        pickle.dump(gqueue,f)
-        f.close()
+        with open('recent.ccd', 'wb') as f:
+            pickle.dump(gqueue, f)
 
 
     def save(self,event=None):
@@ -554,19 +556,17 @@ class AnalysisGUI(Tk):
                 self.file = fn
                 self.file = self.file_name_check(self.file)
                 print(self.file)
-                f = open(self.file,'wb')
-                saveDict = self.make_save_dict()
-                pickle.dump(saveDict,f)
+                with open(self.file,'wb') as f:
+                    saveDict = self.make_save_dict()
+                    pickle.dump(saveDict,f)
                 self.title(self.titleText+self.titleSeparator+path.basename(self.file))
-                f.close()
                 self.save_recent_files()
                 self.draw_menu()
         else:
-            f = open(self.file,'wb')
-            saveDict = self.make_save_dict()
-            pickle.dump(saveDict,f)
+            with open(self.file,'wb') as f:
+                saveDict = self.make_save_dict()
+                pickle.dump(saveDict,f)
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
-            f.close()
 
 
     def save_as(self,event=None):
@@ -1956,9 +1956,8 @@ class PlayGUI(AnalysisGUI):
         if fn != '':
             self.canvas_draw()
             self.file = fn
-            f = open(self.file,'rb')
-            dct = pickle.load(f)
-            f.close()
+            with open(self.file,'rb') as f:
+                dct = pickle.load(f)
             self.restore_from_dict(dct)
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
             self.make_word_set()

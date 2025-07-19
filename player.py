@@ -411,7 +411,7 @@ class player0:
         goal = 0
         #find goal for notletters (if none given already)
         if not notletters and not needletters:
-            maxwordsizepossible = max(len(word) for word in self.possible(allletters), default=0)
+            maxwordsizepossible = max([len(word) for word in self.possible(allletters)], default=0)
             #print('max word size',maxwordsizepossible)
             if maxwordsizepossible < 13: #based on testing goal vs flexible version
                 goal = self.computegoal(allletters, blue, red, move)
