@@ -19,6 +19,7 @@ from os import path, getcwd, sep
 from time import time
 import arena
 import pickle
+import sys
 
 class AnalysisGUI(Tk):
 
@@ -127,7 +128,7 @@ class AnalysisGUI(Tk):
         self.btnSuggestSelect.grid(row=2,column=3,columnspan=2,pady=0,sticky=(N,S))
         self.btnSuggestSelect.state(['disabled'])
 
-        self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+        self.platform = sys.platform
         self.move = IntVar()
         self.move.set(1)
         self.theme = IntVar()
@@ -150,8 +151,8 @@ class AnalysisGUI(Tk):
         mydir = getcwd()
         iconfile = 'concentrate.png'
         self.iconpathandfn = mydir+sep+iconfile
-        icon = PhotoImage(file=self.iconpathandfn)
-        self.iconphoto(False, icon)  #Linux solution
+        self.icon = PhotoImage(file=self.iconpathandfn)
+        self.iconphoto(False, self.icon)  #Linux solution
 
         self.draw_menu()
 
@@ -173,7 +174,7 @@ class AnalysisGUI(Tk):
 
         self.menuBar = Menu(self, tearoff=0)
 
-        if self.sys == 'aqua':  # mac os x
+        if self.platform == 'darwin':  # mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
             self.fileMenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
             self.bind('<Command-n>',self.new)
@@ -624,7 +625,7 @@ class AnalysisGUI(Tk):
     def ask_custom_difficulty(self):
         ask = self.ask = Toplevel(self)
         ask.grab_set()
-        ask.iconbitmap(self.iconpathandfn)
+        ask.iconphoto(False, self.icon)
 
         ask.title('Custom Difficulty')
 
@@ -677,7 +678,7 @@ class AnalysisGUI(Tk):
         self.board.bind('<Button-1>',self.change_color)
         self.board.bind('<Key>',self.nex)  # to write that character to the square and select the next one
 
-        if self.sys != 'aqua':  # these special key bindings are handled on the mac by the key binding above, self.nex
+        if self.platform != 'darwin':  # these special key bindings are handled on the mac by the key binding above, self.nex
             self.board.bind('<Up>',self.move_up)
             self.board.bind('<Down>',self.move_down)
             self.board.bind('<Left>',self.move_left)
@@ -767,16 +768,29 @@ class AnalysisGUI(Tk):
         self.board.itemconfig(self.boardStuff[row][col][1],text='')
 
     def nex(self,event):
+        # Ignore modifier keys pressed by themselves
+        if event.keysym in ('Shift_L', 'Shift_R', 'Control_L', 'Control_R', 'Alt_L', 'Alt_R', 'Caps_Lock', 'Num_Lock'):
+            return
+
         (row, col) = self.selected
         self.board.focus_set()
         self.board.focus()
-        if self.sys == 'aqua':
-            noModifier = {0}
-        else:
-            noModifier = {0,1,2,3,8,9,10,11,32,33,34,35,40,41,42,43} # sum of modifiers: 1-shift, 2-capslock, 4-ctrl, 8-numlock, 32-scolllock
+
         char = event.char.upper()
-        if char in ascii_uppercase and len(char) > 0 and event.state in noModifier: #len is used to avoid moving forward with Control/Command buttons alone
-                                                                                    #event.state is used to avoid doing the same for Command-key on the mac
+
+        # Check for modifiers that would indicate a shortcut
+        state = event.state
+        is_shortcut = False
+        if self.platform == 'darwin': # Mac
+            # Command (16), Control (4), Option (8)
+            if state & (16 | 4 | 8):
+                is_shortcut = True
+        else: # Windows/Linux
+            # Control (4), Alt (8)
+            if state & (4 | 8):
+                is_shortcut = True
+
+        if char in ascii_uppercase and not is_shortcut:
             go = True
             if len(self.history.get_children()) > 0:
                 if messagebox.askyesno('Are you sure?','Editing the letters on the board will clear the history and search box.  Do you want to proceed?'):
@@ -792,7 +806,7 @@ class AnalysisGUI(Tk):
                 nextRow = nextNum // 5
                 nextCol = nextNum % 5
                 self.select_square(nextRow, nextCol)
-        elif len(char) > 0:  # works on the mac, not on windows
+        elif len(char) > 0 and self.platform == 'darwin':  # works on the mac, not on windows
             keyNum = ord(event.char)
             if keyNum == 63232:  # up
                 nextNum = ((row-1)*5 + col) % 25
@@ -1072,7 +1086,7 @@ class AnalysisGUI(Tk):
                 self.suggestSelection = clickedIID
                 txt = self.suggest.set(clickedIID,'Word')
                 board = self.suggest.set(clickedIID,'Board')
-                if txt != self.noText:
+                if txt != "" and txt != self.noText:
                     if txt == self.moreText:
                         #delete the last entry (click for more...)
                         last = ''
@@ -1256,8 +1270,7 @@ class AnalysisGUI(Tk):
         redTotal += reddiff
 
         popup = Toplevel(self)
-
-        popup.iconbitmap(self.iconpathandfn)
+        popup.iconphoto(False, self.icon)
         popup.resizable(0,0)
 
         clickedIID = self.history.focus()
@@ -1352,7 +1365,7 @@ class AnalysisGUI(Tk):
             if Color == 0.0:
                 return 0     # Don't want 0^x = 1 for x <> 0
             else:
-                return round(255 * ((Color * Factor) ** Gamma),0)
+                return int(round(255 * ((Color * Factor) ** Gamma),0))
 
         filllabel = ttk.Label(popup,text = ' ')
         filllabel.grid(row=3,column=0)
@@ -1786,7 +1799,7 @@ class PlayGUI(AnalysisGUI):
         self.historySelection = -1
         self.historyIgnore= False
 
-        self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+        self.platform = sys.platform
         self.canvas_draw()
 
         self.play = ttk.Label(self.topFrame,text='',font='Helvetica 11')
@@ -1817,10 +1830,13 @@ class PlayGUI(AnalysisGUI):
         self.randomized= StringVar()
         self.randomized.set('No')
 
-        iconfile = getcwd()+sep+'concentrate.ico'
-        self.iconbitmap(iconfile)  #finally this works on windows!  #TODO: check mac
+        mydir = getcwd()
+        iconfile = 'concentrate.png'
+        self.iconpathandfn = mydir+sep+iconfile
+        self.icon = PhotoImage(file=self.iconpathandfn)
+        self.iconphoto(False, self.icon)  #Linux solution
 
-        if self.sys == 'aqua': #mac os x
+        if self.platform == 'darwin': #mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
             self.fileMenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
             self.bind('<Command-n>',self.new)
