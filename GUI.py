@@ -725,7 +725,6 @@ class AnalysisGUI(Tk):
         for x,c in enumerate(colors):
             self.update_colors(x//5,x%5,c)
         self.board.focus_set()
-        #print(self.board.focus_get().winfo_class())
 
     def move_up(self,event):  #these methods work on windows, mac is handled by self.nex
         (row, col) = self.selected
@@ -823,7 +822,6 @@ class AnalysisGUI(Tk):
                 self.board.itemconfig(self.boardStuff[nextRow][nextCol][1],text='')
             elif keyNum == 63272:  # delete
                 self.board.itemconfig(self.boardStuff[row][col][1],text='')
-        #print(self.board.focus_get().winfo_class())
 
     def get_row_col(self, x, y):
         col = x//self.squareSize
@@ -960,6 +958,7 @@ class AnalysisGUI(Tk):
     def clear_search(self):
         for iid in self.suggest.get_children():
             self.suggest.delete(iid)
+            
 
     def is_square_selected(self, row, col):
         selectedColors = tuple(self.selectedDefault) + self.selectedBlue + self.selectedRed
@@ -986,9 +985,7 @@ class AnalysisGUI(Tk):
 
     def update_board_colors(self, newBoard, selected='N'*25):
         """changes the colors of the board"""
-        print("newBoard","|"+newBoard+"|")
         newBoard = newBoard.replace(' ','')
-        print("after replace", "|"+newBoard+"|")
         for row in range(5):
             for col in range(5):
                 i = row * 5 + col
@@ -1065,7 +1062,8 @@ class AnalysisGUI(Tk):
             self.historyIgnore = False
 
     def suggest_click(self, event):
-        """tied to suggest.<<TreeviewSelect>>"""
+        # """tied to suggest.<<TreeviewSelect>>"""
+        # tkinter calls this in some situations we want to actively ignore this code
         if not self.suggestIgnore:
             #columns=('Word', 'Score','Board')
             #get item id clicked on
@@ -1073,7 +1071,6 @@ class AnalysisGUI(Tk):
             if self.suggestSelection != clickedIID:
                 self.suggestSelection = clickedIID
                 txt = self.suggest.set(clickedIID,'Word')
-                print("Word:",txt)
                 board = self.suggest.set(clickedIID,'Board')
                 if txt != self.noText:
                     if txt == self.moreText:
@@ -1104,7 +1101,6 @@ class AnalysisGUI(Tk):
 
     def suggest_select(self):
         item = self.suggest.focus()
-        #print ("you selected", self.suggest.set(item,'Word'))
         #clear history past the current selection
         if self.historySelection != -1:
             txt = self.history.set(self.historySelection, 'Word')
@@ -1126,7 +1122,6 @@ class AnalysisGUI(Tk):
         score = self.suggest.set(item,'Score')
         #board = self.suggest.set(item,'Board')  #I got rid of this because I want to be able to change the play if necessary
         board = ''.join(self.get_defended_color(row,col) for row in range(5) for col in range(5))
-        #print('saving move:',txt,score,board)
         if self.move.get() == 1:
             insertID = self.history.insert('', 'end', tag='blue', values=(txt, score, board, self.letters))
         else:
@@ -1144,6 +1139,7 @@ class AnalysisGUI(Tk):
         if self.title()[-1] != '*' and self.file != '':
             self.title(self.title()+'*')
         self.btnSuggestSelect.state(['disabled'])
+        self.suggestIgnore = True #tkinter will call suggest_click after this for some reason?
 
     def do_search(self, event=None, lastDisplayed=-1):
         self.busy()
