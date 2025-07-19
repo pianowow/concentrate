@@ -986,7 +986,9 @@ class AnalysisGUI(Tk):
 
     def update_board_colors(self, newBoard, selected='N'*25):
         """changes the colors of the board"""
+        print("newBoard","|"+newBoard+"|")
         newBoard = newBoard.replace(' ','')
+        print("after replace", "|"+newBoard+"|")
         for row in range(5):
             for col in range(5):
                 i = row * 5 + col
@@ -1071,6 +1073,7 @@ class AnalysisGUI(Tk):
             if self.suggestSelection != clickedIID:
                 self.suggestSelection = clickedIID
                 txt = self.suggest.set(clickedIID,'Word')
+                print("Word:",txt)
                 board = self.suggest.set(clickedIID,'Board')
                 if txt != self.noText:
                     if txt == self.moreText:
