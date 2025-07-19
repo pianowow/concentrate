@@ -12,9 +12,13 @@ Press Tab or use the menu item in options to switch between two modes: playing a
 The five difficulty settings: Dunce, Easy, Medium, Hard, Extreme.  Extreme always plays the best word according to the AI's evaluation from the complete letterpress word list.  The other difficulty settings use a reduced word list, meant to simulate a layman's vocabulary.  Hard chooses the best word it can find from the reduced word list.  Medium chooses the best word of 8 letters or fewer from the reduced word list.  Easy chooses the best word of 5 letters or fewer from the reduced word list.  Dunce chooses a random word 8 letters or less from the reduced word list.  
   - Analyze mode  
   Typing when the board is selected allows you to change the board.  Clicking a square on the board changes the color of that board.  
+  Double-click the word "Board" in the GUI to get a peek into how Concentrate evaluates a position.  
   Click the search button with the search box blank to show the best 200 words in the results box.  If you type letters in the search box and search, only words with those letters will appear in the search box.  Typing "-" before a group of letters allows for the exclusion of those letters from the search.  Scroll to the bottom and choose "More" to get the next 200 words.  
   Note: only words which can change the score are shown.  A word that can only use defended letters is omitted.  
-  Double-click the word "Board" in the GUI to get a peek into how Concentrate evaluates a position.  
+  Words in the search results box are color-coded:
+    - Black: _Standard_ moves with no immediate special conditions.
+    - Red: _Losing_ moves. Playing a red word gives the opponent a guaranteed win on their next turn.
+    - Green: _Ending soon_ moves. Playing a green word allows the opponent to end the game on their next turn, but if they do you win.
   - Play Against mode  
   You play blue, Concentrate plays red.  Click letters to form a word, and press the Play button.  Click the word formed below if you want to clear your selection.  Press the pass button to pass.  Select a word in the game history to continue from that point in the game (a way to take back a move).  
 
