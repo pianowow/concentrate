@@ -22,7 +22,8 @@ difficulty = ['A',5,25,'S']
 
 logger = logging.getLogger('arena')
 logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler('tests\\arena.log')
+os.makedirs('tests', exist_ok=True)
+fh = logging.FileHandler('tests'+os.sep+'arena.log')
 fh.setLevel(logging.INFO)
 # define a Handler which writes INFO messages or higher to the sys.stderr
 console = logging.StreamHandler()
@@ -40,7 +41,7 @@ logger.addHandler(fh)
 #for the results table (csv file)
 logtable = logging.getLogger('csv')
 logtable.setLevel(logging.INFO)
-th = logging.FileHandler('tests\\arena.csv')
+th = logging.FileHandler('tests'+os.sep+'arena.csv')
 th.setLevel(logging.INFO)
 tformatter = logging.Formatter('%(asctime)s,%(message)s','%Y-%m-%d %H:%M:%S')
 th.setFormatter(tformatter)
