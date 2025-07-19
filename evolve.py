@@ -14,8 +14,9 @@ import inspect
 import logging
 import pickle
 import multiprocessing
-from player import player0,player1
-from time import time,strftime
+#from player import player0,player1
+from player import player1
+from time import time
 from random import choice, shuffle, sample, random
 from itertools import combinations
 
@@ -91,7 +92,6 @@ def game(allletters, player1, player2):
 
     playedwords = list()
     bluePassed = redPassed = False
-    btime = rtime = 0
     score = 0
     early = False
     while board.find('-') != -1:
@@ -105,7 +105,6 @@ def game(allletters, player1, player2):
                 bluePassed = True
             else:
                 bluePassed = False
-            num = len(playedwords)+1
             turn = 'red'
         else:
             oldscore = score
@@ -117,7 +116,6 @@ def game(allletters, player1, player2):
                 redPassed = True
             else:
                 redPassed = False
-            num = len(playedwords)+1
             turn = 'blue'
         if len(playedwords) > 100 and ((oldscore < 0 and score < 0) or (oldscore > 0 and score > 0)):
             early = True
@@ -155,8 +153,8 @@ def make_boards():
         while not gotit:
             good = True
             board = genletters(x)
-            for l in board:
-                if board.count(l) > 2:
+            for letter in board:
+                if board.count(letter) > 2:
                     good = False #I don't want lots of the same letter (all that does is slow down the engine)
                     break
             if good:
@@ -278,7 +276,7 @@ def evolve(num_generations):
     score_pairs = [(scores[x],x) for x in score_lst]
     logger.info('final score: %s' % score_pairs)
     for (x,y) in score_pairs:
-        logger.info('    %s %s' % (x,y))
+        logger.info('    {} {}'.format(x,y))
     end = time()
     avg = round((end-start)/num_generations,2)
     logger.info('%s seconds per generation',avg)
@@ -303,7 +301,7 @@ if __name__ == '__main__':
     logger.addHandler(console)
     logger.addHandler(fh)
 
-    listfile = open(find_data_file('en15.txt'),'r')
+    listfile = open(find_data_file('en15.txt'))
     letterlist = list()
     for word in listfile:
         word = word.upper().strip()

@@ -15,13 +15,13 @@
 endings = ('ing','ly','ed','d','er','r','s','es','ings','ers','rs','y','ey','')
 prefixes = ('dis','in','im','il','ir','re','un','')
 
-listfile = open('en15.txt','r')
+listfile = open('en15.txt')
 en14set = set()
 for line in listfile:
     en14set.add(line.upper().strip())
 listfile.close()
 
-listfile = open('3esl.txt','r')
+listfile = open('3esl.txt')
 eslset = set()
 for line in listfile:
     eslset.add(line.upper().strip())

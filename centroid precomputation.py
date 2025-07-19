@@ -12,8 +12,8 @@
 
 from player import player0
 from time import time
-import multiprocessing
-import pickle
+#import multiprocessing
+#import pickle
 
 def centroid(map):
     cnt = 0

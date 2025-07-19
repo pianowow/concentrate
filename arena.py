@@ -16,9 +16,9 @@ from player import player0, player1
 from time import time,strftime
 from random import choice, shuffle, sample
 
-difficulty = ['A',5,25,'S']
-
 import logging
+
+difficulty = ['A',5,25,'S']
 
 logger = logging.getLogger('arena')
 logger.setLevel(logging.DEBUG)
@@ -68,7 +68,7 @@ def find_data_file(filename):
 
     return os.path.join(datadir, filename)
 
-listfile = open(find_data_file('en15.txt'),'r')
+listfile = open(find_data_file('en15.txt'))
 letterlist = list()
 for word in listfile:
     word = word.upper().strip()

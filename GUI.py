@@ -7,7 +7,7 @@
 # Created:     31/03/2013
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
-from tkinter import *
+from tkinter import Canvas, E, IntVar, Menu, N, S, StringVar, TclError, Tk, Toplevel, VERTICAL, W
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import ttk
@@ -41,17 +41,17 @@ class AnalysisGUI(Tk):
         self.titleSeparator = ' - '
 
         #default theme is 'light'
-        self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
-        self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
-        self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
-        self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
-        self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
-        self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
-        self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
+        self.defaultColor = '#{:02x}{:02x}{:02x}'.format(233, 232, 229)
+        self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(230, 229, 226)
+        self.blue= ('#{:02x}{:02x}{:02x}'.format(120, 200, 245), '#{:02x}{:02x}{:02x}'.format(0, 162, 255))
+        self.red = ('#{:02x}{:02x}{:02x}'.format(247, 153, 141), '#{:02x}{:02x}{:02x}'.format(255, 67, 47))
+        self.defaultText= '#{:02x}{:02x}{:02x}'.format(46, 45, 45)
+        self.blueText= ('#{:02x}{:02x}{:02x}'.format(24, 40, 49), '#{:02x}{:02x}{:02x}'.format(0, 32, 51))
+        self.redText = ('#{:02x}{:02x}{:02x}'.format(49, 30, 28), '#{:02x}{:02x}{:02x}'.format(51, 13, 9))
         #these are for PlayGUI, but wanted change_theme to be inherited, so defining in both places
-        self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
-        self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
-        self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
+        self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(90, 190, 243), '#{:02x}{:02x}{:02x}'.format(0, 139, 223))
+        self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(249, 129, 112), '#{:02x}{:02x}{:02x}'.format(255, 39, 15))
+        self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(224, 224, 224)
 
 
         if title == '':
@@ -249,16 +249,13 @@ class AnalysisGUI(Tk):
 
             self.recentMenu= Menu(self.fileMenu, tearoff=0)
 
-            currentlyopen = self.file
             try:
-                f = open('recent.ccd','rb')
-                gqueue = pickle.load(f)
-                f.close()
-            except:
-                f = open('recent.ccd','wb')
+                with open('recent.ccd', 'rb') as f:
+                    gqueue = pickle.load(f)
+            except (FileNotFoundError, EOFError, pickle.UnpicklingError):
                 gqueue = []
-                pickle.dump(gqueue,f)
-                f.close()
+                with open('recent.ccd', 'wb') as f:
+                    pickle.dump(gqueue, f)
             while gqueue != []:
                 nextfile = gqueue.pop() #take from the end of the list and add to the top of the menu
                 self.recentMenu.add_command(label=nextfile, command=self.make_opener(nextfile))
@@ -347,100 +344,100 @@ class AnalysisGUI(Tk):
         self.save_board_colors()
         if theme == 'light':
             self.theme.set(0)
-            self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
-            self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
-            self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
-            self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
-            self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
-            self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
-            self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
-            self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
-            self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
-            self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
+            self.defaultColor = '#{:02x}{:02x}{:02x}'.format(233, 232, 229)
+            self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(230, 229, 226)
+            self.blue= ('#{:02x}{:02x}{:02x}'.format(120, 200, 245), '#{:02x}{:02x}{:02x}'.format(0, 162, 255))
+            self.red = ('#{:02x}{:02x}{:02x}'.format(247, 153, 141), '#{:02x}{:02x}{:02x}'.format(255, 67, 47))
+            self.defaultText= '#{:02x}{:02x}{:02x}'.format(46, 45, 45)
+            self.blueText= ('#{:02x}{:02x}{:02x}'.format(24, 40, 49), '#{:02x}{:02x}{:02x}'.format(0, 32, 51))
+            self.redText = ('#{:02x}{:02x}{:02x}'.format(49, 30, 28), '#{:02x}{:02x}{:02x}'.format(51, 13, 9))
+            self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(90, 190, 243), '#{:02x}{:02x}{:02x}'.format(0, 139, 223))
+            self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(249, 129, 112), '#{:02x}{:02x}{:02x}'.format(255, 39, 15))
+            self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(224, 224, 224)
         elif theme == 'dark':
             self.theme.set(3)
-            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
-            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
-            self.blue= ('#%02x%02x%02x' % (24, 117, 152), '#%02x%02x%02x' % (0, 186, 255))
-            self.red = ('#%02x%02x%02x' % (152, 58, 48), '#%02x%02x%02x' % (255, 67, 47))
-            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
-            self.blueText= ('#%02x%02x%02x' % (208, 227, 234), '#%02x%02x%02x' % (0, 37, 51))
-            self.redText = ('#%02x%02x%02x' % (234, 215, 213), '#%02x%02x%02x' % (51, 13, 9))
-            self.selectedBlue = ('#%02x%02x%02x' % (29, 138, 180), '#%02x%02x%02x' % (0, 162, 223))
-            self.selectedRed = ('#%02x%02x%02x' % (176, 67, 55), '#%02x%02x%02x' % (255, 39, 15))
-            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+            self.defaultColor = '#{:02x}{:02x}{:02x}'.format(55, 55, 55)
+            self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(57, 57, 57)
+            self.blue= ('#{:02x}{:02x}{:02x}'.format(24, 117, 152), '#{:02x}{:02x}{:02x}'.format(0, 186, 255))
+            self.red = ('#{:02x}{:02x}{:02x}'.format(152, 58, 48), '#{:02x}{:02x}{:02x}'.format(255, 67, 47))
+            self.defaultText= '#{:02x}{:02x}{:02x}'.format(215, 215, 215)
+            self.blueText= ('#{:02x}{:02x}{:02x}'.format(208, 227, 234), '#{:02x}{:02x}{:02x}'.format(0, 37, 51))
+            self.redText = ('#{:02x}{:02x}{:02x}'.format(234, 215, 213), '#{:02x}{:02x}{:02x}'.format(51, 13, 9))
+            self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(29, 138, 180), '#{:02x}{:02x}{:02x}'.format(0, 162, 223))
+            self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(176, 67, 55), '#{:02x}{:02x}{:02x}'.format(255, 39, 15))
+            self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(73, 73, 73)
         elif theme == 'contrast':
             self.theme.set(7)
-            self.defaultColor = '#%02x%02x%02x' % (247, 247, 247)
-            self.defaultColor2 = '#%02x%02x%02x' % (244, 244, 244)
-            self.blue= ('#%02x%02x%02x' % (143, 255, 127), '#%02x%02x%02x' % (32, 255, 0))
-            self.red = ('#%02x%02x%02x' % (127, 127, 127), '#%02x%02x%02x' % (0, 0, 0))
-            self.defaultText= '#%02x%02x%02x' % (48, 48, 48)
-            self.blueText= ('#%02x%02x%02x' % (28, 51, 25), '#%02x%02x%02x' % (6, 51, 0))
-            self.redText = ('#%02x%02x%02x' % (25, 25, 25), '#%02x%02x%02x' % (204, 204, 204))
-            self.selectedBlue = ('#%02x%02x%02x' % (116, 255, 96), '#%02x%02x%02x' % (28, 223, 0))
-            self.selectedRed = ('#%02x%02x%02x' % (111, 111, 111), '#%02x%02x%02x' % (35, 35, 35))
-            self.selectedDefault = '#%02x%02x%02x' % (228, 228, 228)
+            self.defaultColor = '#{:02x}{:02x}{:02x}'.format(247, 247, 247)
+            self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(244, 244, 244)
+            self.blue= ('#{:02x}{:02x}{:02x}'.format(143, 255, 127), '#{:02x}{:02x}{:02x}'.format(32, 255, 0))
+            self.red = ('#{:02x}{:02x}{:02x}'.format(127, 127, 127), '#{:02x}{:02x}{:02x}'.format(0, 0, 0))
+            self.defaultText= '#{:02x}{:02x}{:02x}'.format(48, 48, 48)
+            self.blueText= ('#{:02x}{:02x}{:02x}'.format(28, 51, 25), '#{:02x}{:02x}{:02x}'.format(6, 51, 0))
+            self.redText = ('#{:02x}{:02x}{:02x}'.format(25, 25, 25), '#{:02x}{:02x}{:02x}'.format(204, 204, 204))
+            self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(116, 255, 96), '#{:02x}{:02x}{:02x}'.format(28, 223, 0))
+            self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(111, 111, 111), '#{:02x}{:02x}{:02x}'.format(35, 35, 35))
+            self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(228, 228, 228)
         elif theme == 'forest':
             self.theme.set(4)
-            self.defaultColor = '#%02x%02x%02x' % (217, 223, 209)
-            self.defaultColor2 = '#%02x%02x%02x' % (215, 221, 207)
-            self.blue= ('#%02x%02x%02x' % (239, 193, 108), '#%02x%02x%02x' % (255, 156, 0))
-            self.red = ('#%02x%02x%02x' % (122, 164, 137), '#%02x%02x%02x' % (21, 99, 59))
-            self.defaultText= '#%02x%02x%02x' % (43, 44, 41)
-            self.blueText= ('#%02x%02x%02x' % (47, 38, 21), '#%02x%02x%02x' % (51, 31, 0))
-            self.redText = ('#%02x%02x%02x' % (24, 32, 27), '#%02x%02x%02x' % (208, 223, 215))
-            self.selectedBlue = ('#%02x%02x%02x' % (236, 181, 79), '#%02x%02x%02x' % (223, 134, 0))
-            self.selectedRed = ('#%02x%02x%02x' % (103, 152, 120), '#%02x%02x%02x' % (27, 124, 73))
-            self.selectedDefault = '#%02x%02x%02x' % (199, 207, 108)
+            self.defaultColor = '#{:02x}{:02x}{:02x}'.format(217, 223, 209)
+            self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(215, 221, 207)
+            self.blue= ('#{:02x}{:02x}{:02x}'.format(239, 193, 108), '#{:02x}{:02x}{:02x}'.format(255, 156, 0))
+            self.red = ('#{:02x}{:02x}{:02x}'.format(122, 164, 137), '#{:02x}{:02x}{:02x}'.format(21, 99, 59))
+            self.defaultText= '#{:02x}{:02x}{:02x}'.format(43, 44, 41)
+            self.blueText= ('#{:02x}{:02x}{:02x}'.format(47, 38, 21), '#{:02x}{:02x}{:02x}'.format(51, 31, 0))
+            self.redText = ('#{:02x}{:02x}{:02x}'.format(24, 32, 27), '#{:02x}{:02x}{:02x}'.format(208, 223, 215))
+            self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(236, 181, 79), '#{:02x}{:02x}{:02x}'.format(223, 134, 0))
+            self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(103, 152, 120), '#{:02x}{:02x}{:02x}'.format(27, 124, 73))
+            self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(199, 207, 108)
         elif theme == 'glow':
             self.theme.set(5)
-            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
-            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
-            self.blue= ('#%02x%02x%02x' % (73, 152, 119), '#%02x%02x%02x' % (97, 255, 190))
-            self.red = ('#%02x%02x%02x' % (141, 24, 77), '#%02x%02x%02x' % (234, 0, 105))
-            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
-            self.blueText= ('#%02x%02x%02x' % (14, 30, 23), '#%02x%02x%02x' % (19, 51, 38))
-            self.redText = ('#%02x%02x%02x' % (232, 208, 219), '#%02x%02x%02x' % (46, 0, 21))
-            self.selectedBlue = ('#%02x%02x%02x' % (63, 131, 102), '#%02x%02x%02x' % (45, 255, 171))
-            self.selectedRed = ('#%02x%02x%02x' % (115, 19, 63), '#%02x%02x%02x' % (202, 0, 91))
-            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+            self.defaultColor = '#{:02x}{:02x}{:02x}'.format(55, 55, 55)
+            self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(57, 57, 57)
+            self.blue= ('#{:02x}{:02x}{:02x}'.format(73, 152, 119), '#{:02x}{:02x}{:02x}'.format(97, 255, 190))
+            self.red = ('#{:02x}{:02x}{:02x}'.format(141, 24, 77), '#{:02x}{:02x}{:02x}'.format(234, 0, 105))
+            self.defaultText= '#{:02x}{:02x}{:02x}'.format(215, 215, 215)
+            self.blueText= ('#{:02x}{:02x}{:02x}'.format(14, 30, 23), '#{:02x}{:02x}{:02x}'.format(19, 51, 38))
+            self.redText = ('#{:02x}{:02x}{:02x}'.format(232, 208, 219), '#{:02x}{:02x}{:02x}'.format(46, 0, 21))
+            self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(63, 131, 102), '#{:02x}{:02x}{:02x}'.format(45, 255, 171))
+            self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(115, 19, 63), '#{:02x}{:02x}{:02x}'.format(202, 0, 91))
+            self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(73, 73, 73)
         elif theme == 'pink':
             self.theme.set(6)
-            self.defaultColor = '#%02x%02x%02x' % (247, 217, 230)
-            self.defaultColor2 = '#%02x%02x%02x' % (245, 215, 227)
-            self.blue= ('#%02x%02x%02x' % (255, 112, 232), '#%02x%02x%02x' % (255, 0, 228))
-            self.red = ('#%02x%02x%02x' % (171, 140, 142), '#%02x%02x%02x' % (87, 56, 47))
-            self.defaultText= '#%02x%02x%02x' % (48, 43, 45)
-            self.blueText= ('#%02x%02x%02x' % (51, 22, 46), '#%02x%02x%02x' % (51, 0, 45))
-            self.redText = ('#%02x%02x%02x' % (34, 28, 28), '#%02x%02x%02x' % (221, 215, 213))
-            self.selectedBlue = ('#%02x%02x%02x' % (255, 81, 228), '#%02x%02x%02x' % (223, 0, 201))
-            self.selectedRed = ('#%02x%02x%02x' % (157, 121, 124), '#%02x%02x%02x' % (107, 69, 58))
-            self.selectedDefault = '#%02x%02x%02x' % (238, 189, 208)
+            self.defaultColor = '#{:02x}{:02x}{:02x}'.format(247, 217, 230)
+            self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(245, 215, 227)
+            self.blue= ('#{:02x}{:02x}{:02x}'.format(255, 112, 232), '#{:02x}{:02x}{:02x}'.format(255, 0, 228))
+            self.red = ('#{:02x}{:02x}{:02x}'.format(171, 140, 142), '#{:02x}{:02x}{:02x}'.format(87, 56, 47))
+            self.defaultText= '#{:02x}{:02x}{:02x}'.format(48, 43, 45)
+            self.blueText= ('#{:02x}{:02x}{:02x}'.format(51, 22, 46), '#{:02x}{:02x}{:02x}'.format(51, 0, 45))
+            self.redText = ('#{:02x}{:02x}{:02x}'.format(34, 28, 28), '#{:02x}{:02x}{:02x}'.format(221, 215, 213))
+            self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(255, 81, 228), '#{:02x}{:02x}{:02x}'.format(223, 0, 201))
+            self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(157, 121, 124), '#{:02x}{:02x}{:02x}'.format(107, 69, 58))
+            self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(238, 189, 208)
         elif theme == 'pop':
             self.theme.set(1)
-            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
-            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
-            self.blue= ('#%02x%02x%02x' % (87, 152, 24), '#%02x%02x%02x' % (126, 255, 0))
-            self.red = ('#%02x%02x%02x' % (152, 24, 123), '#%02x%02x%02x' % (255, 0, 198))
-            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
-            self.blueText= ('#%02x%02x%02x' % (221, 234, 208), '#%02x%02x%02x' % (25, 51, 0))
-            self.redText = ('#%02x%02x%02x' % (234, 208, 228), '#%02x%02x%02x' % (51, 0, 39))
-            self.selectedBlue = ('#%02x%02x%02x' % (104, 180, 29), '#%02x%02x%02x' % (112, 223, 0))
-            self.selectedRed = ('#%02x%02x%02x' % (180, 29, 146), '#%02x%02x%02x' % (223, 0, 173))
-            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+            self.defaultColor = '#{:02x}{:02x}{:02x}'.format(55, 55, 55)
+            self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(57, 57, 57)
+            self.blue= ('#{:02x}{:02x}{:02x}'.format(87, 152, 24), '#{:02x}{:02x}{:02x}'.format(126, 255, 0))
+            self.red = ('#{:02x}{:02x}{:02x}'.format(152, 24, 123), '#{:02x}{:02x}{:02x}'.format(255, 0, 198))
+            self.defaultText= '#{:02x}{:02x}{:02x}'.format(215, 215, 215)
+            self.blueText= ('#{:02x}{:02x}{:02x}'.format(221, 234, 208), '#{:02x}{:02x}{:02x}'.format(25, 51, 0))
+            self.redText = ('#{:02x}{:02x}{:02x}'.format(234, 208, 228), '#{:02x}{:02x}{:02x}'.format(51, 0, 39))
+            self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(104, 180, 29), '#{:02x}{:02x}{:02x}'.format(112, 223, 0))
+            self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(180, 29, 146), '#{:02x}{:02x}{:02x}'.format(223, 0, 173))
+            self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(73, 73, 73)
         elif theme == 'retro':
             self.theme.set(2)
-            self.defaultColor = '#%02x%02x%02x' % (243, 228, 191)
-            self.defaultColor2 = '#%02x%02x%02x' % (241, 226, 189)
-            self.blue= ('#%02x%02x%02x' % (195, 136, 226), '#%02x%02x%02x' % (140, 37, 255))
-            self.red = ('#%02x%02x%02x' % (244, 166, 133), '#%02x%02x%02x' % (237, 97, 70))
-            self.defaultText= '#%02x%02x%02x' % (48, 45, 37)
-            self.blueText= ('#%02x%02x%02x' % (39, 27, 45), '#%02x%02x%02x' % (232, 211, 255))
-            self.redText = ('#%02x%02x%02x' % (48, 33, 26), '#%02x%02x%02x' % (47, 19, 14))
-            self.selectedBlue = ('#%02x%02x%02x' % (182, 109, 220), '#%02x%02x%02x' % (157, 68, 255))
-            self.selectedRed = ('#%02x%02x%02x' % (241, 145, 103), '#%02x%02x%02x' % (234, 69, 40))
-            self.selectedDefault = '#%02x%02x%02x' % (235, 214, 163)
+            self.defaultColor = '#{:02x}{:02x}{:02x}'.format(243, 228, 191)
+            self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(241, 226, 189)
+            self.blue= ('#{:02x}{:02x}{:02x}'.format(195, 136, 226), '#{:02x}{:02x}{:02x}'.format(140, 37, 255))
+            self.red = ('#{:02x}{:02x}{:02x}'.format(244, 166, 133), '#{:02x}{:02x}{:02x}'.format(237, 97, 70))
+            self.defaultText= '#{:02x}{:02x}{:02x}'.format(48, 45, 37)
+            self.blueText= ('#{:02x}{:02x}{:02x}'.format(39, 27, 45), '#{:02x}{:02x}{:02x}'.format(232, 211, 255))
+            self.redText = ('#{:02x}{:02x}{:02x}'.format(48, 33, 26), '#{:02x}{:02x}{:02x}'.format(47, 19, 14))
+            self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(182, 109, 220), '#{:02x}{:02x}{:02x}'.format(157, 68, 255))
+            self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(241, 145, 103), '#{:02x}{:02x}{:02x}'.format(234, 69, 40))
+            self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(235, 214, 163)
         self.history.tag_configure('red', foreground=self.red[1])
         self.history.tag_configure('blue', foreground=self.blue[1])
         self.blueScore.config(foreground=self.blue[1])
@@ -468,10 +465,10 @@ class AnalysisGUI(Tk):
 
     def restore_from_dict(self,dct):
         letters = dct['letters']
-        for i,l in enumerate(letters):
-            row = i//5
-            col = i%5
-            self.board.itemconfig(self.boardStuff[row][col][1],text=l)
+        for i, letter in enumerate(letters):
+            row = i // 5
+            col = i % 5
+            self.board.itemconfig(self.boardStuff[row][col][1], text=letter)
         lst = dct['history']
         for id, word, score, board, letters, color in lst:
             self.history.insert('', 'end', iid=id, tag=color, values=(word, score, board, letters))
@@ -934,7 +931,7 @@ class AnalysisGUI(Tk):
             w = self
         else:
             w = widget
-        if not str(w) in self.notBusyWidgetCursors:
+        if str(w) not in self.notBusyWidgetCursors:
             try:
                 # attach cursor to this widget
                 cursor = w.cget("cursor")
@@ -992,10 +989,10 @@ class AnalysisGUI(Tk):
         newBoard = newBoard.replace(' ','')
         for row in range(5):
             for col in range(5):
-                i = row*5+col
-                l = newBoard[i]
+                i = row * 5 + col
+                letter = newBoard[i]
                 s = selected[i] == 'Y'
-                if (row+col)%2==0:
+                if (row + col) % 2 == 0:
                     bgColor = self.defaultColor
                 else:
                     bgColor = self.defaultColor2
@@ -1003,32 +1000,32 @@ class AnalysisGUI(Tk):
                     txtColor = self.selectedDefault
                 else:
                     txtColor = self.defaultText
-                if l == 'b':
+                if letter == 'b':
                     bgColor = self.blue[0]
                     if s:
                         txtColor = self.selectedBlue[0]
                     else:
                         txtColor = self.blueText[0]
-                elif l == 'B':
+                elif letter == 'B':
                     bgColor = self.blue[1]
                     if s:
                         txtColor = self.selectedBlue[1]
                     else:
                         txtColor = self.blueText[1]
-                elif l == 'r':
+                elif letter == 'r':
                     bgColor = self.red[0]
                     if s:
                         txtColor = self.selectedRed[0]
                     else:
                         txtColor = self.redText[0]
-                elif l == 'R':
+                elif letter == 'R':
                     bgColor = self.red[1]
                     if s:
                         txtColor = self.selectedRed[1]
                     else:
                         txtColor = self.redText[1]
-                self.board.itemconfig(self.boardStuff[row][col][0],fill=bgColor,outline=bgColor)
-                self.board.itemconfig(self.boardStuff[row][col][1],fill=txtColor)
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=bgColor, outline=bgColor)
+                self.board.itemconfig(self.boardStuff[row][col][1], fill=txtColor)
         self.update_score_display()
 
     def history_click(self, event):
@@ -1038,7 +1035,7 @@ class AnalysisGUI(Tk):
             #get item id clicked on
             clickedIID = self.history.focus()
             self.historySelection = clickedIID
-            txt = self.history.set(clickedIID,'Word')
+            self.history.set(clickedIID,'Word')
             board = self.history.set(clickedIID,'Board')
             #update colors on the board to match the board of the word suggested
             self.update_board_colors(board)
@@ -1106,9 +1103,8 @@ class AnalysisGUI(Tk):
         item = self.suggest.focus()
         #print ("you selected", self.suggest.set(item,'Word'))
         #clear history past the current selection
-        txt = ''
         if self.historySelection != -1:
-            txt = self.history.set(self.historySelection,'Word')
+            txt = self.history.set(self.historySelection, 'Word')
             toDelete = []
             if txt == self.initialHist:
                 toDelete.append(self.historySelection)
@@ -1232,8 +1228,8 @@ class AnalysisGUI(Tk):
         minscore = min(u+d)
         maxscore = max(u+d)
 
-        blueDef = blueUndef = bluePopDef = bluePopUndef = blueCenterOfMass = blueTotal = 0
-        redDef = redUndef = redPopDef = redPopUndef = redCenterOfMass = redTotal = 0
+        blueDef = blueUndef = bluePopDef = bluePopUndef = blueTotal = 0
+        redDef = redUndef = redPopDef = redPopUndef = redTotal = 0
         d = self.player.cache[self.letters][2]
         u = self.player.cache[self.letters][3]
         for i in range(25):
@@ -1256,7 +1252,7 @@ class AnalysisGUI(Tk):
 
         zero = (~red) & (~blue)
         bluediff = self.player.mw * self.player.vectordiff(self.player.centroid(blue), self.player.centroid(zero))
-        blueTotal += bluediff;
+        blueTotal += bluediff
         reddiff = - self.player.mw * self.player.vectordiff(self.player.centroid(red), self.player.centroid(zero))
         redTotal += reddiff
 
@@ -1272,8 +1268,7 @@ class AnalysisGUI(Tk):
         else:
             popup.title('Under the Hood')
 
-        score = ttk.Label(popup,text='Score: '+str(round(overallscore,2)))
-        score.grid(row=0,column=0,columnspan=4)
+        ttk.Label(popup,text='Score: '+str(round(overallscore,2))).grid(row=0,column=0,columnspan=4)
 
         bluelabel = ttk.Label(popup,text='Blue Position')
         bluelabel.grid(row=1,column=0)
@@ -1313,7 +1308,7 @@ class AnalysisGUI(Tk):
 
 
         def getColor(value, color):
-            Wavelength = (value - minscore) / (maxscore-minscore) * (MaxVisibleWaveLength - MinVisibleWaveLength) + MinVisibleWaveLength;
+            Wavelength = (value - minscore) / (maxscore-minscore) * (MaxVisibleWaveLength - MinVisibleWaveLength) + MinVisibleWaveLength
             if Wavelength < 440:
                 Red   = -(Wavelength - 440) / (440 - 380)
                 Green = 0.0
@@ -1354,7 +1349,7 @@ class AnalysisGUI(Tk):
             return '#%02x%02x%02x' %(R,G,B)
 
         def Adjust(Color, Factor):
-            Gamma = 0.50;
+            Gamma = 0.50
             if Color == 0.0:
                 return 0     # Don't want 0^x = 1 for x <> 0
             else:
@@ -1417,7 +1412,6 @@ class AnalysisGUI(Tk):
     def auto_play(self, event=None):
 
         letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
-        score = ''.join(self.get_color(row,col) for row in range(5) for col in range(5))
 
         if not(all([x in ascii_uppercase for x in letters]) and len(letters) == 25):
             self.not_busy()
@@ -1429,9 +1423,8 @@ class AnalysisGUI(Tk):
             self.title(self.title()+'*')
 
         #clear history past the current selection
-        txt = ''
         if self.historySelection != -1:
-            txt = self.history.set(self.historySelection,'Word')
+            txt = self.history.set(self.historySelection, 'Word')
             toDelete = []
             if txt == self.initialHist:
                 toDelete.append(self.historySelection)
@@ -1738,16 +1731,16 @@ class PlayGUI(AnalysisGUI):
         self.titleSeparator = ' - '
 
         #default theme is 'light'
-        self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
-        self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
-        self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
-        self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
-        self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
-        self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
-        self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
-        self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
-        self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
-        self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
+        self.defaultColor = '#{:02x}{:02x}{:02x}'.format(233, 232, 229)
+        self.defaultColor2 = '#{:02x}{:02x}{:02x}'.format(230, 229, 226)
+        self.blue= ('#{:02x}{:02x}{:02x}'.format(120, 200, 245), '#{:02x}{:02x}{:02x}'.format(0, 162, 255))
+        self.red = ('#{:02x}{:02x}{:02x}'.format(247, 153, 141), '#{:02x}{:02x}{:02x}'.format(255, 67, 47))
+        self.defaultText= '#{:02x}{:02x}{:02x}'.format(46, 45, 45)
+        self.blueText= ('#{:02x}{:02x}{:02x}'.format(24, 40, 49), '#{:02x}{:02x}{:02x}'.format(0, 32, 51))
+        self.redText = ('#{:02x}{:02x}{:02x}'.format(49, 30, 28), '#{:02x}{:02x}{:02x}'.format(51, 13, 9))
+        self.selectedBlue = ('#{:02x}{:02x}{:02x}'.format(90, 190, 243), '#{:02x}{:02x}{:02x}'.format(0, 139, 223))
+        self.selectedRed = ('#{:02x}{:02x}{:02x}'.format(249, 129, 112), '#{:02x}{:02x}{:02x}'.format(255, 39, 15))
+        self.selectedDefault = '#{:02x}{:02x}{:02x}'.format(224, 224, 224)
 
         if title == '':
             self.title(self.titleText)

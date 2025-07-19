@@ -22,11 +22,8 @@
 
 from string import ascii_uppercase, digits
 from random import choice
-from itertools import combinations, count
-from time import clock
+from itertools import combinations
 from math import sqrt
-import os
-import sys
 import logging
 
 
@@ -36,8 +33,8 @@ class player0:
         self.difficulty = difficulty
         self.name = 'stable - player0'
         #load word lists
-        listfile = open('en14.txt','r')
-        reducedfile = open('reduced.txt','r')
+        listfile = open('en14.txt')
+        reducedfile = open('reduced.txt')
         wordset = set()
         reducedset = set()
         for word in [word.upper().strip() for word in listfile]:
@@ -82,8 +79,8 @@ class player0:
             if self.difficulty[0] == 'A':
                 for word in [x for x in self.wordlist if len(x) <= wordsizelimit]:
                     good = True
-                    for l in word:
-                        if letters.count(l) < word.count(l):
+                    for letter in word:
+                        if letters.count(letter) < word.count(letter):
                             good = False
                             break
                     if good:
@@ -91,8 +88,8 @@ class player0:
             else:
                 for word in [x for x in self.reducedlist if len(x) <= wordsizelimit]:
                     good = True
-                    for l in word:
-                        if letters.count(l) < word.count(l):
+                    for letter in word:
+                        if letters.count(letter) < word.count(letter):
                             good = False
                             break
                     if good:
@@ -118,13 +115,13 @@ class player0:
                 cnt[i] = num/maxcnt  #gets it into range 0-1
             for i,letter in enumerate(letterlst):
                 letterdict[letter] = round(cnt[i],2)
-            for l in ascii_uppercase:
-                if l not in letterdict:
-                    letterdict[l] = 0
+            for letter in ascii_uppercase:
+                if letter not in letterdict:
+                    letterdict[letter] = 0
             #calculate defended scores (same as popularity)
             d = [0 for x in range(25)]
-            for i,l in enumerate(letters):
-                d[i] = letterdict[l]
+            for i, letter in enumerate(letters):
+                d[i] = letterdict[letter]
             #calculate undefended scores (average of neighbor popularity and 1-popularity of square)
             u = [0 for x in range(25)]
             for row in range(5):
@@ -155,8 +152,8 @@ class player0:
         if needletters != '':
             for word in found: #find words that use all needletters
                 good = True
-                for l in needletters:
-                    if word.count(l) < needletters.count(l):
+                for letter in needletters:
+                    if word.count(letter) < needletters.count(letter):
                         good = False
                         break
                 if good:
@@ -167,8 +164,8 @@ class player0:
         if notletters != '': #remove words that use the notletters
             for word in allletterlist:
                 good = True
-                for l in notletters:
-                    if word.count(l) > allletters.count(l) - notletters.count(l): #using 1 R when there are two Rs is fine
+                for letter in notletters:
+                    if word.count(letter) > allletters.count(letter) - notletters.count(letter): #using 1 R when there are two Rs is fine
                         good = False
                         break
                 if good:
@@ -179,8 +176,8 @@ class player0:
         if anyletters != '':  #remove words that don't use anyletters
             for word in notletterlist:
               good = False
-              for l in anyletters:
-                  if l in word:
+              for letter in anyletters:
+                  if letter in word:
                       good = True
                       break
               if good:
@@ -244,9 +241,8 @@ class player0:
             if (blue,red) not in scores:
                 scores[(blue,red)] = (score,bluedef,reddef)
         else:
-            l = word[0]
-            listindex = list()
-            i = allletters.find(l)
+            letter = word[0]
+            i = allletters.find(letter)
             oldred = red
             oldblue = blue
             while i >= 0:
@@ -262,7 +258,7 @@ class player0:
                     red = oldred
                     blue = oldblue
                     used.pop()
-                i = allletters.find(l, i + 1)
+                i = allletters.find(letter, i + 1)
 
     def convertboardscore(self, rbscore):
         '''produces bitmaps from string of 25 characters representing the colors'''
@@ -321,7 +317,7 @@ class player0:
         '''groups words to limit the number of calls to arrange (optimization added after using cProfile.run)'''
         wordgroups = dict() #{'groupletters': [word1, word2, etc]}
         for word in words:
-            group = [l for l in word if l in anyl]
+            group = [letter for letter in word if letter in anyl]
             newgroup = group[:]
             for letter in group:  #remove letters that are duplicated by defended or occupied tiles
                 while newgroup.count(letter) > anyl.count(letter):
@@ -537,9 +533,8 @@ class player1(player0):
             if (blue,red) not in scores:
                 scores[(blue,red)] = (score,bluedef,reddef)
         else:
-            l = word[0]
-            listindex = list()
-            i = allletters.find(l)
+            letter = word[0]
+            i = allletters.find(letter)
             oldred = red
             oldblue = blue
             while i >= 0:
@@ -555,7 +550,7 @@ class player1(player0):
                     red = oldred
                     blue = oldblue
                     used.pop()
-                i = allletters.find(l, i + 1)
+                i = allletters.find(letter, i + 1)
 
 
     def groupwords(self, words, anyl):
@@ -563,7 +558,7 @@ class player1(player0):
         wordgroups = dict() #{'groupletters': [word1, word2, etc]}
 
         for word in words:
-            group = ''.join(sorted([l for l in word if l in anyl]))
+            group = ''.join(sorted([letter for letter in word if letter in anyl]))
             if group in wordgroups:
                 wordgroups[group].append(word)
             else:
@@ -631,12 +626,12 @@ class player1(player0):
         anyl = ''
         dontuse = []
         notletters = ''
-        for i,l in enumerate(allletters):
+        for i,letter in enumerate(allletters):
             if (1<<i) & targets:
                 anyl += allletters[i]
             if (1<<i) & goal:
                 dontuse.append(i)
-                notletters += l
+                notletters += letter
         #if goal:
             #self.logger.debug('goal: '+notletters+' '+str(goal))
             #print('goal:',notletters,bin(goal))
@@ -723,8 +718,8 @@ class player1(player0):
                 goodgoal = True
                 for word in lst: #find one word that uses all the goal letters
                     goodword = True
-                    for l in goalstr:
-                        if word.count(l) < goalstr.count(l):
+                    for letter in goalstr:
+                        if word.count(letter) < goalstr.count(letter):
                             goodword = False
                             break
                     if goodword: #we found a word that uses all the goal letters
@@ -860,9 +855,8 @@ class player2(player0):
             if (blue,red) not in scores:
                 scores[(blue,red)] = (score,bluedef,reddef)
         else:
-            l = word[0]
-            listindex = list()
-            i = allletters.find(l)
+            letter = word[0]
+            i = allletters.find(letter)
             oldred = red
             oldblue = blue
             while i >= 0:
@@ -878,14 +872,14 @@ class player2(player0):
                     red = oldred
                     blue = oldblue
                     used.pop()
-                i = allletters.find(l, i + 1)
+                i = allletters.find(letter, i + 1)
 
     def groupwords(self, words, anyl):
         '''groups words to limit the number of calls to arrange (optimization added after using cProfile.run)'''
         wordgroups = dict() #{'groupletters': [word1, word2, etc]}
 
         for word in words:
-            group = ''.join(sorted([l for l in word if l in anyl]))
+            group = ''.join(sorted([letter for letter in word if letter in anyl]))
             if group in wordgroups:
                 wordgroups[group].append(word)
             else:
@@ -955,12 +949,12 @@ class player2(player0):
         anyl = ''
         dontuse = []
         notletters = ''
-        for i,l in enumerate(allletters):
+        for i,letter in enumerate(allletters):
             if (1<<i) & targets:
-                anyl += l
+                anyl += letter
             if (1<<i) & goal:
                 dontuse.append(i)
-                notletters += l
+                notletters += letter
         #if goal:
             #self.logger.debug('goal: '+notletters+' '+str(goal))
         words = self.concentrate(allletters,needletters,notletters,anyl)
@@ -1046,8 +1040,8 @@ class player2(player0):
                 goodgoal = True
                 for word in lst: #find one word that uses all the goal letters
                     goodword = True
-                    for l in goalstr:
-                        if word.count(l) < goalstr.count(l):
+                    for letter in goalstr:
+                        if word.count(letter) < goalstr.count(letter):
                             goodword = False
                             break
                     if goodword: #we found a word that uses all the goal letters

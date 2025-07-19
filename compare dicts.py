@@ -10,7 +10,7 @@
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
 
-listfile = open('en14.txt','r')
+listfile = open('en14.txt')
 wordset1 = set()
 for line in listfile:
     wordset1.add(line.upper().strip())
