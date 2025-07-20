@@ -2251,7 +2251,7 @@ class PlayGUI(AnalysisGUI):
             return
         letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
         blue, red, bluedef, reddef = self.refPlayer.convertboardscore(board.upper())
-        score = self.refPlayer.evaluatepos(letters, blue, red, 1)
+        score = self.refPlayer.evaluatepos(letters, blue, red)
         self.add_to_hist(word, score, board, letters, 1)
         self.btnPlay.state(['disabled'])
         self.save_board_colors()
