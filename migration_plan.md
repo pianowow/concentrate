@@ -18,7 +18,7 @@ This document outlines the plan for migrating the "concentrate" project to Pytho
 
 *   **Key Areas:**
 - [x]     *   `GUI.py`: GUI toolkits can have significant breaking changes. We will need to carefully review this file.
-- [ ]     *   String handling, division, and dictionary operations: These are areas where Python 3 has introduced changes.
+- [x]     *   String handling, division, and dictionary operations: These are areas where Python 3 has introduced changes.
 
 ## 3. Testing
 
@@ -26,4 +26,4 @@ This document outlines the plan for migrating the "concentrate" project to Pytho
 
 ## 4. Documentation
 
-- [ ] *   **Update `README.md`:** Update the `README.md` file to reflect the changes made and provide instructions on how to run the project with Python 3.12.
+- [ ] *   **Update `README.md`:** Update the `README.md` file to reflect the changes made and provide instructions on how to run the project with Python 3.13.
