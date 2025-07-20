@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/concentrate/GUI.py
+src/concentrate/__init__.py
+src/concentrate/arena.py
+src/concentrate/evolve.py
+src/concentrate/player.py
+src/concentrate/search.py
+src/concentrate.egg-info/PKG-INFO
+src/concentrate.egg-info/SOURCES.txt
+src/concentrate.egg-info/dependency_links.txt
+src/concentrate.egg-info/top_level.txt
+tests/test_player.py

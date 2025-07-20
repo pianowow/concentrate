@@ -16,7 +16,7 @@ import pickle
 import multiprocessing
 #from player import player0,player1
 from pathlib import Path
-from player import player1
+from .player import player1
 from time import time
 from random import choice, shuffle, sample, random
 from itertools import combinations

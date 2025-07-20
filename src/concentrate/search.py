@@ -7,7 +7,7 @@
 # Created:     11/02/2013
 
 from time import time
-from player import player0,player1
+from .player import player0,player1
 
 class search(player0):
     def __init__(self,difficulty=['A',5,25]):

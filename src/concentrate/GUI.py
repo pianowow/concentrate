@@ -12,13 +12,13 @@ from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import ttk
 from tkinter import PhotoImage
-from player import player0, player1
+from .player import player0, player1
 from string import ascii_uppercase
 from random import choice, sample
 from os import path, getcwd, sep
 from pathlib import Path
 from time import time
-import arena
+from .arena import genletters
 import pickle
 import sys
 
@@ -713,7 +713,7 @@ class AnalysisGUI(Tk):
             else:
                 go = False
         if go:
-            letters = arena.genletters()
+            letters = genletters()
             for x,c in enumerate(letters):
                 row = x // 5
                 col = x % 5

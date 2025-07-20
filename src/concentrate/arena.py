@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 import inspect
 import pickle
-from player import player0, player1
+from .player import player0, player1
 from time import time,strftime
 from random import choice, shuffle, sample
 

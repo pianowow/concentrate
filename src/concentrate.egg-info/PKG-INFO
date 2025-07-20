@@ -1,3 +1,10 @@
+Metadata-Version: 2.4
+Name: concentrate
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+
 Concentrate
 ============
 
@@ -71,7 +78,7 @@ To set up your development environment and start contributing, follow these step
    ```
 
 4. **Install dependencies:**
-   Once your virtual environment is active, install the project itself and its dependencies. This will install all packages listed in `requirements.lock`.
+   Once your virtual environment is active, install the project itself and its dependencies using `uv pip sync`. This will install all packages listed in `requirements.lock`.
    
    ```bash
    uv pip install -e .
