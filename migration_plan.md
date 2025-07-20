@@ -17,7 +17,7 @@ This document outlines the plan for migrating the "concentrate" project to Pytho
 ## 2. Manual Code Review
 
 *   **Key Areas:**
-- [ ]     *   `GUI.py`: GUI toolkits can have significant breaking changes. We will need to carefully review this file.
+- [x]     *   `GUI.py`: GUI toolkits can have significant breaking changes. We will need to carefully review this file.
 - [ ]     *   String handling, division, and dictionary operations: These are areas where Python 3 has introduced changes.
 
 ## 3. Testing
