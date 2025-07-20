@@ -16,6 +16,7 @@ from player import player0, player1
 from string import ascii_uppercase
 from random import choice, sample
 from os import path, getcwd, sep
+from pathlib import Path
 from time import time
 import arena
 import pickle
@@ -148,9 +149,8 @@ class AnalysisGUI(Tk):
         self.randomized= StringVar()
         self.randomized.set('No')
 
-        mydir = getcwd()
-        iconfile = 'concentrate.png'
-        self.iconpathandfn = mydir+sep+iconfile
+        mydir = Path(__file__).parent.parent.parent
+        self.iconpathandfn = mydir / 'data' / 'images' / 'concentrate.png'
         self.icon = PhotoImage(file=self.iconpathandfn)
         self.iconphoto(False, self.icon)  #Linux solution
 
@@ -253,11 +253,11 @@ class AnalysisGUI(Tk):
             self.recentMenu= Menu(self.fileMenu, tearoff=0)
 
             try:
-                with open('recent.ccd', 'rb') as f:
+                with open(Path(__file__).parent.parent.parent / 'data' / 'recent.ccd', 'rb') as f:
                     gqueue = pickle.load(f)
             except (FileNotFoundError, EOFError, pickle.UnpicklingError):
                 gqueue = []
-                with open('recent.ccd', 'wb') as f:
+                with open(Path(__file__).parent.parent.parent / 'data' / 'recent.ccd', 'wb') as f:
                     pickle.dump(gqueue, f)
             while gqueue != []:
                 nextfile = gqueue.pop() #take from the end of the list and add to the top of the menu
@@ -1832,9 +1832,8 @@ class PlayGUI(AnalysisGUI):
         self.randomized= StringVar()
         self.randomized.set('No')
 
-        mydir = getcwd()
-        iconfile = 'concentrate.png'
-        self.iconpathandfn = mydir+sep+iconfile
+        mydir = Path(__file__).parent.parent.parent
+        self.iconpathandfn = mydir / 'data' / 'images' / 'concentrate.png'
         self.icon = PhotoImage(file=self.iconpathandfn)
         self.iconphoto(False, self.icon)  #Linux solution
 

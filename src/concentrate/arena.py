@@ -10,6 +10,7 @@
 
 import os
 import sys
+from pathlib import Path
 import inspect
 import pickle
 from player import player0, player1
@@ -22,8 +23,9 @@ difficulty = ['A',5,25,'S']
 
 logger = logging.getLogger('arena')
 logger.setLevel(logging.DEBUG)
-os.makedirs('log', exist_ok=True)
-fh = logging.FileHandler('log'+os.sep+'arena.log')
+project_root = Path(__file__).parent.parent.parent
+os.makedirs(project_root / 'log', exist_ok=True)
+fh = logging.FileHandler(project_root / 'log' / 'arena.log')
 fh.setLevel(logging.INFO)
 # define a Handler which writes INFO messages or higher to the sys.stderr
 console = logging.StreamHandler()
@@ -41,41 +43,20 @@ logger.addHandler(fh)
 #for the results table (csv file)
 logtable = logging.getLogger('csv')
 logtable.setLevel(logging.INFO)
-th = logging.FileHandler('log'+os.sep+'arena.csv')
+th = logging.FileHandler(Path(__file__).resolve().parent.parent.parent / 'log' / 'arena.csv')
 th.setLevel(logging.INFO)
 tformatter = logging.Formatter('%(asctime)s,%(message)s','%Y-%m-%d %H:%M:%S')
 th.setFormatter(tformatter)
 logtable.addHandler(th)
 logtable.addHandler(console)
 
-# Now, we can log to the root logger, or any other logger. First the root...
-##logging.info('Jackdaws love my big sphinx of quartz.')
 
-# Now, define a couple of other loggers which might represent areas in your
-# application:
-
-##logger1 = logging.getLogger('myapp.area1')
-##logger2 = logging.getLogger('myapp.area2')
-##
-
-def find_data_file(filename):
-    if getattr(sys, 'frozen', False):
-        # The application is frozen
-        datadir = os.path.dirname(sys.executable)
-    else:
-        # The application is not frozen
-        # Change this bit to match where you store your data files:
-        datadir = os.path.dirname(inspect.stack()[0][1])
-
-    return os.path.join(datadir, filename)
-
-listfile = open(find_data_file('en15.txt'))
-letterlist = list()
-for word in listfile:
-    word = word.upper().strip()
-    for letter in word:
-        letterlist.append(letter)
-listfile.close()
+with open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'en15.txt') as listfile:
+    letterlist = list()
+    for word in listfile:
+        word = word.upper().strip()
+        for letter in word:
+            letterlist.append(letter)
 
 vowels = ('A','E','I','O','U')
 
@@ -156,8 +137,8 @@ def game(allletters='',player0blue=False):
         r = player0(difficulty)
         logger.debug('player0 plays red')
         filename = strftime('%Y_%m_%d_%H_%M_%S_b1r0.cgd')
-    datadir = os.path.dirname(inspect.stack()[0][1]) +os.sep+'log'
-    fnwithpath = os.path.join(datadir, filename)
+    datadir = Path(__file__).parent.parent.parent / 'log'
+    fnwithpath = datadir / filename
     logger.info(fnwithpath)
     saveList = list()
     saveDict = dict()

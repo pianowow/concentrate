@@ -1,7 +1,7 @@
-/__pycache__
+/**/__pycache__
 /build
 /.idea
 .DS_Store
 /log
-/recent.ccd
+/data/recent.ccd
 

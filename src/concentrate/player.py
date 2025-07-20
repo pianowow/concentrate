@@ -13,6 +13,7 @@ from random import choice
 from itertools import combinations
 from collections import defaultdict
 from math import sqrt
+from pathlib import Path
 
 class player0:
     def __init__(self, difficulty=['A',5,25,'S'], weights = (3.1, 1.28, 2.29, 7.78)): #this represents maximum difficulty
@@ -20,8 +21,8 @@ class player0:
         self.difficulty = difficulty
         self.name = 'stable - player0'
         #load word lists
-        listfile = open('en15.txt')
-        reducedfile = open('reduced.txt')
+        listfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'en15.txt')
+        reducedfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'reduced.txt')
         wordset = set()
         reducedset = set()
         for word in [word.upper().strip() for word in listfile]:

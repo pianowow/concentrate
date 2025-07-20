@@ -15,6 +15,7 @@ import logging
 import pickle
 import multiprocessing
 #from player import player0,player1
+from pathlib import Path
 from player import player1
 from time import time
 from random import choice, shuffle, sample, random
@@ -226,13 +227,13 @@ def do_generation(competitors, boards):
     return comp_scores
 
 def read_file():
-    with open('evolve_memory.pkl','rb') as f:
+    with open(Path(__file__).parent.parent.parent / 'data' / 'evolve_memory.pkl','rb') as f:
         best_dict = pickle.load(f)
     return best_dict
 
 def new_file(begin_weights, generations=0):
     dct = {begin_weights: generations}
-    with open('evolve_memory.pkl','wb') as f:
+    with open(Path(__file__).parent.parent.parent / 'data' / 'evolve_memory.pkl','wb') as f:
         pickle.dump(dct,f)
 
 def evolve(num_generations):
@@ -267,7 +268,7 @@ def evolve(num_generations):
         competitors = have_kids(scores)
         best_so_far = max(scores,key=lambda x:scores[x])
         prior_generations += 1
-        f = open('evolve_memory.pkl','wb')
+        f = open(Path(__file__).parent.parent.parent / 'data' / 'evolve_memory.pkl','wb')
         pickle.dump({best_so_far:prior_generations},f)
         f.close()
     score_lst = list(sorted(scores.keys(),key=lambda x:scores[x],reverse=True))
@@ -283,10 +284,11 @@ def evolve(num_generations):
 if __name__ == '__main__':
     d = ['R',5,25,'S']
 
-    os.makedirs('tests', exist_ok=True)
+    project_dir = Path(__file__).parent.parent.parent
+    os.makedirs(project_dir / 'log', exist_ok=True)
     logger = logging.getLogger('evolve')
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler('log'+os.sep+'evolve.log')
+    fh = logging.FileHandler(project_dir / 'log' / 'evolve.log')
     fh.setLevel(logging.INFO)
     # define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
@@ -300,7 +302,7 @@ if __name__ == '__main__':
     logger.addHandler(console)
     logger.addHandler(fh)
 
-    listfile = open(find_data_file('en15.txt'))
+    listfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'en15.txt')
     letterlist = list()
     for word in listfile:
         word = word.upper().strip()
