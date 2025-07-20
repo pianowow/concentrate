@@ -190,7 +190,7 @@ def game(allletters='',player0blue=False):
             else:
                 bluePassed = False
             num = len(playedwords)+1
-            saveList.append(('I%03d' % num,word,round(score,4),board.replace(' ',''),allletters, turn))
+            saveList.append((f'I{num:03d}',word,round(score,4),board.replace(' ',''),allletters, turn))
             turn = 'red'
         else:
             start = time()
@@ -207,7 +207,7 @@ def game(allletters='',player0blue=False):
             else:
                 redPassed = False
             num = len(playedwords)+1
-            saveList.append(('I%03d' % num,word,round(score,4),board.replace(' ',''),allletters, turn))
+            saveList.append((f'I{num:03d}',word,round(score,4),board.replace(' ',''),allletters, turn))
             turn = 'blue'
         if len(playedwords) > 100 and ((oldscore < 0 and score < 0) or (oldscore > 0 and score > 0)):
             early = True
@@ -218,9 +218,8 @@ def game(allletters='',player0blue=False):
     saveDict['letters'] = allletters
     saveDict['colors'] = '-'*25
     saveDict['selected'] = 'I001'
-    f = open(fnwithpath,'wb')
-    pickle.dump(saveDict,f)
-    f.close()
+    with open(fnwithpath,'wb') as f:
+        pickle.dump(saveDict,f)
 
     if not early:
         if blue > red:
@@ -259,7 +258,7 @@ def both(allletters=''):
         winner = 'player1'
     else:
         winner = 'tie'
-    logtable.info('%s,%s,%s,%d,%d,%d,%s','player0',winner,allletters,g1len,biggestlength,numwords,fnwithpath)
+    logtable.info(f'player0,{winner},{allletters},{g1len},{biggestlength},{numwords},{fnwithpath}')
     g2res,g2len,b2time,r2time,fnwithpath = game(allletters,False)
     logger.info('result: '+g2res+' '+str(g2len) +' words played')
     if g2res == 'blue':
@@ -268,7 +267,7 @@ def both(allletters=''):
         winner = 'player0'
     else:
         winner = 'tie'
-    logtable.info('%s,%s,%s,%d,%d,%d,%s','player1',winner,allletters,g2len,biggestlength,numwords,fnwithpath)
+    logtable.info(f'player1,{winner},{allletters},{g2len},{biggestlength},{numwords},{fnwithpath}')
 
     p0time = b1time+r2time
     p1time = r1time+b2time
