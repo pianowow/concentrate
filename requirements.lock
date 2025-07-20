@@ -10,3 +10,9 @@ pygments==2.19.2
     # via pytest
 pytest==8.4.1
     # via -r requirements.txt
+pyupgrade==3.20.0
+    # via -r requirements.txt
+ruff==0.12.4
+    # via -r requirements.txt
+tokenize-rt==6.2.0
+    # via pyupgrade
