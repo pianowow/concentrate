@@ -286,7 +286,7 @@ if __name__ == '__main__':
     os.makedirs('tests', exist_ok=True)
     logger = logging.getLogger('evolve')
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler('tests'+os.sep+'evolve.log')
+    fh = logging.FileHandler('log'+os.sep+'evolve.log')
     fh.setLevel(logging.INFO)
     # define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()

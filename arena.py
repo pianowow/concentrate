@@ -22,8 +22,8 @@ difficulty = ['A',5,25,'S']
 
 logger = logging.getLogger('arena')
 logger.setLevel(logging.DEBUG)
-os.makedirs('tests', exist_ok=True)
-fh = logging.FileHandler('tests'+os.sep+'arena.log')
+os.makedirs('log', exist_ok=True)
+fh = logging.FileHandler('log'+os.sep+'arena.log')
 fh.setLevel(logging.INFO)
 # define a Handler which writes INFO messages or higher to the sys.stderr
 console = logging.StreamHandler()
@@ -41,7 +41,7 @@ logger.addHandler(fh)
 #for the results table (csv file)
 logtable = logging.getLogger('csv')
 logtable.setLevel(logging.INFO)
-th = logging.FileHandler('tests'+os.sep+'arena.csv')
+th = logging.FileHandler('log'+os.sep+'arena.csv')
 th.setLevel(logging.INFO)
 tformatter = logging.Formatter('%(asctime)s,%(message)s','%Y-%m-%d %H:%M:%S')
 th.setFormatter(tformatter)
@@ -156,7 +156,7 @@ def game(allletters='',player0blue=False):
         r = player0(difficulty)
         logger.debug('player0 plays red')
         filename = strftime('%Y_%m_%d_%H_%M_%S_b1r0.cgd')
-    datadir = os.path.dirname(inspect.stack()[0][1]) +os.sep+'tests'
+    datadir = os.path.dirname(inspect.stack()[0][1]) +os.sep+'log'
     fnwithpath = os.path.join(datadir, filename)
     logger.info(fnwithpath)
     saveList = list()
