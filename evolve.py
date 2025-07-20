@@ -283,6 +283,7 @@ def evolve(num_generations):
 if __name__ == '__main__':
     d = ['R',5,25,'S']
 
+    os.makedirs('tests', exist_ok=True)
     logger = logging.getLogger('evolve')
     logger.setLevel(logging.DEBUG)
     fh = logging.FileHandler('tests'+os.sep+'evolve.log')
