@@ -1054,11 +1054,12 @@ class AnalysisGUI(Tk):
             self.update_board_colors(board)
             self.history.focus_set()
             #unselect suggest selection, if any
-            suggestSelect = self.suggest.focus()
-            self.suggestIgnore = True
-            self.suggest.selection_remove(suggestSelect)
-            self.btnSuggestSelect.state(['disabled'])
-            self.suggestSelection = -1
+            if self.suggest.selection():
+                suggestSelect = self.suggest.focus()
+                self.suggestIgnore = True
+                self.suggest.selection_remove(suggestSelect)
+                self.btnSuggestSelect.state(['disabled'])
+                self.suggestSelection = -1
             #set whose turn it is based on the selection
             if self.history.tag_has('red',clickedIID):
                 self.move.set(1)
