@@ -4,4 +4,4 @@
 .DS_Store
 /log
 /data/recent.ccd
-
+/src/concentrate.egg-info
