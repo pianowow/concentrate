@@ -1044,7 +1044,7 @@ class AnalysisGUI(Tk):
     def history_click(self, event):
         """bound to history.<<TreeviewSelect>>"""
 
-        if not self.historyIgnore:
+        if not self.historyIgnore and self.history.selection():
             #get item id clicked on
             clickedIID = self.history.focus()
             self.historySelection = clickedIID
@@ -2114,7 +2114,7 @@ class PlayGUI(AnalysisGUI):
 
     def history_click(self, event):
         """bound to history.<<TreeviewSelect>>"""
-        if not self.historyIgnore:
+        if not self.historyIgnore and self.history.selection():
             self.clear_play()
             #get item id clicked on
             clickedIID = self.history.focus()
