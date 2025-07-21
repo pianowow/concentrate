@@ -534,7 +534,7 @@ class AnalysisGUI(Tk):
 
     def save_recent_files(self):
         try:
-            with open('recent.ccd', 'rb') as f:
+            with open(Path(__file__).parent.parent.parent / 'data' / 'recent.ccd', 'rb') as f:
                 gqueue = pickle.load(f)  # list of filenames with paths... oldest first
         except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             gqueue = []
@@ -545,7 +545,7 @@ class AnalysisGUI(Tk):
             gqueue.append(self.file)  # move this file to the end
         while len(gqueue) > 12:
             gqueue = gqueue[1:]
-        with open('recent.ccd', 'wb') as f:
+        with open(Path(__file__).parent.parent.parent / 'recent.ccd', 'wb') as f:
             pickle.dump(gqueue, f)
 
 
