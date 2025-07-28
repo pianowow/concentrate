@@ -10,19 +10,22 @@
 
 import os
 import sys
+from pathlib import Path
 import inspect
 import pickle
-from player import player0, player1
+from .player import player0, player1
 from time import time,strftime
 from random import choice, shuffle, sample
 
-difficulty = ['A',5,25,'S']
-
 import logging
+
+difficulty = ['A',5,25,'S']
 
 logger = logging.getLogger('arena')
 logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler('tests\\arena.log')
+project_root = Path(__file__).parent.parent.parent
+os.makedirs(project_root / 'log', exist_ok=True)
+fh = logging.FileHandler(project_root / 'log' / 'arena.log')
 fh.setLevel(logging.INFO)
 # define a Handler which writes INFO messages or higher to the sys.stderr
 console = logging.StreamHandler()
@@ -40,41 +43,20 @@ logger.addHandler(fh)
 #for the results table (csv file)
 logtable = logging.getLogger('csv')
 logtable.setLevel(logging.INFO)
-th = logging.FileHandler('tests\\arena.csv')
+th = logging.FileHandler(Path(__file__).resolve().parent.parent.parent / 'log' / 'arena.csv')
 th.setLevel(logging.INFO)
 tformatter = logging.Formatter('%(asctime)s,%(message)s','%Y-%m-%d %H:%M:%S')
 th.setFormatter(tformatter)
 logtable.addHandler(th)
 logtable.addHandler(console)
 
-# Now, we can log to the root logger, or any other logger. First the root...
-##logging.info('Jackdaws love my big sphinx of quartz.')
 
-# Now, define a couple of other loggers which might represent areas in your
-# application:
-
-##logger1 = logging.getLogger('myapp.area1')
-##logger2 = logging.getLogger('myapp.area2')
-##
-
-def find_data_file(filename):
-    if getattr(sys, 'frozen', False):
-        # The application is frozen
-        datadir = os.path.dirname(sys.executable)
-    else:
-        # The application is not frozen
-        # Change this bit to match where you store your data files:
-        datadir = os.path.dirname(inspect.stack()[0][1])
-
-    return os.path.join(datadir, filename)
-
-listfile = open(find_data_file('en15.txt'),'r')
-letterlist = list()
-for word in listfile:
-    word = word.upper().strip()
-    for letter in word:
-        letterlist.append(letter)
-listfile.close()
+with open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'en15.txt') as listfile:
+    letterlist = list()
+    for word in listfile:
+        word = word.upper().strip()
+        for letter in word:
+            letterlist.append(letter)
 
 vowels = ('A','E','I','O','U')
 
@@ -155,8 +137,8 @@ def game(allletters='',player0blue=False):
         r = player0(difficulty)
         logger.debug('player0 plays red')
         filename = strftime('%Y_%m_%d_%H_%M_%S_b1r0.cgd')
-    datadir = os.path.dirname(inspect.stack()[0][1]) +os.sep+'tests'
-    fnwithpath = os.path.join(datadir, filename)
+    datadir = Path(__file__).parent.parent.parent / 'log'
+    fnwithpath = datadir / filename
     logger.info(fnwithpath)
     saveList = list()
     saveDict = dict()
@@ -189,7 +171,7 @@ def game(allletters='',player0blue=False):
             else:
                 bluePassed = False
             num = len(playedwords)+1
-            saveList.append(('I%03d' % num,word,round(score,4),board.replace(' ',''),allletters, turn))
+            saveList.append((f'I{num:03d}',word,round(score,4),board.replace(' ',''),allletters, turn))
             turn = 'red'
         else:
             start = time()
@@ -206,7 +188,7 @@ def game(allletters='',player0blue=False):
             else:
                 redPassed = False
             num = len(playedwords)+1
-            saveList.append(('I%03d' % num,word,round(score,4),board.replace(' ',''),allletters, turn))
+            saveList.append((f'I{num:03d}',word,round(score,4),board.replace(' ',''),allletters, turn))
             turn = 'blue'
         if len(playedwords) > 100 and ((oldscore < 0 and score < 0) or (oldscore > 0 and score > 0)):
             early = True
@@ -217,9 +199,8 @@ def game(allletters='',player0blue=False):
     saveDict['letters'] = allletters
     saveDict['colors'] = '-'*25
     saveDict['selected'] = 'I001'
-    f = open(fnwithpath,'wb')
-    pickle.dump(saveDict,f)
-    f.close()
+    with open(fnwithpath,'wb') as f:
+        pickle.dump(saveDict,f)
 
     if not early:
         if blue > red:
@@ -258,7 +239,7 @@ def both(allletters=''):
         winner = 'player1'
     else:
         winner = 'tie'
-    logtable.info('%s,%s,%s,%d,%d,%d,%s','player0',winner,allletters,g1len,biggestlength,numwords,fnwithpath)
+    logtable.info(f'player0,{winner},{allletters},{g1len},{biggestlength},{numwords},{fnwithpath}')
     g2res,g2len,b2time,r2time,fnwithpath = game(allletters,False)
     logger.info('result: '+g2res+' '+str(g2len) +' words played')
     if g2res == 'blue':
@@ -267,7 +248,7 @@ def both(allletters=''):
         winner = 'player0'
     else:
         winner = 'tie'
-    logtable.info('%s,%s,%s,%d,%d,%d,%s','player1',winner,allletters,g2len,biggestlength,numwords,fnwithpath)
+    logtable.info(f'player1,{winner},{allletters},{g2len},{biggestlength},{numwords},{fnwithpath}')
 
     p0time = b1time+r2time
     p1time = r1time+b2time

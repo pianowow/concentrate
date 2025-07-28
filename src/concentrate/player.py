@@ -10,10 +10,10 @@
 
 from string import ascii_uppercase, digits
 from random import choice
-from itertools import combinations, count
+from itertools import combinations
 from collections import defaultdict
-from time import clock
 from math import sqrt
+from pathlib import Path
 
 class player0:
     def __init__(self, difficulty=['A',5,25,'S'], weights = (3.1, 1.28, 2.29, 7.78)): #this represents maximum difficulty
@@ -21,8 +21,8 @@ class player0:
         self.difficulty = difficulty
         self.name = 'stable - player0'
         #load word lists
-        listfile = open('en15.txt','r')
-        reducedfile = open('reduced.txt','r')
+        listfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'en15.txt')
+        reducedfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'reduced.txt')
         wordset = set()
         reducedset = set()
         for word in [word.upper().strip() for word in listfile]:
@@ -75,8 +75,8 @@ class player0:
             if self.difficulty[0] == 'A':
                 for word in [x for x in self.wordlist if len(x) <= wordsizelimit]:
                     good = True
-                    for l in word:
-                        if letters.count(l) < word.count(l):
+                    for letter in word:
+                        if letters.count(letter) < word.count(letter):
                             good = False
                             break
                     if good:
@@ -84,8 +84,8 @@ class player0:
             else:
                 for word in [x for x in self.reducedlist if len(x) <= wordsizelimit]:
                     good = True
-                    for l in word:
-                        if letters.count(l) < word.count(l):
+                    for letter in word:
+                        if letters.count(letter) < word.count(letter):
                             good = False
                             break
                     if good:
@@ -103,27 +103,21 @@ class player0:
             for letter in letterdict.keys():
                 letterlst.append(letter)
                 cnt.append(letterdict[letter])
-            try:
-                mincnt = min(cnt)
-            except:
-                mincnt = 1
+            mincnt = min(cnt, default=1)
             for i,num in enumerate(cnt):
                 cnt[i] = num/mincnt  #gets it into range 1-max/min
-            try:
-                maxcnt = max(cnt)
-            except:
-                maxcnt = 1
+            maxcnt = max(cnt, default=1)
             for i,num in enumerate(cnt):
                 cnt[i] = num/maxcnt  #gets it into range 0-1
             for i,letter in enumerate(letterlst):
                 letterdict[letter] = round(cnt[i],2)
-            for l in ascii_uppercase:
-                if l not in letterdict:
-                    letterdict[l] = 0
+            for letter in ascii_uppercase:
+                if letter not in letterdict:
+                    letterdict[letter] = 0
             #calculate defended scores
             d = [0 for x in range(25)]
-            for i,l in enumerate(letters):
-                d[i] = round(self.dw + self.dpw*(1-letterdict[l]),2)
+            for i,letter in enumerate(letters):
+                d[i] = round(self.dw + self.dpw*(1-letterdict[letter]),2)
             #calculate undefended scores
             u = [0 for x in range(25)]
             for row in range(5):
@@ -155,8 +149,8 @@ class player0:
         if needletters != '':
             for word in found: #find words that use all needletters
                 good = True
-                for l in needletters:
-                    if word.count(l) < needletters.count(l):
+                for letter in needletters:
+                    if word.count(letter) < needletters.count(letter):
                         good = False
                         break
                 if good:
@@ -167,8 +161,8 @@ class player0:
         if notletters != '': #remove words that use the notletters
             for word in allletterlist:
                 good = True
-                for l in notletters:
-                    if word.count(l) > allletters.count(l) - notletters.count(l): #using 1 R when there are two Rs is fine
+                for letter in notletters:
+                    if word.count(letter) > allletters.count(letter) - notletters.count(letter): #using 1 R when there are two Rs is fine
                         good = False
                         break
                 if good:
@@ -179,8 +173,8 @@ class player0:
         if anyletters != '':  #remove words that don't use anyletters
             for word in notletterlist:
               good = False
-              for l in anyletters:
-                  if l in word:
+              for letter in anyletters:
+                  if letter in word:
                       good = True
                       break
               if good:
@@ -238,9 +232,9 @@ class player0:
         '''function to determine the best placement of word'''
         # for each unique letter, get a list of tuples for the indexes it can be played in
         wordhist = dict()
-        for l in word:
-            wordhist[l] = word.count(l)
-        letteroptions = [list(combinations([i for i in range(25) if allletters[i] == l and i not in used],wordhist[l])) for l in wordhist]
+        for letter in word:
+            wordhist[letter] = word.count(letter)
+        letteroptions = [list(combinations([i for i in range(25) if allletters[i] == letter and i not in used],wordhist[letter])) for letter in wordhist]
         # create a new list with enough elements to hold all the options above (multiply the length of all the lists)
         lenwordplays=1
         for lst in letteroptions:
@@ -340,7 +334,7 @@ class player0:
         wordgroups = dict() #{'groupletters': [word1, word2, etc]}
 
         for word in words:
-            group = ''.join(sorted([l for l in word if l in anyl]))
+            group = ''.join(sorted([letter for letter in word if letter in anyl]))
             if group in wordgroups:
                 wordgroups[group].append(word)
             else:
@@ -418,23 +412,20 @@ class player0:
         goal = 0
         #find goal for notletters (if none given already)
         if not notletters and not needletters:
-            try:
-                maxwordsizepossible = max(len(x) for x in self.possible(allletters))
-            except: # needed in case user makes a crazy board with no possible words
-                maxwordsizepossible = 0
+            maxwordsizepossible = max([len(word) for word in self.possible(allletters)], default=0)
             #print('max word size',maxwordsizepossible)
             if maxwordsizepossible < 13: #based on testing goal vs flexible version
                 goal = self.computegoal(allletters, blue, red, move)
-            for i,l in enumerate(allletters):
+            for i,letter in enumerate(allletters):
                 if (1<<i) & targets:
-                    anyl += l
+                    anyl += letter
                 if (1<<i) & goal:
                     dontuse.append(i)
-                    notletters += l
+                    notletters += letter
         else:
-            for i,l in enumerate(allletters):
+            for i,letter in enumerate(allletters):
                 if (1<<i) & targets:
-                    anyl += l
+                    anyl += letter
 
         #if goal:
             #print('goal: '+notletters+' '+bin(goal))
@@ -547,8 +538,8 @@ class player0:
                 goodgoal = True
                 for word in lst: #find one word that uses all the goal letters
                     goodword = True
-                    for l in goalstr:
-                        if word.count(l) < goalstr.count(l):
+                    for letter in goalstr:
+                        if word.count(letter) < goalstr.count(letter):
                             goodword = False
                             break
                     if goodword: #we found a word that uses all the goal letters
@@ -651,8 +642,8 @@ class player0:
         assert play in group
         newgroup = []
         for word in group:
-            l = len(word)
-            if play[:l] != word:
+            length = len(word)
+            if play[:length] != word:
                 newgroup.append(word)
         group = newgroup
         category = defaultdict(int)
@@ -661,18 +652,18 @@ class player0:
         for i,word1 in enumerate(group):
             mychildren = []
             if word1 not in children:
-                l = len(word1)
+                length = len(word1)
                 for word2 in group[i+1:]:
-                    if word2[:l] == word1:
+                    if word2[:length] == word1:
                         mychildren.append(word2)
                         children.add(word2)
                 if mychildren:
                     double = True
                     mychildren.sort(key=lambda x:len(x))
                     for i,child1 in enumerate(mychildren[:-1]):
-                        l = len(child1)
+                        length = len(child1)
                         for child2 in mychildren[i+1:]:
-                            if child2[:l] == child1:
+                            if child2[:length] == child1:
                                 category['big'] += 1
                                 double = False
                     if double:

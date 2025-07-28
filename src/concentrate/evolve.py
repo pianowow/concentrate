@@ -14,8 +14,10 @@ import inspect
 import logging
 import pickle
 import multiprocessing
-from player import player0,player1
-from time import time,strftime
+#from player import player0,player1
+from pathlib import Path
+from .player import player1
+from time import time
 from random import choice, shuffle, sample, random
 from itertools import combinations
 
@@ -91,7 +93,6 @@ def game(allletters, player1, player2):
 
     playedwords = list()
     bluePassed = redPassed = False
-    btime = rtime = 0
     score = 0
     early = False
     while board.find('-') != -1:
@@ -105,7 +106,6 @@ def game(allletters, player1, player2):
                 bluePassed = True
             else:
                 bluePassed = False
-            num = len(playedwords)+1
             turn = 'red'
         else:
             oldscore = score
@@ -117,7 +117,6 @@ def game(allletters, player1, player2):
                 redPassed = True
             else:
                 redPassed = False
-            num = len(playedwords)+1
             turn = 'blue'
         if len(playedwords) > 100 and ((oldscore < 0 and score < 0) or (oldscore > 0 and score > 0)):
             early = True
@@ -155,8 +154,8 @@ def make_boards():
         while not gotit:
             good = True
             board = genletters(x)
-            for l in board:
-                if board.count(l) > 2:
+            for letter in board:
+                if board.count(letter) > 2:
                     good = False #I don't want lots of the same letter (all that does is slow down the engine)
                     break
             if good:
@@ -187,7 +186,7 @@ def have_kids(parent_scores):  # parent_scores is a dict of {parent:score, paren
     while len(parents) > 2:
         parents.pop()
     diff = round(sum([abs(x-y) for (x,y) in zip(parents[0],parents[1])]),2)
-    logger.info('%s %s',parents, diff)
+    logger.info(f'{parents} {diff}')
     if diff > .5:
         parents.append(sex(parents[0],parents[1]))  # if they are different enough, sex makes sense
     else:
@@ -228,16 +227,14 @@ def do_generation(competitors, boards):
     return comp_scores
 
 def read_file():
-    f = open('evolve_memory.pkl','rb')
-    best_dict = pickle.load(f)
-    f.close()
+    with open(Path(__file__).parent.parent.parent / 'data' / 'evolve_memory.pkl','rb') as f:
+        best_dict = pickle.load(f)
     return best_dict
 
 def new_file(begin_weights, generations=0):
     dct = {begin_weights: generations}
-    f = open('evolve_memory.pkl','wb')
-    pickle.dump(dct,f)
-    f.close()
+    with open(Path(__file__).parent.parent.parent / 'data' / 'evolve_memory.pkl','wb') as f:
+        pickle.dump(dct,f)
 
 def evolve(num_generations):
     logger.info('===== Begin Evolution =====')
@@ -255,41 +252,43 @@ def evolve(num_generations):
     best_so_far = list(best_dict.keys())[0]
     prior_generations = best_dict[best_so_far]
     competitors.append(best_so_far)
-    logger.info('starting with %s',best_so_far)
-    logger.info('this is the result of %s prior generations',prior_generations)
+    logger.info(f'starting with {best_so_far}')
+    logger.info(f'this is the result of {prior_generations} prior generations')
     logger.info('boards used for this run:')
     for board in boards:
-        logger.info('    %s',board)
+        logger.info(f'    {board}')
     while len(competitors) < 4:
         newguy = mutate(best_so_far)
         if newguy not in competitors:
-            competitors.append(mutate(best_so_far))
+            competitors.append(newguy)
     start = time()
     for i in range(num_generations):
-        logger.info('Generation %s: %s',i,competitors)
+        logger.info(f'Generation {i}: {competitors}')
         scores = do_generation(competitors, boards)
         competitors = have_kids(scores)
         best_so_far = max(scores,key=lambda x:scores[x])
         prior_generations += 1
-        f = open('evolve_memory.pkl','wb')
+        f = open(Path(__file__).parent.parent.parent / 'data' / 'evolve_memory.pkl','wb')
         pickle.dump({best_so_far:prior_generations},f)
         f.close()
     score_lst = list(sorted(scores.keys(),key=lambda x:scores[x],reverse=True))
     score_pairs = [(scores[x],x) for x in score_lst]
-    logger.info('final score: %s' % score_pairs)
+    logger.info(f'final score: {score_pairs}')
     for (x,y) in score_pairs:
-        logger.info('    %s %s' % (x,y))
+        logger.info(f'    {x} {y}')
     end = time()
     avg = round((end-start)/num_generations,2)
-    logger.info('%s seconds per generation',avg)
-    logger.info('%s seconds total'%round(end-start,2))
+    logger.info(f'{avg} seconds per generation')
+    logger.info(f'{round(end-start,2)} seconds total')
 
 if __name__ == '__main__':
     d = ['R',5,25,'S']
 
+    project_dir = Path(__file__).parent.parent.parent
+    os.makedirs(project_dir / 'log', exist_ok=True)
     logger = logging.getLogger('evolve')
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler('tests\\evolve.log')
+    fh = logging.FileHandler(project_dir / 'log' / 'evolve.log')
     fh.setLevel(logging.INFO)
     # define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
@@ -303,7 +302,7 @@ if __name__ == '__main__':
     logger.addHandler(console)
     logger.addHandler(fh)
 
-    listfile = open(find_data_file('en15.txt'),'r')
+    listfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'en15.txt')
     letterlist = list()
     for word in listfile:
         word = word.upper().strip()
@@ -326,9 +325,11 @@ if __name__ == '__main__':
     for letter in letterhist:
         letterhist[letter] = int(max((letterhist[letter]/tot,minimum)) / minimum * 100)
         newletterlist += [letter]*letterhist[letter]
-    pool = multiprocessing.Pool(3)
+    pool = multiprocessing.Pool(7)
 
     print(read_file())
+
+    evolve(100)
 
 def begin(num_gens):
     evolve(num_gens)

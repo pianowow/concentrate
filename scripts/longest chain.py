@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
-listfile = open('en15.txt','r')
+listfile = open('en15.txt')
 wordlist = list()
 for word in listfile:
     word = word.upper().strip()

@@ -7,17 +7,20 @@
 # Created:     31/03/2013
 # Copyright:   (c) CHRISTOPHER IRWIN 2013
 
-from tkinter import *
+from tkinter import Canvas, E, IntVar, Menu, N, S, StringVar, TclError, Tk, Toplevel, VERTICAL, W
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import ttk
-from player import player0, player1
+from tkinter import PhotoImage
+from .player import player0, player1
 from string import ascii_uppercase
 from random import choice, sample
 from os import path, getcwd, sep
+from pathlib import Path
 from time import time
-import arena
+from .arena import genletters
 import pickle
+import sys
 
 class AnalysisGUI(Tk):
 
@@ -41,17 +44,17 @@ class AnalysisGUI(Tk):
         self.titleSeparator = ' - '
 
         #default theme is 'light'
-        self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
-        self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
-        self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
-        self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
-        self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
-        self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
-        self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
+        self.defaultColor = f'#{233:02x}{232:02x}{229:02x}'
+        self.defaultColor2 = f'#{230:02x}{229:02x}{226:02x}'
+        self.blue= (f'#{120:02x}{200:02x}{245:02x}', f'#{0:02x}{162:02x}{255:02x}')
+        self.red = (f'#{247:02x}{153:02x}{141:02x}', f'#{255:02x}{67:02x}{47:02x}')
+        self.defaultText= f'#{46:02x}{45:02x}{45:02x}'
+        self.blueText= (f'#{24:02x}{40:02x}{49:02x}', f'#{0:02x}{32:02x}{51:02x}')
+        self.redText = (f'#{49:02x}{30:02x}{28:02x}', f'#{51:02x}{13:02x}{9:02x}')
         #these are for PlayGUI, but wanted change_theme to be inherited, so defining in both places
-        self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
-        self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
-        self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
+        self.selectedBlue = (f'#{90:02x}{190:02x}{243:02x}', f'#{0:02x}{139:02x}{223:02x}')
+        self.selectedRed = (f'#{249:02x}{129:02x}{112:02x}', f'#{255:02x}{39:02x}{15:02x}')
+        self.selectedDefault = f'#{224:02x}{224:02x}{224:02x}'
 
 
         if title == '':
@@ -126,7 +129,7 @@ class AnalysisGUI(Tk):
         self.btnSuggestSelect.grid(row=2,column=3,columnspan=2,pady=0,sticky=(N,S))
         self.btnSuggestSelect.state(['disabled'])
 
-        self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+        self.platform = sys.platform
         self.move = IntVar()
         self.move.set(1)
         self.theme = IntVar()
@@ -146,10 +149,10 @@ class AnalysisGUI(Tk):
         self.randomized= StringVar()
         self.randomized.set('No')
 
-        mydir = getcwd()
-        iconfile = 'concentrate.ico'
-        self.iconpathandfn = mydir+sep+iconfile
-        self.iconbitmap(self.iconpathandfn)  #finally this works on windows!  #TODO: check mac
+        mydir = Path(__file__).parent.parent.parent
+        self.iconpathandfn = mydir / 'data' / 'images' / 'concentrate.png'
+        self.icon = PhotoImage(file=self.iconpathandfn)
+        self.iconphoto(False, self.icon)  #Linux solution
 
         self.draw_menu()
 
@@ -171,7 +174,7 @@ class AnalysisGUI(Tk):
 
         self.menuBar = Menu(self, tearoff=0)
 
-        if self.sys == 'aqua':  # mac os x
+        if self.platform == 'darwin':  # mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
             self.fileMenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
             self.bind('<Command-n>',self.new)
@@ -249,16 +252,13 @@ class AnalysisGUI(Tk):
 
             self.recentMenu= Menu(self.fileMenu, tearoff=0)
 
-            currentlyopen = self.file
             try:
-                f = open('recent.ccd','rb')
-                gqueue = pickle.load(f)
-                f.close()
-            except:
-                f = open('recent.ccd','wb')
+                with open(Path(__file__).parent.parent.parent / 'data' / 'recent.ccd', 'rb') as f:
+                    gqueue = pickle.load(f)
+            except (FileNotFoundError, EOFError, pickle.UnpicklingError):
                 gqueue = []
-                pickle.dump(gqueue,f)
-                f.close()
+                with open(Path(__file__).parent.parent.parent / 'data' / 'recent.ccd', 'wb') as f:
+                    pickle.dump(gqueue, f)
             while gqueue != []:
                 nextfile = gqueue.pop() #take from the end of the list and add to the top of the menu
                 self.recentMenu.add_command(label=nextfile, command=self.make_opener(nextfile))
@@ -347,100 +347,100 @@ class AnalysisGUI(Tk):
         self.save_board_colors()
         if theme == 'light':
             self.theme.set(0)
-            self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
-            self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
-            self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
-            self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
-            self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
-            self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
-            self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
-            self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
-            self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
-            self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
+            self.defaultColor = f'#{233:02x}{232:02x}{229:02x}'
+            self.defaultColor2 = f'#{230:02x}{229:02x}{226:02x}'
+            self.blue= (f'#{120:02x}{200:02x}{245:02x}', f'#{0:02x}{162:02x}{255:02x}')
+            self.red = (f'#{247:02x}{153:02x}{141:02x}', f'#{255:02x}{67:02x}{47:02x}')
+            self.defaultText= f'#{46:02x}{45:02x}{45:02x}'
+            self.blueText= (f'#{24:02x}{40:02x}{49:02x}', f'#{0:02x}{32:02x}{51:02x}')
+            self.redText = (f'#{49:02x}{30:02x}{28:02x}', f'#{51:02x}{13:02x}{9:02x}')
+            self.selectedBlue = (f'#{90:02x}{190:02x}{243:02x}', f'#{0:02x}{139:02x}{223:02x}')
+            self.selectedRed = (f'#{249:02x}{129:02x}{112:02x}', f'#{255:02x}{39:02x}{15:02x}')
+            self.selectedDefault = f'#{224:02x}{224:02x}{224:02x}'
         elif theme == 'dark':
             self.theme.set(3)
-            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
-            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
-            self.blue= ('#%02x%02x%02x' % (24, 117, 152), '#%02x%02x%02x' % (0, 186, 255))
-            self.red = ('#%02x%02x%02x' % (152, 58, 48), '#%02x%02x%02x' % (255, 67, 47))
-            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
-            self.blueText= ('#%02x%02x%02x' % (208, 227, 234), '#%02x%02x%02x' % (0, 37, 51))
-            self.redText = ('#%02x%02x%02x' % (234, 215, 213), '#%02x%02x%02x' % (51, 13, 9))
-            self.selectedBlue = ('#%02x%02x%02x' % (29, 138, 180), '#%02x%02x%02x' % (0, 162, 223))
-            self.selectedRed = ('#%02x%02x%02x' % (176, 67, 55), '#%02x%02x%02x' % (255, 39, 15))
-            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+            self.defaultColor = f'#{55:02x}{55:02x}{55:02x}'
+            self.defaultColor2 = f'#{57:02x}{57:02x}{57:02x}'
+            self.blue= (f'#{24:02x}{117:02x}{152:02x}', f'#{0:02x}{186:02x}{255:02x}')
+            self.red = (f'#{152:02x}{58:02x}{48:02x}', f'#{255:02x}{67:02x}{47:02x}')
+            self.defaultText= f'#{215:02x}{215:02x}{215:02x}'
+            self.blueText= (f'#{208:02x}{227:02x}{234:02x}', f'#{0:02x}{37:02x}{51:02x}')
+            self.redText = (f'#{234:02x}{215:02x}{213:02x}', f'#{51:02x}{13:02x}{9:02x}')
+            self.selectedBlue = (f'#{29:02x}{138:02x}{180:02x}', f'#{0:02x}{162:02x}{223:02x}')
+            self.selectedRed = (f'#{176:02x}{67:02x}{55:02x}', f'#{255:02x}{39:02x}{15:02x}')
+            self.selectedDefault = f'#{73:02x}{73:02x}{73:02x}'
         elif theme == 'contrast':
             self.theme.set(7)
-            self.defaultColor = '#%02x%02x%02x' % (247, 247, 247)
-            self.defaultColor2 = '#%02x%02x%02x' % (244, 244, 244)
-            self.blue= ('#%02x%02x%02x' % (143, 255, 127), '#%02x%02x%02x' % (32, 255, 0))
-            self.red = ('#%02x%02x%02x' % (127, 127, 127), '#%02x%02x%02x' % (0, 0, 0))
-            self.defaultText= '#%02x%02x%02x' % (48, 48, 48)
-            self.blueText= ('#%02x%02x%02x' % (28, 51, 25), '#%02x%02x%02x' % (6, 51, 0))
-            self.redText = ('#%02x%02x%02x' % (25, 25, 25), '#%02x%02x%02x' % (204, 204, 204))
-            self.selectedBlue = ('#%02x%02x%02x' % (116, 255, 96), '#%02x%02x%02x' % (28, 223, 0))
-            self.selectedRed = ('#%02x%02x%02x' % (111, 111, 111), '#%02x%02x%02x' % (35, 35, 35))
-            self.selectedDefault = '#%02x%02x%02x' % (228, 228, 228)
+            self.defaultColor = f'#{247:02x}{247:02x}{247:02x}'
+            self.defaultColor2 = f'#{244:02x}{244:02x}{244:02x}'
+            self.blue= (f'#{143:02x}{255:02x}{127:02x}', f'#{32:02x}{255:02x}{0:02x}')
+            self.red = (f'#{127:02x}{127:02x}{127:02x}', f'#{0:02x}{0:02x}{0:02x}')
+            self.defaultText= f'#{48:02x}{48:02x}{48:02x}'
+            self.blueText= (f'#{28:02x}{51:02x}{25:02x}', f'#{6:02x}{51:02x}{0:02x}')
+            self.redText = (f'#{25:02x}{25:02x}{25:02x}', f'#{204:02x}{204:02x}{204:02x}')
+            self.selectedBlue = (f'#{116:02x}{255:02x}{96:02x}', f'#{28:02x}{223:02x}{0:02x}')
+            self.selectedRed = (f'#{111:02x}{111:02x}{111:02x}', f'#{35:02x}{35:02x}{35:02x}')
+            self.selectedDefault = f'#{228:02x}{228:02x}{228:02x}'
         elif theme == 'forest':
             self.theme.set(4)
-            self.defaultColor = '#%02x%02x%02x' % (217, 223, 209)
-            self.defaultColor2 = '#%02x%02x%02x' % (215, 221, 207)
-            self.blue= ('#%02x%02x%02x' % (239, 193, 108), '#%02x%02x%02x' % (255, 156, 0))
-            self.red = ('#%02x%02x%02x' % (122, 164, 137), '#%02x%02x%02x' % (21, 99, 59))
-            self.defaultText= '#%02x%02x%02x' % (43, 44, 41)
-            self.blueText= ('#%02x%02x%02x' % (47, 38, 21), '#%02x%02x%02x' % (51, 31, 0))
-            self.redText = ('#%02x%02x%02x' % (24, 32, 27), '#%02x%02x%02x' % (208, 223, 215))
-            self.selectedBlue = ('#%02x%02x%02x' % (236, 181, 79), '#%02x%02x%02x' % (223, 134, 0))
-            self.selectedRed = ('#%02x%02x%02x' % (103, 152, 120), '#%02x%02x%02x' % (27, 124, 73))
-            self.selectedDefault = '#%02x%02x%02x' % (199, 207, 108)
+            self.defaultColor = f'#{217:02x}{223:02x}{209:02x}'
+            self.defaultColor2 = f'#{215:02x}{221:02x}{207:02x}'
+            self.blue= (f'#{239:02x}{193:02x}{108:02x}', f'#{255:02x}{156:02x}{0:02x}')
+            self.red = (f'#{122:02x}{164:02x}{137:02x}', f'#{21:02x}{99:02x}{59:02x}')
+            self.defaultText= f'#{43:02x}{44:02x}{41:02x}'
+            self.blueText= (f'#{47:02x}{38:02x}{21:02x}', f'#{51:02x}{31:02x}{0:02x}')
+            self.redText = (f'#{24:02x}{32:02x}{27:02x}', f'#{208:02x}{223:02x}{215:02x}')
+            self.selectedBlue = (f'#{236:02x}{181:02x}{79:02x}', f'#{223:02x}{134:02x}{0:02x}')
+            self.selectedRed = (f'#{103:02x}{152:02x}{120:02x}', f'#{27:02x}{124:02x}{73:02x}')
+            self.selectedDefault = f'#{199:02x}{207:02x}{108:02x}'
         elif theme == 'glow':
             self.theme.set(5)
-            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
-            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
-            self.blue= ('#%02x%02x%02x' % (73, 152, 119), '#%02x%02x%02x' % (97, 255, 190))
-            self.red = ('#%02x%02x%02x' % (141, 24, 77), '#%02x%02x%02x' % (234, 0, 105))
-            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
-            self.blueText= ('#%02x%02x%02x' % (14, 30, 23), '#%02x%02x%02x' % (19, 51, 38))
-            self.redText = ('#%02x%02x%02x' % (232, 208, 219), '#%02x%02x%02x' % (46, 0, 21))
-            self.selectedBlue = ('#%02x%02x%02x' % (63, 131, 102), '#%02x%02x%02x' % (45, 255, 171))
-            self.selectedRed = ('#%02x%02x%02x' % (115, 19, 63), '#%02x%02x%02x' % (202, 0, 91))
-            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+            self.defaultColor = f'#{55:02x}{55:02x}{55:02x}'
+            self.defaultColor2 = f'#{57:02x}{57:02x}{57:02x}'
+            self.blue= (f'#{73:02x}{152:02x}{119:02x}', f'#{97:02x}{255:02x}{190:02x}')
+            self.red = (f'#{141:02x}{24:02x}{77:02x}', f'#{234:02x}{0:02x}{105:02x}')
+            self.defaultText= f'#{215:02x}{215:02x}{215:02x}'
+            self.blueText= (f'#{14:02x}{30:02x}{23:02x}', f'#{19:02x}{51:02x}{38:02x}')
+            self.redText = (f'#{232:02x}{208:02x}{219:02x}', f'#{46:02x}{0:02x}{21:02x}')
+            self.selectedBlue = (f'#{63:02x}{131:02x}{102:02x}', f'#{45:02x}{255:02x}{171:02x}')
+            self.selectedRed = (f'#{115:02x}{19:02x}{63:02x}', f'#{202:02x}{0:02x}{91:02x}')
+            self.selectedDefault = f'#{73:02x}{73:02x}{73:02x}'
         elif theme == 'pink':
             self.theme.set(6)
-            self.defaultColor = '#%02x%02x%02x' % (247, 217, 230)
-            self.defaultColor2 = '#%02x%02x%02x' % (245, 215, 227)
-            self.blue= ('#%02x%02x%02x' % (255, 112, 232), '#%02x%02x%02x' % (255, 0, 228))
-            self.red = ('#%02x%02x%02x' % (171, 140, 142), '#%02x%02x%02x' % (87, 56, 47))
-            self.defaultText= '#%02x%02x%02x' % (48, 43, 45)
-            self.blueText= ('#%02x%02x%02x' % (51, 22, 46), '#%02x%02x%02x' % (51, 0, 45))
-            self.redText = ('#%02x%02x%02x' % (34, 28, 28), '#%02x%02x%02x' % (221, 215, 213))
-            self.selectedBlue = ('#%02x%02x%02x' % (255, 81, 228), '#%02x%02x%02x' % (223, 0, 201))
-            self.selectedRed = ('#%02x%02x%02x' % (157, 121, 124), '#%02x%02x%02x' % (107, 69, 58))
-            self.selectedDefault = '#%02x%02x%02x' % (238, 189, 208)
+            self.defaultColor = f'#{247:02x}{217:02x}{230:02x}'
+            self.defaultColor2 = f'#{245:02x}{215:02x}{227:02x}'
+            self.blue= (f'#{255:02x}{112:02x}{232:02x}', f'#{255:02x}{0:02x}{228:02x}')
+            self.red = (f'#{171:02x}{140:02x}{142:02x}', f'#{87:02x}{56:02x}{47:02x}')
+            self.defaultText= f'#{48:02x}{43:02x}{45:02x}'
+            self.blueText= (f'#{51:02x}{22:02x}{46:02x}', f'#{51:02x}{0:02x}{45:02x}')
+            self.redText = (f'#{34:02x}{28:02x}{28:02x}', f'#{221:02x}{215:02x}{213:02x}')
+            self.selectedBlue = (f'#{255:02x}{81:02x}{228:02x}', f'#{223:02x}{0:02x}{201:02x}')
+            self.selectedRed = (f'#{157:02x}{121:02x}{124:02x}', f'#{107:02x}{69:02x}{58:02x}')
+            self.selectedDefault = f'#{238:02x}{189:02x}{208:02x}'
         elif theme == 'pop':
             self.theme.set(1)
-            self.defaultColor = '#%02x%02x%02x' % (55, 55, 55)
-            self.defaultColor2 = '#%02x%02x%02x' % (57, 57, 57)
-            self.blue= ('#%02x%02x%02x' % (87, 152, 24), '#%02x%02x%02x' % (126, 255, 0))
-            self.red = ('#%02x%02x%02x' % (152, 24, 123), '#%02x%02x%02x' % (255, 0, 198))
-            self.defaultText= '#%02x%02x%02x' % (215, 215, 215)
-            self.blueText= ('#%02x%02x%02x' % (221, 234, 208), '#%02x%02x%02x' % (25, 51, 0))
-            self.redText = ('#%02x%02x%02x' % (234, 208, 228), '#%02x%02x%02x' % (51, 0, 39))
-            self.selectedBlue = ('#%02x%02x%02x' % (104, 180, 29), '#%02x%02x%02x' % (112, 223, 0))
-            self.selectedRed = ('#%02x%02x%02x' % (180, 29, 146), '#%02x%02x%02x' % (223, 0, 173))
-            self.selectedDefault = '#%02x%02x%02x' % (73, 73, 73)
+            self.defaultColor = f'#{55:02x}{55:02x}{55:02x}'
+            self.defaultColor2 = f'#{57:02x}{57:02x}{57:02x}'
+            self.blue= (f'#{87:02x}{152:02x}{24:02x}', f'#{126:02x}{255:02x}{0:02x}')
+            self.red = (f'#{152:02x}{24:02x}{123:02x}', f'#{255:02x}{0:02x}{198:02x}')
+            self.defaultText= f'#{215:02x}{215:02x}{215:02x}'
+            self.blueText= (f'#{221:02x}{234:02x}{208:02x}', f'#{25:02x}{51:02x}{0:02x}')
+            self.redText = (f'#{234:02x}{208:02x}{228:02x}', f'#{51:02x}{0:02x}{39:02x}')
+            self.selectedBlue = (f'#{104:02x}{180:02x}{29:02x}', f'#{112:02x}{223:02x}{0:02x}')
+            self.selectedRed = (f'#{180:02x}{29:02x}{146:02x}', f'#{223:02x}{0:02x}{173:02x}')
+            self.selectedDefault = f'#{73:02x}{73:02x}{73:02x}'
         elif theme == 'retro':
             self.theme.set(2)
-            self.defaultColor = '#%02x%02x%02x' % (243, 228, 191)
-            self.defaultColor2 = '#%02x%02x%02x' % (241, 226, 189)
-            self.blue= ('#%02x%02x%02x' % (195, 136, 226), '#%02x%02x%02x' % (140, 37, 255))
-            self.red = ('#%02x%02x%02x' % (244, 166, 133), '#%02x%02x%02x' % (237, 97, 70))
-            self.defaultText= '#%02x%02x%02x' % (48, 45, 37)
-            self.blueText= ('#%02x%02x%02x' % (39, 27, 45), '#%02x%02x%02x' % (232, 211, 255))
-            self.redText = ('#%02x%02x%02x' % (48, 33, 26), '#%02x%02x%02x' % (47, 19, 14))
-            self.selectedBlue = ('#%02x%02x%02x' % (182, 109, 220), '#%02x%02x%02x' % (157, 68, 255))
-            self.selectedRed = ('#%02x%02x%02x' % (241, 145, 103), '#%02x%02x%02x' % (234, 69, 40))
-            self.selectedDefault = '#%02x%02x%02x' % (235, 214, 163)
+            self.defaultColor = f'#{243:02x}{228:02x}{191:02x}'
+            self.defaultColor2 = f'#{241:02x}{226:02x}{189:02x}'
+            self.blue= (f'#{195:02x}{136:02x}{226:02x}', f'#{140:02x}{37:02x}{255:02x}')
+            self.red = (f'#{244:02x}{166:02x}{133:02x}', f'#{237:02x}{97:02x}{70:02x}')
+            self.defaultText= f'#{48:02x}{45:02x}{37:02x}'
+            self.blueText= (f'#{39:02x}{27:02x}{45:02x}', f'#{232:02x}{211:02x}{255:02x}')
+            self.redText = (f'#{48:02x}{33:02x}{26:02x}', f'#{47:02x}{19:02x}{14:02x}')
+            self.selectedBlue = (f'#{182:02x}{109:02x}{220:02x}', f'#{157:02x}{68:02x}{255:02x}')
+            self.selectedRed = (f'#{241:02x}{145:02x}{103:02x}', f'#{234:02x}{69:02x}{40:02x}')
+            self.selectedDefault = f'#{235:02x}{214:02x}{163:02x}'
         self.history.tag_configure('red', foreground=self.red[1])
         self.history.tag_configure('blue', foreground=self.blue[1])
         self.blueScore.config(foreground=self.blue[1])
@@ -468,10 +468,10 @@ class AnalysisGUI(Tk):
 
     def restore_from_dict(self,dct):
         letters = dct['letters']
-        for i,l in enumerate(letters):
-            row = i//5
-            col = i%5
-            self.board.itemconfig(self.boardStuff[row][col][1],text=l)
+        for i, letter in enumerate(letters):
+            row = i // 5
+            col = i % 5
+            self.board.itemconfig(self.boardStuff[row][col][1], text=letter)
         lst = dct['history']
         for id, word, score, board, letters, color in lst:
             self.history.insert('', 'end', iid=id, tag=color, values=(word, score, board, letters))
@@ -496,9 +496,8 @@ class AnalysisGUI(Tk):
         def opener():
             self.canvas_draw()
             self.file = fn
-            f = open(self.file,'rb')
-            dct = pickle.load(f)
-            f.close()
+            with open(self.file,'rb') as f:
+                dct = pickle.load(f)
             self.restore_from_dict(dct)
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
             self.save_recent_files()
@@ -534,19 +533,20 @@ class AnalysisGUI(Tk):
         return fn
 
     def save_recent_files(self):
-        f = open('recent.ccd','rb')
-        gqueue = pickle.load(f) #list of filenames with paths... oldest first
-        f.close()
+        try:
+            with open(Path(__file__).parent.parent.parent / 'data' / 'recent.ccd', 'rb') as f:
+                gqueue = pickle.load(f)  # list of filenames with paths... oldest first
+        except (FileNotFoundError, EOFError, pickle.UnpicklingError):
+            gqueue = []
         if self.file not in gqueue:
-            gqueue.append(self.file) #add this file to the end
+            gqueue.append(self.file)  # add this file to the end
         else:
             gqueue.remove(self.file)
-            gqueue.append(self.file) #move this file to the end
+            gqueue.append(self.file)  # move this file to the end
         while len(gqueue) > 12:
             gqueue = gqueue[1:]
-        f = open('recent.ccd','wb')
-        pickle.dump(gqueue,f)
-        f.close()
+        with open(Path(__file__).parent.parent.parent / 'recent.ccd', 'wb') as f:
+            pickle.dump(gqueue, f)
 
 
     def save(self,event=None):
@@ -557,19 +557,17 @@ class AnalysisGUI(Tk):
                 self.file = fn
                 self.file = self.file_name_check(self.file)
                 print(self.file)
-                f = open(self.file,'wb')
-                saveDict = self.make_save_dict()
-                pickle.dump(saveDict,f)
+                with open(self.file,'wb') as f:
+                    saveDict = self.make_save_dict()
+                    pickle.dump(saveDict,f)
                 self.title(self.titleText+self.titleSeparator+path.basename(self.file))
-                f.close()
                 self.save_recent_files()
                 self.draw_menu()
         else:
-            f = open(self.file,'wb')
-            saveDict = self.make_save_dict()
-            pickle.dump(saveDict,f)
+            with open(self.file,'wb') as f:
+                saveDict = self.make_save_dict()
+                pickle.dump(saveDict,f)
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
-            f.close()
 
 
     def save_as(self,event=None):
@@ -627,7 +625,7 @@ class AnalysisGUI(Tk):
     def ask_custom_difficulty(self):
         ask = self.ask = Toplevel(self)
         ask.grab_set()
-        ask.iconbitmap(self.iconpathandfn)
+        ask.iconphoto(False, self.icon)
 
         ask.title('Custom Difficulty')
 
@@ -680,7 +678,7 @@ class AnalysisGUI(Tk):
         self.board.bind('<Button-1>',self.change_color)
         self.board.bind('<Key>',self.nex)  # to write that character to the square and select the next one
 
-        if self.sys != 'aqua':  # these special key bindings are handled on the mac by the key binding above, self.nex
+        if self.platform != 'darwin':  # these special key bindings are handled on the mac by the key binding above, self.nex
             self.board.bind('<Up>',self.move_up)
             self.board.bind('<Down>',self.move_down)
             self.board.bind('<Left>',self.move_left)
@@ -715,7 +713,7 @@ class AnalysisGUI(Tk):
             else:
                 go = False
         if go:
-            letters = arena.genletters()
+            letters = genletters()
             for x,c in enumerate(letters):
                 row = x // 5
                 col = x % 5
@@ -728,7 +726,6 @@ class AnalysisGUI(Tk):
         for x,c in enumerate(colors):
             self.update_colors(x//5,x%5,c)
         self.board.focus_set()
-        #print(self.board.focus_get().winfo_class())
 
     def move_up(self,event):  #these methods work on windows, mac is handled by self.nex
         (row, col) = self.selected
@@ -771,16 +768,29 @@ class AnalysisGUI(Tk):
         self.board.itemconfig(self.boardStuff[row][col][1],text='')
 
     def nex(self,event):
+        # Ignore modifier keys pressed by themselves
+        if event.keysym in ('Shift_L', 'Shift_R', 'Control_L', 'Control_R', 'Alt_L', 'Alt_R', 'Caps_Lock', 'Num_Lock'):
+            return
+
         (row, col) = self.selected
         self.board.focus_set()
         self.board.focus()
-        if self.sys == 'aqua':
-            noModifier = {0}
-        else:
-            noModifier = {0,1,2,3,8,9,10,11,32,33,34,35,40,41,42,43} # sum of modifiers: 1-shift, 2-capslock, 4-ctrl, 8-numlock, 32-scolllock
+
         char = event.char.upper()
-        if char in ascii_uppercase and len(char) > 0 and event.state in noModifier: #len is used to avoid moving forward with Control/Command buttons alone
-                                                                                    #event.state is used to avoid doing the same for Command-key on the mac
+
+        # Check for modifiers that would indicate a shortcut
+        state = event.state
+        is_shortcut = False
+        if self.platform == 'darwin': # Mac
+            # Command (16), Control (4), Option (8)
+            if state & (16 | 4 | 8):
+                is_shortcut = True
+        else: # Windows/Linux
+            # Control (4), Alt (8)
+            if state & (4 | 8):
+                is_shortcut = True
+
+        if char in ascii_uppercase and not is_shortcut:
             go = True
             if len(self.history.get_children()) > 0:
                 if messagebox.askyesno('Are you sure?','Editing the letters on the board will clear the history and search box.  Do you want to proceed?'):
@@ -796,7 +806,7 @@ class AnalysisGUI(Tk):
                 nextRow = nextNum // 5
                 nextCol = nextNum % 5
                 self.select_square(nextRow, nextCol)
-        elif len(char) > 0:  # works on the mac, not on windows
+        elif len(char) > 0 and self.platform == 'darwin':  # works on the mac, not on windows
             keyNum = ord(event.char)
             if keyNum == 63232:  # up
                 nextNum = ((row-1)*5 + col) % 25
@@ -826,7 +836,6 @@ class AnalysisGUI(Tk):
                 self.board.itemconfig(self.boardStuff[nextRow][nextCol][1],text='')
             elif keyNum == 63272:  # delete
                 self.board.itemconfig(self.boardStuff[row][col][1],text='')
-        #print(self.board.focus_get().winfo_class())
 
     def get_row_col(self, x, y):
         col = x//self.squareSize
@@ -934,7 +943,7 @@ class AnalysisGUI(Tk):
             w = self
         else:
             w = widget
-        if not str(w) in self.notBusyWidgetCursors:
+        if str(w) not in self.notBusyWidgetCursors:
             try:
                 # attach cursor to this widget
                 cursor = w.cget("cursor")
@@ -963,6 +972,7 @@ class AnalysisGUI(Tk):
     def clear_search(self):
         for iid in self.suggest.get_children():
             self.suggest.delete(iid)
+            
 
     def is_square_selected(self, row, col):
         selectedColors = tuple(self.selectedDefault) + self.selectedBlue + self.selectedRed
@@ -992,10 +1002,10 @@ class AnalysisGUI(Tk):
         newBoard = newBoard.replace(' ','')
         for row in range(5):
             for col in range(5):
-                i = row*5+col
-                l = newBoard[i]
+                i = row * 5 + col
+                letter = newBoard[i]
                 s = selected[i] == 'Y'
-                if (row+col)%2==0:
+                if (row + col) % 2 == 0:
                     bgColor = self.defaultColor
                 else:
                     bgColor = self.defaultColor2
@@ -1003,52 +1013,53 @@ class AnalysisGUI(Tk):
                     txtColor = self.selectedDefault
                 else:
                     txtColor = self.defaultText
-                if l == 'b':
+                if letter == 'b':
                     bgColor = self.blue[0]
                     if s:
                         txtColor = self.selectedBlue[0]
                     else:
                         txtColor = self.blueText[0]
-                elif l == 'B':
+                elif letter == 'B':
                     bgColor = self.blue[1]
                     if s:
                         txtColor = self.selectedBlue[1]
                     else:
                         txtColor = self.blueText[1]
-                elif l == 'r':
+                elif letter == 'r':
                     bgColor = self.red[0]
                     if s:
                         txtColor = self.selectedRed[0]
                     else:
                         txtColor = self.redText[0]
-                elif l == 'R':
+                elif letter == 'R':
                     bgColor = self.red[1]
                     if s:
                         txtColor = self.selectedRed[1]
                     else:
                         txtColor = self.redText[1]
-                self.board.itemconfig(self.boardStuff[row][col][0],fill=bgColor,outline=bgColor)
-                self.board.itemconfig(self.boardStuff[row][col][1],fill=txtColor)
+                self.board.itemconfig(self.boardStuff[row][col][0], fill=bgColor, outline=bgColor)
+                self.board.itemconfig(self.boardStuff[row][col][1], fill=txtColor)
         self.update_score_display()
 
     def history_click(self, event):
         """bound to history.<<TreeviewSelect>>"""
 
-        if not self.historyIgnore:
+        if not self.historyIgnore and self.history.selection():
             #get item id clicked on
             clickedIID = self.history.focus()
             self.historySelection = clickedIID
-            txt = self.history.set(clickedIID,'Word')
+            self.history.set(clickedIID,'Word')
             board = self.history.set(clickedIID,'Board')
             #update colors on the board to match the board of the word suggested
             self.update_board_colors(board)
             self.history.focus_set()
             #unselect suggest selection, if any
-            suggestSelect = self.suggest.focus()
-            self.suggestIgnore = True
-            self.suggest.selection_remove(suggestSelect)
-            self.btnSuggestSelect.state(['disabled'])
-            self.suggestSelection = -1
+            if self.suggest.selection():
+                suggestSelect = self.suggest.focus()
+                self.suggestIgnore = True
+                self.suggest.selection_remove(suggestSelect)
+                self.btnSuggestSelect.state(['disabled'])
+                self.suggestSelection = -1
             #set whose turn it is based on the selection
             if self.history.tag_has('red',clickedIID):
                 self.move.set(1)
@@ -1066,7 +1077,8 @@ class AnalysisGUI(Tk):
             self.historyIgnore = False
 
     def suggest_click(self, event):
-        """tied to suggest.<<TreeviewSelect>>"""
+        # """tied to suggest.<<TreeviewSelect>>"""
+        # tkinter calls this in some situations we want to actively ignore this code
         if not self.suggestIgnore:
             #columns=('Word', 'Score','Board')
             #get item id clicked on
@@ -1075,7 +1087,7 @@ class AnalysisGUI(Tk):
                 self.suggestSelection = clickedIID
                 txt = self.suggest.set(clickedIID,'Word')
                 board = self.suggest.set(clickedIID,'Board')
-                if txt != self.noText:
+                if txt != "" and txt != self.noText:
                     if txt == self.moreText:
                         #delete the last entry (click for more...)
                         last = ''
@@ -1104,11 +1116,9 @@ class AnalysisGUI(Tk):
 
     def suggest_select(self):
         item = self.suggest.focus()
-        #print ("you selected", self.suggest.set(item,'Word'))
         #clear history past the current selection
-        txt = ''
         if self.historySelection != -1:
-            txt = self.history.set(self.historySelection,'Word')
+            txt = self.history.set(self.historySelection, 'Word')
             toDelete = []
             if txt == self.initialHist:
                 toDelete.append(self.historySelection)
@@ -1127,7 +1137,6 @@ class AnalysisGUI(Tk):
         score = self.suggest.set(item,'Score')
         #board = self.suggest.set(item,'Board')  #I got rid of this because I want to be able to change the play if necessary
         board = ''.join(self.get_defended_color(row,col) for row in range(5) for col in range(5))
-        #print('saving move:',txt,score,board)
         if self.move.get() == 1:
             insertID = self.history.insert('', 'end', tag='blue', values=(txt, score, board, self.letters))
         else:
@@ -1145,6 +1154,7 @@ class AnalysisGUI(Tk):
         if self.title()[-1] != '*' and self.file != '':
             self.title(self.title()+'*')
         self.btnSuggestSelect.state(['disabled'])
+        self.suggestIgnore = True #tkinter will call suggest_click after this for some reason?
 
     def do_search(self, event=None, lastDisplayed=-1):
         self.busy()
@@ -1232,8 +1242,8 @@ class AnalysisGUI(Tk):
         minscore = min(u+d)
         maxscore = max(u+d)
 
-        blueDef = blueUndef = bluePopDef = bluePopUndef = blueCenterOfMass = blueTotal = 0
-        redDef = redUndef = redPopDef = redPopUndef = redCenterOfMass = redTotal = 0
+        blueDef = blueUndef = bluePopDef = bluePopUndef = blueTotal = 0
+        redDef = redUndef = redPopDef = redPopUndef = redTotal = 0
         d = self.player.cache[self.letters][2]
         u = self.player.cache[self.letters][3]
         for i in range(25):
@@ -1256,13 +1266,12 @@ class AnalysisGUI(Tk):
 
         zero = (~red) & (~blue)
         bluediff = self.player.mw * self.player.vectordiff(self.player.centroid(blue), self.player.centroid(zero))
-        blueTotal += bluediff;
+        blueTotal += bluediff
         reddiff = - self.player.mw * self.player.vectordiff(self.player.centroid(red), self.player.centroid(zero))
         redTotal += reddiff
 
         popup = Toplevel(self)
-
-        popup.iconbitmap(self.iconpathandfn)
+        popup.iconphoto(False, self.icon)
         popup.resizable(0,0)
 
         clickedIID = self.history.focus()
@@ -1272,8 +1281,7 @@ class AnalysisGUI(Tk):
         else:
             popup.title('Under the Hood')
 
-        score = ttk.Label(popup,text='Score: '+str(round(overallscore,2)))
-        score.grid(row=0,column=0,columnspan=4)
+        ttk.Label(popup,text='Score: '+str(round(overallscore,2))).grid(row=0,column=0,columnspan=4)
 
         bluelabel = ttk.Label(popup,text='Blue Position')
         bluelabel.grid(row=1,column=0)
@@ -1285,14 +1293,16 @@ class AnalysisGUI(Tk):
         blueBoard = Canvas(popup, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
         blueBoard.grid(row=2,column=0)
 
-        blueScore = ttk.Label(popup,text = 'Defended: %s\nUndefended: %s\nDefended Popularity: %s\nUndefended Popularity: %s\nCenter of Mass: %s\n\nTotal: %s' %
-        (round(blueDef,2),round(blueUndef,2),round(bluePopDef,2),round(bluePopUndef,2),round(bluediff,2),round(blueTotal,2)))
+        blueScore = ttk.Label(popup,text = f'Defended: {round(blueDef,2)}\nUndefended: {round(blueUndef,2)}\n'
+                                           f'Defended Popularity: {round(bluePopDef,2)}\nUndefended Popularity: {round(bluePopUndef,2)}\n'
+                                           f'Center of Mass: {round(bluediff,2)}\n\nTotal: {round(blueTotal,2)}')
         blueScore.grid(row=2,column=1)
         redBoard = Canvas(popup, width=self.boardSize, height=self.boardSize, borderwidth=0, highlightthickness=1, bg='white')
         redBoard.grid(row=2,column=2)
 
-        redScore = ttk.Label(popup,text = 'Defended: %s\nUndefended: %s\nDefended Popularity: %s\nUndefended Popularity: %s\nCenter of Mass: %s\n\nTotal: %s' %
-        (round(redDef,2),round(redUndef,2),round(redPopDef,2),round(redPopUndef,2),round(reddiff,2),round(redTotal,2)))
+        redScore = ttk.Label(popup,text = f'Defended: {round(redDef,2)}\nUndefended: {round(redUndef,2)}\n'
+                                          f'Defended Popularity: {round(redPopDef,2)}\nUndefended Popularity: {round(redPopUndef,2)}\n'
+                                          f'Center of Mass: {round(reddiff)}\n\nTotal: {round(redTotal,2)}') 
         redScore.grid(row=2,column=3)
 
         MinVisibleWaveLength = 450
@@ -1313,7 +1323,7 @@ class AnalysisGUI(Tk):
 
 
         def getColor(value, color):
-            Wavelength = (value - minscore) / (maxscore-minscore) * (MaxVisibleWaveLength - MinVisibleWaveLength) + MinVisibleWaveLength;
+            Wavelength = (value - minscore) / (maxscore-minscore) * (MaxVisibleWaveLength - MinVisibleWaveLength) + MinVisibleWaveLength
             if Wavelength < 440:
                 Red   = -(Wavelength - 440) / (440 - 380)
                 Green = 0.0
@@ -1351,14 +1361,14 @@ class AnalysisGUI(Tk):
             R = Adjust(Red,   factor)
             G = Adjust(Green, factor)
             B = Adjust(Blue,  factor)
-            return '#%02x%02x%02x' %(R,G,B)
+            return f'#{R:02x}{G:02x}{B:02x}'
 
         def Adjust(Color, Factor):
-            Gamma = 0.50;
+            Gamma = 0.50
             if Color == 0.0:
                 return 0     # Don't want 0^x = 1 for x <> 0
             else:
-                return round(255 * ((Color * Factor) ** Gamma),0)
+                return int(round(255 * ((Color * Factor) ** Gamma),0))
 
         filllabel = ttk.Label(popup,text = ' ')
         filllabel.grid(row=3,column=0)
@@ -1417,7 +1427,6 @@ class AnalysisGUI(Tk):
     def auto_play(self, event=None):
 
         letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
-        score = ''.join(self.get_color(row,col) for row in range(5) for col in range(5))
 
         if not(all([x in ascii_uppercase for x in letters]) and len(letters) == 25):
             self.not_busy()
@@ -1429,9 +1438,8 @@ class AnalysisGUI(Tk):
             self.title(self.title()+'*')
 
         #clear history past the current selection
-        txt = ''
         if self.historySelection != -1:
-            txt = self.history.set(self.historySelection,'Word')
+            txt = self.history.set(self.historySelection, 'Word')
             toDelete = []
             if txt == self.initialHist:
                 toDelete.append(self.historySelection)
@@ -1738,16 +1746,16 @@ class PlayGUI(AnalysisGUI):
         self.titleSeparator = ' - '
 
         #default theme is 'light'
-        self.defaultColor = '#%02x%02x%02x' % (233, 232, 229)
-        self.defaultColor2 = '#%02x%02x%02x' % (230, 229, 226)
-        self.blue= ('#%02x%02x%02x' % (120, 200, 245), '#%02x%02x%02x' % (0, 162, 255))
-        self.red = ('#%02x%02x%02x' % (247, 153, 141), '#%02x%02x%02x' % (255, 67, 47))
-        self.defaultText= '#%02x%02x%02x' % (46, 45, 45)
-        self.blueText= ('#%02x%02x%02x' % (24, 40, 49), '#%02x%02x%02x' % (0, 32, 51))
-        self.redText = ('#%02x%02x%02x' % (49, 30, 28), '#%02x%02x%02x' % (51, 13, 9))
-        self.selectedBlue = ('#%02x%02x%02x' % (90, 190, 243), '#%02x%02x%02x' % (0, 139, 223))
-        self.selectedRed = ('#%02x%02x%02x' % (249, 129, 112), '#%02x%02x%02x' % (255, 39, 15))
-        self.selectedDefault = '#%02x%02x%02x' % (224, 224, 224)
+        self.defaultColor = f'#{233:02x}{232:02x}{229:02x}'
+        self.defaultColor2 = f'#{230:02x}{229:02x}{226:02x}'
+        self.blue= (f'#{120:02x}{200:02x}{245:02x}', f'#{0:02x}{162:02x}{255:02x}')
+        self.red = (f'#{247:02x}{153:02x}{141:02x}', f'#{255:02x}{67:02x}{47:02x}')
+        self.defaultText= f'#{46:02x}{45:02x}{45:02x}'
+        self.blueText= (f'#{24:02x}{40:02x}{49:02x}', f'#{0:02x}{32:02x}{51:02x}')
+        self.redText = (f'#{49:02x}{30:02x}{28:02x}', f'#{51:02x}{13:02x}{9:02x}')
+        self.selectedBlue = (f'#{90:02x}{190:02x}{243:02x}', f'#{0:02x}{139:02x}{223:02x}')
+        self.selectedRed = (f'#{249:02x}{129:02x}{112:02x}', f'#{255:02x}{39:02x}{15:02x}')
+        self.selectedDefault = f'#{224:02x}{224:02x}{224:02x}'
 
         if title == '':
             self.title(self.titleText)
@@ -1794,7 +1802,7 @@ class PlayGUI(AnalysisGUI):
         self.historySelection = -1
         self.historyIgnore= False
 
-        self.sys = self.tk.call('tk', 'windowingsystem') # will return x11, win32 or aqua
+        self.platform = sys.platform
         self.canvas_draw()
 
         self.play = ttk.Label(self.topFrame,text='',font='Helvetica 11')
@@ -1825,10 +1833,12 @@ class PlayGUI(AnalysisGUI):
         self.randomized= StringVar()
         self.randomized.set('No')
 
-        iconfile = getcwd()+sep+'concentrate.ico'
-        self.iconbitmap(iconfile)  #finally this works on windows!  #TODO: check mac
+        mydir = Path(__file__).parent.parent.parent
+        self.iconpathandfn = mydir / 'data' / 'images' / 'concentrate.png'
+        self.icon = PhotoImage(file=self.iconpathandfn)
+        self.iconphoto(False, self.icon)  #Linux solution
 
-        if self.sys == 'aqua': #mac os x
+        if self.platform == 'darwin': #mac os x
             self.fileMenu= Menu(self.menuBar, tearoff=0)
             self.fileMenu.add_command(label="New", underline=0, command=self.new, accelerator='Command-N')
             self.bind('<Command-n>',self.new)
@@ -1963,9 +1973,8 @@ class PlayGUI(AnalysisGUI):
         if fn != '':
             self.canvas_draw()
             self.file = fn
-            f = open(self.file,'rb')
-            dct = pickle.load(f)
-            f.close()
+            with open(self.file,'rb') as f:
+                dct = pickle.load(f)
             self.restore_from_dict(dct)
             self.title(self.titleText+self.titleSeparator+path.basename(self.file))
             self.make_word_set()
@@ -2105,7 +2114,7 @@ class PlayGUI(AnalysisGUI):
 
     def history_click(self, event):
         """bound to history.<<TreeviewSelect>>"""
-        if not self.historyIgnore:
+        if not self.historyIgnore and self.history.selection():
             self.clear_play()
             #get item id clicked on
             clickedIID = self.history.focus()
@@ -2244,7 +2253,7 @@ class PlayGUI(AnalysisGUI):
             return
         letters = ''.join([self.board.itemcget(self.boardStuff[row][col][1], 'text') for row in range(5) for col in range(5)])
         blue, red, bluedef, reddef = self.refPlayer.convertboardscore(board.upper())
-        score = self.refPlayer.evaluatepos(letters, blue, red, 1)
+        score = self.refPlayer.evaluatepos(letters, blue, red)
         self.add_to_hist(word, score, board, letters, 1)
         self.btnPlay.state(['disabled'])
         self.save_board_colors()

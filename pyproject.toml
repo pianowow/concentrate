@@ -1,0 +1,7 @@
+[project]
+name = "concentrate"
+version = "0.1.0"
+description = "LetterPress Engine"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
