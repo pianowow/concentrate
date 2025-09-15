@@ -21,7 +21,7 @@ class player0:
         self.difficulty = difficulty
         self.name = 'stable - player0'
         #load word lists
-        listfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'en15.txt')
+        listfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'en.txt')
         reducedfile = open(Path(__file__).parent.parent.parent / 'data' / 'word_lists' / 'reduced.txt')
         wordset = set()
         reducedset = set()
